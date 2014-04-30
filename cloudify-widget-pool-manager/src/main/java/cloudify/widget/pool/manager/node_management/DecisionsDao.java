@@ -35,9 +35,8 @@ public class DecisionsDao {
     public static final String COL_DECISION_TYPE = "decision_type";
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_APPROVED = "approved";
+    public static final String COL_EXECUTED = "executed";
     public static final String COL_DETAILS = "details";
-
-    public static final String COL_ALIAS_COUNT = "count";
 
     private JdbcTemplate jdbcTemplate;
 
@@ -56,13 +55,14 @@ public class DecisionsDao {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
                         PreparedStatement ps = con.prepareStatement(
-                                "insert into " + TABLE_NAME + " (" + COL_DECISION_TYPE + "," + COL_POOL_ID + "," + COL_APPROVED + "," + COL_DETAILS + ") values (?, ?, ?, ?)",
+                                "insert into " + TABLE_NAME + " (" + COL_DECISION_TYPE + "," + COL_POOL_ID + "," + COL_APPROVED + "," + COL_EXECUTED + "," + COL_DETAILS + ") values (?, ?, ?, ?, ?)",
                                 Statement.RETURN_GENERATED_KEYS // specify to populate the generated key holder
                         );
                         ps.setString(1, decisionModel.decisionType.name());
                         ps.setString(2, decisionModel.poolId);
                         ps.setBoolean(3, decisionModel.approved);
-                        ps.setString(4, Utils.objectToJson(decisionModel.details));
+                        ps.setBoolean(4, decisionModel.executed);
+                        ps.setString(5, Utils.objectToJson(decisionModel.details));
                         return ps;
                     }
                 },
@@ -99,8 +99,8 @@ public class DecisionsDao {
 
     public int update(DecisionModel decisionModel) {
         return jdbcTemplate.update(
-                "update " + TABLE_NAME + " set " + COL_DECISION_TYPE + " = ?," + COL_POOL_ID + " = ?," + COL_APPROVED + " = ?," + COL_DETAILS + " = ? where " + COL_ID + " = ?",
-                decisionModel.decisionType.name(), decisionModel.poolId, decisionModel.approved, Utils.objectToJson(decisionModel.details), decisionModel.id);
+                "update " + TABLE_NAME + " set " + COL_DECISION_TYPE + " = ?," + COL_POOL_ID + " = ?," + COL_APPROVED + " = ?," + COL_EXECUTED + " = ?," + COL_DETAILS + " = ? where " + COL_ID + " = ?",
+                decisionModel.decisionType.name(), decisionModel.poolId, decisionModel.approved, decisionModel.executed, Utils.objectToJson(decisionModel.details), decisionModel.id);
     }
 
     public int delete(long decisionId) {

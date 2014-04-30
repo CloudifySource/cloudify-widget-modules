@@ -4,6 +4,7 @@ import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.dto.PoolStatus;
+import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
 import cloudify.widget.website.models.AccountModel;
@@ -34,6 +35,10 @@ public class AccountController {
 
     @Autowired
     private PoolManagerApi poolManagerApi;
+
+    @Autowired
+    private NodeManagementExecutor nodeManagementExecutor;
+
 
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
@@ -66,7 +71,9 @@ public class AccountController {
     @ResponseBody
     public Long createPool(@ModelAttribute("account") AccountModel accountModel, @RequestBody String poolSettingJson){
         try{
-            return poolDao.createPool( accountModel.getId(), poolSettingJson );
+            Long poolId = poolDao.createPool(accountModel.getId(), poolSettingJson);
+            nodeManagementExecutor.start(poolDao.readPoolById(poolId).poolSettings);
+            return poolId;
         }catch(Exception e){
             logger.error("unable to createPool", e);
             return null;
@@ -87,6 +94,7 @@ public class AccountController {
     public boolean deletePoolConfiguration( @ModelAttribute("account") AccountModel accountModel,
                                             @PathVariable("poolId") Long poolId ) {
 
+        nodeManagementExecutor.stop(poolDao.readPoolById(poolId).poolSettings);
         return poolDao.deletePool(poolId, accountModel.getId());
     }
 

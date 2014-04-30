@@ -33,7 +33,7 @@ public class TestNodeManagement {
     private SettingsDataAccessManager settingsDataAccessManager;
 
     @Autowired
-    private NodeManagementRunner nodeManagementRunner;
+    private NodeManagementExecutor nodeManagementExecutor;
 
     @Autowired
     private CreateNodeManager createNodeManager;
@@ -51,8 +51,6 @@ public class TestNodeManagement {
 
     @Test
     public void testDecisionMaker() throws IOException {
-
-        createNodeManager.mode(NodeManager.Mode.MANUAL_APPROVAL);
 
         PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp);
         logger.info("- pool settings [{}]", poolSettings.getProvider().getName());
@@ -85,6 +83,7 @@ public class TestNodeManagement {
                 .setDecisionType(DecisionType.CREATE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
+                .setExecuted(false)
                 .setDetails(new CreateDecisionDetails()
                                 .setNumInstances(3)
                 );
@@ -93,6 +92,7 @@ public class TestNodeManagement {
                 .setDecisionType(DecisionType.DELETE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
+                .setExecuted(false)
                 .setDetails(new DeleteDecisionDetails()
                                 .addMachineIds(machineIds)
                 );
@@ -101,6 +101,7 @@ public class TestNodeManagement {
                 .setDecisionType(DecisionType.PREPARE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
+                .setExecuted(false)
                 .setDetails(new PrepareDecisionDetails()
                                 .addMachineIds(machineIds)
                 );

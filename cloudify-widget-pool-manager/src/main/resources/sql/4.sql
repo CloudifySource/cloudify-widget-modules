@@ -3,6 +3,7 @@ create table decisions (
   decision_type varchar(200),
   pool_id varchar(200),
   approved boolean,
+  executed boolean,
   details mediumtext,
   primary key (id)
 );

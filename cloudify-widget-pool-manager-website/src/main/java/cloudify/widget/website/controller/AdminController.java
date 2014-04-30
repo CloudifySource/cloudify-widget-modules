@@ -1,5 +1,6 @@
 package cloudify.widget.website.controller;
 
+import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.website.dao.IAccountDao;
@@ -36,6 +37,9 @@ public class AdminController {
 
     @Autowired
     private PoolManagerApi poolManagerApi;
+
+    @Autowired
+    private NodeManagementExecutor nodeManagementExecutor;
 
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
@@ -100,6 +104,7 @@ public class AdminController {
     @ResponseBody
     public PoolConfigurationModel createAccountPool(@PathVariable("accountId") Long accountId, @RequestBody String poolSettingJson) {
         Long poolId = poolDao.createPool(accountId, poolSettingJson);
+        nodeManagementExecutor.start(poolDao.readPoolById(poolId).poolSettings);
         return poolDao.readPoolById(poolId);
     }
 
@@ -112,6 +117,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/delete", method = RequestMethod.POST)
     @ResponseBody
     public boolean deleteAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
+        nodeManagementExecutor.stop(poolDao.readPoolById(poolConfigurationId).poolSettings);
         return poolDao.deletePool(poolConfigurationId, accountId);
     }
 

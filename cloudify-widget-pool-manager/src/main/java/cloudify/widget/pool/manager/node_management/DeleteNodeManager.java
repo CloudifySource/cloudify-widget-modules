@@ -72,7 +72,7 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
 
         logger.info("executing decision [{}]", this);
 
-        switch (mode) {
+        switch (getConstraints().nodeManagerMode) {
             case AUTO_APPROVAL:
 
                 break;

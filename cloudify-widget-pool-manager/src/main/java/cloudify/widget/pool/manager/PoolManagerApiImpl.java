@@ -164,10 +164,11 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     @Override
     public void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved) {
-        // not allowed to change approval
-        if (NodeManagerMode.AUTO_APPROVAL == poolSettings.getNodeManagerMode()) {
+        // check if mode allows to change approval
+        NodeManagerMode nodeManagerMode = poolSettings.getNodeManagerMode();
+        if (nodeManagerMode != NodeManagerMode.MANUAL_APPROVAL && nodeManagerMode != NodeManagerMode.MANUAL) {
             throw new RuntimeException(
-                    String.format("update of 'approved' state of decisions is not allowed in mode [%s]", poolSettings.getNodeManagerMode()));
+                    String.format("update of 'approved' state of decisions is not allowed in mode [%s]", nodeManagerMode));
         }
         DecisionModel decisionModel = decisionsDao.read(decisionId);
         // nothing to change

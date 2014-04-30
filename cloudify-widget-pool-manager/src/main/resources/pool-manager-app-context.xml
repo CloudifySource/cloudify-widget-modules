@@ -17,12 +17,21 @@
 -->
 
     <bean id="taskPool" class="cloudify.widget.pool.manager.FixedSizeExecutorServiceFactory">
-        <property name="poolSize" value="200" />
+        <property name="numThreads" value="200" />
     </bean>
 
     <bean id="taskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init" destroy-method="destroy">
         <property name="executorService" ref="taskPool" />
         <!--<property name="backgroundExecutorService" ref="backgroundTaskPool" />-->
+    </bean>
+
+    <bean id="nodeManagementPool" class="cloudify.widget.pool.manager.ScheduledExecutorServiceFactory">
+        <property name="corePoolSize" value="200" />
+    </bean>
+
+    <bean id="nodeManagementExecutor" class="cloudify.widget.pool.manager.NodeManagementExecutor">
+        <property name="executorService" ref="nodeManagementPool" />
+        <property name="decisionExecutionIntervalInSeconds" value="3" />
     </bean>
 
     <!--<bean id="taskDecorator" class="cloudify.widget.pool.manager.tasks.TaskRegistrar$DecoratorImpl" scope="prototype">-->
@@ -50,9 +59,6 @@
         <property name="statusManager" ref="statusManager" />
         <property name="taskExecutor" ref="taskExecutor" />
         <property name="bootstrapScriptResourcePath" value="classpath:bootstrap_machine.sh" />
-    </bean>
-
-    <bean id="nodeManagementRunner" class="cloudify.widget.pool.manager.node_management.NodeManagementRunner">
     </bean>
 
     <bean id="createNodeManager" class="cloudify.widget.pool.manager.node_management.CreateNodeManager">

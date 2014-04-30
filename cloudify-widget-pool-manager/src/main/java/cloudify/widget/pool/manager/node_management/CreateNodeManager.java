@@ -1,5 +1,6 @@
 package cloudify.widget.pool.manager.node_management;
 
+import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
 import cloudify.widget.pool.manager.dto.DecisionType;
@@ -21,12 +22,13 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
 
     private static Logger logger = LoggerFactory.getLogger(CreateNodeManager.class);
 
-    private DecisionModel _decision;
-
     private CreateDecisionDetails _details;
 
     @Autowired
     private PoolManagerApi poolManagerApi;
+
+    @Autowired
+    private ErrorsDao errorsDao;
 
     @Override
     public CreateNodeManager decide() {
@@ -61,13 +63,13 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
         _details = new CreateDecisionDetails()
                 .setNumInstances(constraints.minNodes - nodeModels.size() - numInstancesSum);
 
-        _decision = new DecisionModel()
+        DecisionModel decisionModel = new DecisionModel()
                 .setDecisionType(DecisionType.CREATE)
                 .setPoolId(constraints.poolSettings.getUuid())
-                .setApproved(Mode.AUTO_APPROVAL == mode)
+                .setApproved(NodeManagerMode.AUTO_APPROVAL == constraints.nodeManagerMode)
                 .setDetails(_details);
 
-        decisionsDao.create(_decision);
+        decisionsDao.create(decisionModel);
 
         return this;
     }
@@ -76,28 +78,48 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
     public CreateNodeManager execute() {
         logger.info("executing...");
 
-        if (_decision.approved) {
-            // TODO prevent casting - used generics in model
-            int numInstances = ((CreateDecisionDetails) _decision.details).getNumInstances();
-            for (int i = 0; i < numInstances; i++) {
-                poolManagerApi.createNode(getConstraints().poolSettings, new TaskCallback<Collection<NodeModel>>() {
+        Constraints constraints = getConstraints();
 
-                    @Override
-                    public void onSuccess(Collection<NodeModel> result) {
-                        // it's the last machine - remove the model
-                        if (((CreateDecisionDetails) _decision.details).getNumInstances() == 1) {
-                            decisionsDao.delete(_decision.id);
-                            return;
+        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(
+                constraints.poolSettings.getUuid(), DecisionType.CREATE);
+        if (decisionModels == null || decisionModels.isEmpty()) {
+            logger.info("no decisions to execute");
+            return this;
+        }
+
+        logger.info("found [{}] decisions", decisionModels.size());
+        for (final DecisionModel decisionModel : decisionModels) {
+            logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
+
+            if (decisionModel.approved && !decisionModel.executed) {
+
+                // TODO prevent casting - used generics in model
+                int numInstances = ((CreateDecisionDetails) decisionModel.details).getNumInstances();
+                logger.info("creating [{}] instances via pool manager task executor", numInstances);
+                for (int i = 0; i < numInstances; i++) {
+                    poolManagerApi.createNode(constraints.poolSettings, new TaskCallback<Collection<NodeModel>>() {
+
+                        @Override
+                        public void onSuccess(Collection<NodeModel> result) {
+                            logger.info("machine created successfully, result is [{}]", result);
+                            // it's the last machine - remove the model
+                            if (((CreateDecisionDetails) decisionModel.details).getNumInstances() == 1) {
+                                decisionsDao.delete(decisionModel.id);
+                                return;
+                            }
+                            // just decrement the number of instances to be created
+                            decisionsDao.update(decisionModel.setDetails(_details.decrementNumInstances()));
                         }
-                        // just decrement the number of instances to be created
-                        decisionsDao.update(_decision.setDetails(_details.decrementNumInstances()));
-                    }
 
-                    @Override
-                    public void onFailure(Throwable t) {
-                        logger.error("failed to create machine", t);
-                    }
-                });
+                        @Override
+                        public void onFailure(Throwable t) {
+                            logger.error("failed to create machine", t);
+                        }
+                    });
+                }
+
+                logger.info("task sent, marking decision as executed");
+                decisionsDao.update(decisionModel.setExecuted(true));
             }
         }
 

@@ -17,8 +17,10 @@ public class Constraints {
 
     public int maxNodes;
 
+    public NodeManagerMode nodeManagerMode;
+
     // TODO TBD default should be all active?
-    public ArrayList<String> activeNodeManagers = new ArrayList<String>();
+//    public ArrayList<String> activeNodeManagers = new ArrayList<String>();
 
     public Constraints(PoolSettings ps) {
         if (ps == null) {
@@ -28,6 +30,7 @@ public class Constraints {
         poolSettings = ps;
         minNodes = ps.getMinNodes();
         maxNodes = ps.getMaxNodes();
+        nodeManagerMode = ps.getNodeManagerMode();
 //            activeNodeManagers = poolSettings.getActiveNodeManagers(); // TODO
     }
 

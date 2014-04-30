@@ -10,10 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class NodeManager<T extends NodeManager> implements DecisionMaker<T> {
 
-    public static enum Mode {
-        AUTO_APPROVAL, MANUAL_APPROVAL, MANUAL
-    }
-
     @Autowired
     protected DecisionsDao decisionsDao;
 
@@ -21,17 +17,6 @@ public abstract class NodeManager<T extends NodeManager> implements DecisionMake
     protected NodesDao nodesDao;
 
     private Constraints _constraints;
-
-    // TODO
-    // * delegate value from executor level
-    // * extract to config
-    // * what should be the default?
-    protected Mode mode = Mode.MANUAL;
-
-    public NodeManager mode(Mode mode) {
-        this.mode = mode;
-        return this;
-    }
 
     public NodeManager having(Constraints constraints) {
         _constraints = constraints;

@@ -15,6 +15,7 @@ public class DecisionModel {
     public DecisionType decisionType;
     public String poolId;
     public boolean approved;
+    public boolean executed;
     public DecisionDetails details;
 
     public DecisionModel setId(long id) {
@@ -37,6 +38,11 @@ public class DecisionModel {
         return this;
     }
 
+    public DecisionModel setExecuted(boolean executed) {
+        this.executed = executed;
+        return this;
+    }
+
     public DecisionModel setDetails(DecisionDetails details) {
         this.details = details;
         return this;
@@ -49,6 +55,7 @@ public class DecisionModel {
                 ", decisionType='" + decisionType + '\'' +
                 ", poolId='" + poolId + '\'' +
                 ", approved=" + approved +
+                ", executed=" + executed +
                 ", details=" + details +
                 '}';
     }

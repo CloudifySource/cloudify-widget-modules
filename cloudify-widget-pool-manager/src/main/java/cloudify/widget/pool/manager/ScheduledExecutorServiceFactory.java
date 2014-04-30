@@ -10,13 +10,13 @@ import java.util.concurrent.Executors;
  * Date: 3/9/14
  * Time: 5:12 PM
  */
-public class FixedSizeExecutorServiceFactory implements FactoryBean<ExecutorService> {
+public class ScheduledExecutorServiceFactory implements FactoryBean<ExecutorService> {
 
-    private int nThreads = 200;
+    private int corePoolSize = 200;
 
     @Override
     public ExecutorService getObject() throws Exception {
-        return Executors.newFixedThreadPool(nThreads);
+        return Executors.newScheduledThreadPool(corePoolSize);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class FixedSizeExecutorServiceFactory implements FactoryBean<ExecutorServ
         return false;
     }
 
-    public void setNumThreads(int nThreads) {
-        this.nThreads = nThreads;
+    public void setCorePoolSize(int corePoolSize) {
+        this.corePoolSize = corePoolSize;
     }
 }

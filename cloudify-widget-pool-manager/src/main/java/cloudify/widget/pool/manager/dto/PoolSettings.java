@@ -1,11 +1,12 @@
 package cloudify.widget.pool.manager.dto;
 
+import cloudify.widget.pool.manager.node_management.NodeManagerMode;
+
 import java.util.UUID;
 
 /**
- *
  * Please don't remove fields, use deprecation instead.
- *
+ * <p/>
  * User: eliranm
  * Date: 2/27/14
  * Time: 3:21 PM
@@ -18,6 +19,7 @@ public class PoolSettings {
     private String authKey;
     private int maxNodes;
     private int minNodes;
+    private NodeManagerMode nodeManagerMode;
     private BootstrapProperties bootstrapProperties;
     private ProviderSettings provider;
 
@@ -51,6 +53,14 @@ public class PoolSettings {
 
     public void setMinNodes(int minNodes) {
         this.minNodes = minNodes;
+    }
+
+    public NodeManagerMode getNodeManagerMode() {
+        return nodeManagerMode;
+    }
+
+    public void setNodeManagerMode(NodeManagerMode nodeManagerMode) {
+        this.nodeManagerMode = nodeManagerMode;
     }
 
     public ProviderSettings getProvider() {
@@ -105,8 +115,10 @@ public class PoolSettings {
         return "PoolSettings{" +
                 "uuid='" + uuid + '\'' +
                 ", name='" + name + '\'' +
+                ", authKey='***'" +
                 ", maxNodes=" + maxNodes +
                 ", minNodes=" + minNodes +
+                ", nodeManagerMode=" + nodeManagerMode +
                 ", bootstrapProperties=" + bootstrapProperties +
                 ", provider=" + provider +
                 '}';

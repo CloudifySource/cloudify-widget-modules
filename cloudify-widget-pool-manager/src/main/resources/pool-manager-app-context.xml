@@ -46,6 +46,7 @@
         <property name="errorsDao" ref="errorsDao" />
         <property name="tasksDao" ref="tasksDao" />
         <property name="nodeMappingsDao" ref="cloudNodesDao" />
+        <property name="decisionsDao" ref="decisionsDao" />
         <property name="statusManager" ref="statusManager" />
         <property name="taskExecutor" ref="taskExecutor" />
         <property name="bootstrapScriptResourcePath" value="classpath:bootstrap_machine.sh" />

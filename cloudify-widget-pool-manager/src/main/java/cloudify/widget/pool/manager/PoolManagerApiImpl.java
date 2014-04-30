@@ -1,6 +1,8 @@
 package cloudify.widget.pool.manager;
 
 import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.node_management.DecisionsDao;
+import cloudify.widget.pool.manager.node_management.NodeManagerMode;
 import cloudify.widget.pool.manager.tasks.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,8 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     private NodeMappingsDao nodeMappingsDao;
 
+    private DecisionsDao decisionsDao;
+
     private StatusManager statusManager;
 
     private TaskExecutor taskExecutor;
@@ -35,7 +39,6 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     private String bootstrapScriptResourcePath;
 
     private ApplicationContext applicationContext;
-
 
 
     @Override
@@ -67,7 +70,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
-    public void deleteNode(PoolSettings poolSettings, long nodeId,  TaskCallback<Void> taskCallback) {
+    public void deleteNode(PoolSettings poolSettings, long nodeId, TaskCallback<Void> taskCallback) {
 
         final NodeModel node = _getNodeModel(nodeId);
         logger.info("deleting node [{}]", node.machineId);
@@ -89,6 +92,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
             public String getBootstrapScriptResourcePath() {
                 return bootstrapScriptResourcePath;
             }
+
             @Override
             public NodeModel getNodeModel() {
                 return node;
@@ -100,14 +104,13 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
         return applicationContext.getBean(BootstrapMachine.class);
     }
 
-    private Task getCreateMachineTask(){
+    private Task getCreateMachineTask() {
         return applicationContext.getBean(CreateMachine.class);
     }
 
-    private Task getDeleteMachineTask(){
+    private Task getDeleteMachineTask() {
         return applicationContext.getBean(DeleteMachine.class);
     }
-
 
 
     @Override
@@ -146,12 +149,32 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     @Override
     public NodeModel occupy(PoolSettings poolSettings) {
-        return nodesDao.occupyNode( poolSettings );
+        return nodesDao.occupyNode(poolSettings);
     }
 
     @Override
     public List<NodeMappings> listCloudNodes(PoolSettings poolSettings) {
         return nodeMappingsDao.readAll(poolSettings);
+    }
+
+    @Override
+    public List<DecisionModel> listDecisions(PoolSettings poolSettings) {
+        return decisionsDao.readAllOfPool(poolSettings.getUuid());
+    }
+
+    @Override
+    public void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved) {
+        // not allowed to change approval
+        if (NodeManagerMode.AUTO_APPROVAL == poolSettings.getNodeManagerMode()) {
+            throw new RuntimeException(
+                    String.format("update of 'approved' state of decisions is not allowed in mode [%s]", poolSettings.getNodeManagerMode()));
+        }
+        DecisionModel decisionModel = decisionsDao.read(decisionId);
+        // nothing to change
+        if (decisionModel.approved == approved) {
+            return;
+        }
+        decisionsDao.update(decisionModel.setApproved(approved));
     }
 
     public void setErrorsDao(ErrorsDao errorsDao) {
@@ -170,6 +193,10 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
         this.nodeMappingsDao = nodeMappingsDao;
     }
 
+    public void setDecisionsDao(DecisionsDao decisionsDao) {
+        this.decisionsDao = decisionsDao;
+    }
+
     public void setStatusManager(StatusManager statusManager) {
         this.statusManager = statusManager;
     }
@@ -184,7 +211,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-          this.applicationContext = applicationContext;
+        this.applicationContext = applicationContext;
     }
 
 

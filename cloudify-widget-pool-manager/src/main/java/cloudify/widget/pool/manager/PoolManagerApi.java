@@ -58,4 +58,8 @@ public interface PoolManagerApi {
 
     List<NodeMappings> listCloudNodes (PoolSettings poolSettings);
 
+    List<DecisionModel> listDecisions(PoolSettings poolSettings);
+
+    void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved);
+
 }

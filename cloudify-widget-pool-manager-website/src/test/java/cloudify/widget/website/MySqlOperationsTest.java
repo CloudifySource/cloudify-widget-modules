@@ -2,6 +2,7 @@ package cloudify.widget.website;
 
 import cloudify.widget.common.CollectionUtils;
 import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.node_management.NodeManagerMode;
 import cloudify.widget.softlayer.SoftlayerConnectDetails;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
@@ -132,6 +133,7 @@ public class MySqlOperationsTest {
 
         PoolSettings poolSettings = new PoolSettings();
         poolSettings.setName("softlayer_pool");
+        poolSettings.setNodeManagerMode(NodeManagerMode.AUTO_APPROVAL);
         poolSettings.setMinNodes(4);
         poolSettings.setMaxNodes(6);
         poolSettings.setAuthKey("authKey");

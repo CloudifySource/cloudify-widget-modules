@@ -178,7 +178,23 @@ public class AdminController {
         return poolManagerApi.listRunningTasks(poolSettings);
     }
 
+    @RequestMapping(value = "/admin/pools/{poolId}/decisions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<DecisionModel> getPoolDecisions(@PathVariable("poolId") Long poolConfigurationId) {
+        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        return poolManagerApi.listDecisions(poolSettings);
+    }
+
+    @RequestMapping(value = "/admin/pools/{poolId}/decisions/{decisionId}/approved/{approved}", method = RequestMethod.POST)
+    @ResponseBody
+    public void updatePoolDecisionApproval(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("decisionId") Long decisionId, @PathVariable("approved") Boolean approved) {
+        logger.debug("> update pool decision approval > poolConfigurationId [{}], decisionId [{}], approved [{}]", poolConfigurationId, decisionId, approved);
+        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        poolManagerApi.updateDecisionApproval(poolSettings, decisionId, approved);
+    }
+
     @RequestMapping(value = "/admin/pools/{poolId}/tasks/{taskId}/delete", method = RequestMethod.POST)
+    @ResponseBody
     public void deletePoolTask(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("taskId") Long taskId) {
         // task IDs are currently unique across pools, no need to check for pool id
 //        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
@@ -207,18 +223,21 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes", method = RequestMethod.POST)
+    @ResponseBody
     public void addMachine(@PathVariable("poolId") Long poolConfigurationId) {
         PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
         poolManagerApi.createNode(poolSettings, null);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/bootstrap", method = RequestMethod.POST)
+    @ResponseBody
     public void nodeBootstrap(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
         PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
         poolManagerApi.bootstrapNode(poolSettings, nodeId, null);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)
+    @ResponseBody
     public void nodeDelete(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
         PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
         poolManagerApi.deleteNode(poolSettings, nodeId, null);
@@ -226,6 +245,7 @@ public class AdminController {
 
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/nodes/{nodeId}/bootstrap", method = RequestMethod.POST)
+    @ResponseBody
     public void nodeBootstrap(@PathVariable("accountId") Long accountId,
                                 @PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId).getPoolSettings();
@@ -233,6 +253,7 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)
+    @ResponseBody
     public void nodeDelete(@ModelAttribute("poolSettings") PoolSettings poolSettings, @PathVariable("nodeId") Long nodeId) {
         poolManagerApi.deleteNode(poolSettings, nodeId, null);
     }

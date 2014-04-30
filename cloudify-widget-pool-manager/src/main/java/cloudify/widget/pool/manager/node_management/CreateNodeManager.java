@@ -81,6 +81,7 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
             int numInstances = ((CreateDecisionDetails) _decision.details).getNumInstances();
             for (int i = 0; i < numInstances; i++) {
                 poolManagerApi.createNode(getConstraints().poolSettings, new TaskCallback<Collection<NodeModel>>() {
+
                     @Override
                     public void onSuccess(Collection<NodeModel> result) {
                         // it's the last machine - remove the model
@@ -89,7 +90,7 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
                             return;
                         }
                         // just decrement the number of instances to be created
-                        decisionsDao.update(_decision.setDetails(_details.setNumInstances(_details.getNumInstances() - 1))); // TODO make pretty
+                        decisionsDao.update(_decision.setDetails(_details.decrementNumInstances()));
                     }
 
                     @Override

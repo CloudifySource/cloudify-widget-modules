@@ -34,14 +34,14 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     private ErrorsDao errorsDao;
 
 
-
-
     @Override
     public Void call() throws Exception {
 
-        if (taskConfig.getNodeModel().nodeStatus == NodeStatus.BOOTSTRAPPED ||
-                taskConfig.getNodeModel().nodeStatus == NodeStatus.BOOTSTRAPPING) {
-            String message = String.format("node with id [%s] is bootstrapping or is already bootstrapped, aborting bootstrap task", taskConfig.getNodeModel().id);
+        NodeModel nodeModel = taskConfig.getNodeModel();
+        if (nodeModel.nodeStatus == NodeStatus.BOOTSTRAPPED ||
+                nodeModel.nodeStatus == NodeStatus.BOOTSTRAPPING) {
+            String message = String.format(
+                    "node with id [%s] is bootstrapping or is already bootstrapped, aborting bootstrap task", nodeModel.id);
             logger.info(message);
             throw new RuntimeException(message);
         }
@@ -52,7 +52,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
 
         CloudServerApi cloudServerApi = CloudServerApiFactory.create(poolSettings.getProvider().getName());
         cloudServerApi.connect(poolSettings.getProvider().getConnectDetails());
-        ISshDetails sshDetails = taskConfig.getNodeModel().machineSshDetails;
+        ISshDetails sshDetails = nodeModel.machineSshDetails;
 
         runBootstrapScriptOnMachine(script, cloudServerApi, sshDetails);
 
@@ -109,21 +109,6 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
                 .replaceAll("##recipeRelativePath##", bootstrapProperties.getRecipeRelativePath())
                 .replaceAll("##recipeUrl##", bootstrapProperties.getRecipeUrl());
     }
-/*
-    private CloudServer getCloudServer(CloudServerApi cloudServerApi) {
-        String machineId = taskConfig.getNodeModel().machineId;
-        CloudServer cloudServer = cloudServerApi.get(machineId);
-        if (cloudServer == null) {
-            String message = String.format("machine with id [%s] was not found", machineId);
-            logger.error(message);
-            errorsDao.create(new ErrorModel()
-                    .setTaskName(TASK_NAME)
-                    .setPoolId(poolSettings.getUuid())
-                    .setMessage(message));
-            throw new RuntimeException(message);
-        }
-        return cloudServer;
-    }*/
 
     private void runBootstrapScriptOnMachine(String script, CloudServerApi cloudServerApi, ISshDetails sshDetails) {
         updateNodeModelStatus(NodeStatus.BOOTSTRAPPING);

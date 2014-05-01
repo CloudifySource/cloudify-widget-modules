@@ -37,7 +37,7 @@ public class CloudServerApiFactory {
         if (ProviderSettings.ProviderName.ec2 == providerName) {
             return new Ec2CloudServerApi();
         }
-        logger.error("failed to create cloud server api, returning null");
-        return null;
+        throw new RuntimeException(
+                String.format("failed to create cloud server api from provider name [%s]", providerName));
     }
 }

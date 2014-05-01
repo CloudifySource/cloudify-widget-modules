@@ -1,11 +1,16 @@
 package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.common.CollectionUtils;
+import cloudify.widget.pool.manager.ErrorsDao;
+import cloudify.widget.pool.manager.StatusManager;
+import cloudify.widget.pool.manager.dto.ErrorModel;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.NodeStatus;
+import cloudify.widget.pool.manager.dto.PoolStatus;
 import org.apache.commons.collections.Transformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,8 +26,34 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
     private static Logger logger = LoggerFactory.getLogger(DeleteNodeManager.class);
 
 
+/*
+    @Autowired
+    private StatusManager statusManager;
+
+    @Autowired
+    private ErrorsDao errorsDao;
+*/
+
     @Override
     public DeleteNodeManager decide() {
+
+
+
+/*
+        PoolStatus status = statusManager.getPoolStatus(poolSettings);
+        if (status.getCurrentSize() <= poolSettings.getMinNodes()) {
+            String message = "pool has reached its minimum capacity as defined in the pool settings";
+            logger.error(message);
+            errorsDao.create(new ErrorModel()
+                            .setTaskName(getTaskName())
+                            .setPoolId(poolSettings.getUuid())
+                            .setMessage(message)
+            );
+            throw new RuntimeException(message);
+        }
+*/
+
+
 
         Constraints constraints = getConstraints();
         int maxNodes = constraints.maxNodes;

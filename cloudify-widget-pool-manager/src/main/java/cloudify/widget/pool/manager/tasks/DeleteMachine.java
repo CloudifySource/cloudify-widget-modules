@@ -22,36 +22,12 @@ public class DeleteMachine extends AbstractPoolTask<DeleteMachineConfig, Void> {
     @Autowired
     private NodesDao nodesDao;
 
-    @Autowired
-    private StatusManager statusManager;
-
-    @Autowired
-    private ErrorsDao errorsDao;
-
     @Override
     public Void call() throws Exception {
         logger.info("deleting machine [{}] with pool settings [{}]", taskConfig.getNodeModel().machineId, poolSettings);
 
         ProviderSettings providerSettings = poolSettings.getProvider();
-
         CloudServerApi cloudServerApi = CloudServerApiFactory.create(providerSettings.getName());
-        if (cloudServerApi == null) {
-            String message = String.format("failed to obtain an API object using provider [%s]", providerSettings.getName());
-            logger.error(message);
-            throw new RuntimeException(message);
-        }
-
-        PoolStatus status = statusManager.getPoolStatus(poolSettings);
-        if (status.getCurrentSize() <= poolSettings.getMinNodes()) {
-            String message = "pool has reached its minimum capacity as defined in the pool settings";
-            logger.error(message);
-            errorsDao.create(new ErrorModel()
-                            .setTaskName(getTaskName())
-                            .setPoolId(poolSettings.getUuid())
-                            .setMessage(message)
-            );
-            throw new RuntimeException(message);
-        }
 
         cloudServerApi.connect(providerSettings.getConnectDetails());
         cloudServerApi.delete(taskConfig.getNodeModel().machineId);

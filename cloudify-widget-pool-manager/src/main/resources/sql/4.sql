@@ -8,4 +8,5 @@ create table decisions (
   primary key (id)
 );
 
+delete from nodes;
 alter table nodes add column expires int;

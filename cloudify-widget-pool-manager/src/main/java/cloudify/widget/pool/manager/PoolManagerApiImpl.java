@@ -163,6 +163,11 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
+    public void abortDecision(PoolSettings poolSettings, long decisionId) {
+        decisionsDao.deleteNotApprovedAndNotExecuted(decisionId);
+    }
+
+    @Override
     public void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved) {
         // check if mode allows to change approval
         NodeManagerMode nodeManagerMode = poolSettings.getNodeManagerMode();

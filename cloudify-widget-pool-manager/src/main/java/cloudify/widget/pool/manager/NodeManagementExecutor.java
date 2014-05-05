@@ -85,7 +85,8 @@ public class NodeManagementExecutor {
         public void run() {
             logger.info("running node management for pool [{}]", _poolSettings.getUuid());
 
-            logger.info("running create node manager [{}]", createNodeManager);
+            // TODO take poolSettings.activeNodeManagers into account
+            logger.debug("running create node manager [{}]", createNodeManager);
             createNodeManager
                     .having(new Constraints(_poolSettings))
                     .decide()

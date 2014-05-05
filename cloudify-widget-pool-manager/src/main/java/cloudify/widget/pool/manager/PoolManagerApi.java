@@ -60,6 +60,8 @@ public interface PoolManagerApi {
 
     List<DecisionModel> listDecisions(PoolSettings poolSettings);
 
+    void abortDecision(PoolSettings poolSettings, long decisionId);
+
     void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved);
 
 }

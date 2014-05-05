@@ -1,29 +1,25 @@
 package cloudify.widget.pool.manager.node_management;
 
-import cloudify.widget.common.CollectionUtils;
-import cloudify.widget.pool.manager.ErrorsDao;
-import cloudify.widget.pool.manager.StatusManager;
-import cloudify.widget.pool.manager.dto.ErrorModel;
-import cloudify.widget.pool.manager.dto.NodeModel;
-import cloudify.widget.pool.manager.dto.NodeStatus;
-import cloudify.widget.pool.manager.dto.PoolStatus;
-import org.apache.commons.collections.Transformer;
+import cloudify.widget.pool.manager.PoolManagerApi;
+import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.tasks.TaskCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
-* User: eliranm
-* Date: 4/28/14
-* Time: 3:27 PM
-*/
+ * User: eliranm
+ * Date: 4/28/14
+ * Time: 3:27 PM
+ */
 public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
 
     private static Logger logger = LoggerFactory.getLogger(DeleteNodeManager.class);
+
+    @Autowired
+    private PoolManagerApi poolManagerApi;
 
 
 /*
@@ -33,12 +29,6 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
     @Autowired
     private ErrorsDao errorsDao;
 */
-
-    @Override
-    public DeleteNodeManager decide() {
-
-
-
 /*
         PoolStatus status = statusManager.getPoolStatus(poolSettings);
         if (status.getCurrentSize() <= poolSettings.getMinNodes()) {
@@ -53,69 +43,120 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
         }
 */
 
-
+    @Override
+    public DeleteNodeManager decide() {
 
         Constraints constraints = getConstraints();
-        int maxNodes = constraints.maxNodes;
-        int minNodes = constraints.minNodes;
-        String uuid = constraints.poolSettings.getUuid();
-        List<NodeModel> nodeModels = nodesDao.readAllOfPool(uuid);
+        List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());
 
-        Set<String> expiredIds = new HashSet<String>(nodesDao.readIdsOfPoolWithNodeStatus(uuid, NodeStatus.EXPIRED));
-        Set<String> unoccupiedIds = new HashSet<String>();
-        // try not to remove occupied nodes
-        CollectionUtils.collect(nodeModels, new Transformer() {
-            @Override
-            public Object transform(Object input) {
-                NodeModel n = (NodeModel) input;
-                if (n.nodeStatus == NodeStatus.OCCUPIED) {
-                    return null;
-                }
-                return n.machineId;
+        // we delete machines only if nodes in pool exceed the maximum
+        if (nodeModels.size() <= constraints.maxNodes) {
+            return this;
+        }
+
+        int nodesInQueue = 0;
+
+        // check if there are decisions in the queue, and if executing them will satisfy the constraints
+        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(constraints.poolSettings.getUuid(), DecisionType.DELETE);
+        if (decisionModels != null && !decisionModels.isEmpty()) {
+            // figure out how many machines we're intending to delete
+            for (DecisionModel decisionModel : decisionModels) {
+                nodesInQueue += ((DeleteDecisionDetails) decisionModel.details).getNodeIds().size();
             }
-        }, unoccupiedIds);
+            if (nodeModels.size() - nodesInQueue <= constraints.maxNodes) {
+                // no action needed, the queue will satisfy the constraints in the following iteration(s)
+                return this;
+            }
+        }
 
-        // TBD
-//        if (maxNodes - minNodes - toDelete.size() < 0) {
-//        }
 
-        int nodeModelsSize = nodeModels.size();
+//        Set<String> expiredIds = new HashSet<String>(nodesDao.readIdsOfPoolWithNodeStatus(constraints.poolSettings.getUuid(), NodeStatus.EXPIRED));
 
-        logger.info("minNodes [{}], maxNodes [{}], nodeModelsSize [{}]", minNodes, maxNodes, nodeModelsSize);
+        // collect nodes for deletion
+        Set<Long> toDeleteIds = _collectNodesToDelete(nodeModels, nodeModels.size() - nodesInQueue - constraints.maxNodes);
+        logger.info("toDeleteIds [{}]", toDeleteIds);
 
-        DeleteDecisionDetails decisionDetails = new DeleteDecisionDetails()
-                .addMachineIds(expiredIds)
-                .addMachineIds(unoccupiedIds);
+        DecisionModel decisionModel = new DecisionModel()
+                .setDecisionType(DecisionType.DELETE)
+                .setPoolId(constraints.poolSettings.getUuid())
+                .setApproved(NodeManagerMode.AUTO_APPROVAL == constraints.nodeManagerMode)
+                .setDetails(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
 
-        // queue it! (persist)
-
-//        logger.info("queuing decision [{}]", deleteDecision);
+        decisionsDao.create(decisionModel);
 
         return this;
+    }
 
-        // TODO write errors
+    private Set<Long> _collectNodesToDelete(List<NodeModel> nodeModels, int target) {
+        // incrementally collect nodes starting with the least destructive status
+        Set<Long> toDeleteNodeIds = new HashSet<Long>();
+        // go through all statuses
+        for (NodeStatus nodeStatus : NodeStatus.values()) {
+            for (NodeModel nodeModel : nodeModels) {
+                // only get nodes of a certain status
+                if (nodeModel.nodeStatus == nodeStatus) {
+                    toDeleteNodeIds.add(nodeModel.id);
+                    if (toDeleteNodeIds.size() == target) {
+                        // we have got what we need, return
+                        return toDeleteNodeIds;
+                    }
+                }
+            }
+        }
+
+        return toDeleteNodeIds;
     }
 
     @Override
     public DeleteNodeManager execute() {
 
-        // TODO implement
+        Constraints constraints = getConstraints();
 
-        logger.info("executing decision [{}]", this);
+        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(
+                constraints.poolSettings.getUuid(), DecisionType.DELETE);
+        if (decisionModels == null || decisionModels.isEmpty()) {
+            logger.info("no decisions to execute");
+            return this;
+        }
+        logger.debug("found [{}] decisions", decisionModels.size());
 
-        switch (getConstraints().nodeManagerMode) {
-            case AUTO_APPROVAL:
+        for (final DecisionModel decisionModel : decisionModels) {
+            logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
 
-                break;
-            case MANUAL_APPROVAL:
+            if (decisionModel.approved && !decisionModel.executed) {
 
-                break;
-            case MANUAL:
+                // TODO avoid casting - used generics in model
+                final DeleteDecisionDetails details = (DeleteDecisionDetails) decisionModel.details;
+                // copy to avoid concurrent modification
+                Set<Long> toDeleteIds = new HashSet<Long>(details.getNodeIds());
+                logger.debug("deleting [{}] instances via pool manager task executor", toDeleteIds);
+                for (final Long toDeleteId : toDeleteIds) {
+                    poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
 
-                break;
+                        @Override
+                        public void onSuccess(Void result) {
+                            logger.debug("node with id [{}] deleted successfully", toDeleteId);
+                            // it's the last node - remove the decision model
+                            if (details.getNodeIds().size() == 1) {
+                                decisionsDao.delete(decisionModel.id);
+                                return;
+                            }
+                            // just decrement the number of instances to be deleted
+                            decisionsDao.update(decisionModel.setDetails(details.removeNodeId(toDeleteId)));
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+                            logger.error("failed to delete node", t);
+                        }
+                    });
+                }
+
+                logger.debug("task sent, marking decision as executed");
+                decisionsDao.update(decisionModel.setExecuted(true));
+            }
         }
 
         return this;
     }
-
 }

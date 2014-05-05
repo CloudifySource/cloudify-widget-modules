@@ -228,7 +228,9 @@ public class TestPoolManager {
             nodes.add(new NodeModel()
                     .setPoolId(poolSettings.getUuid())
                     .setNodeStatus(NodeStatus.CREATED)
-                    .setMachineId("test_machine_id"));
+                    .setMachineId("test_machine_id")
+                    .setExpires(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 365) // expires in one year
+            );
         }
 
         NodeModel firstNode = nodes.get(0);

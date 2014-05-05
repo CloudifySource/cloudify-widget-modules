@@ -7,3 +7,5 @@ create table decisions (
   details mediumtext,
   primary key (id)
 );
+
+alter table nodes add column expires int;

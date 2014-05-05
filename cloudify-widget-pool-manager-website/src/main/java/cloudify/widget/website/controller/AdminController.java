@@ -191,6 +191,13 @@ public class AdminController {
         return poolManagerApi.listDecisions(poolSettings);
     }
 
+    @RequestMapping(value = "/admin/pools/{poolId}/decisions/{decisionId}/abort", method = RequestMethod.POST)
+    @ResponseBody
+    public void abortPoolDecision(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("decisionId") Long decisionId) {
+        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        poolManagerApi.abortDecision(poolSettings, decisionId);
+    }
+
     @RequestMapping(value = "/admin/pools/{poolId}/decisions/{decisionId}/approved/{approved}", method = RequestMethod.POST)
     @ResponseBody
     public void updatePoolDecisionApproval(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("decisionId") Long decisionId, @PathVariable("approved") Boolean approved) {

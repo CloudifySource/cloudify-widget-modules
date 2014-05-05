@@ -76,8 +76,8 @@ public class TestNodeManagement {
 
         PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp);
 
-        Set<String> machineIds = new HashSet<String>();
-        machineIds.addAll(Arrays.asList("a", "b", "c"));
+        Set<Long> nodeIds = new HashSet<Long>();
+        nodeIds.addAll(Arrays.asList(1L, 2L, 3L));
 
         DecisionModel createDecisionModel = new DecisionModel()
                 .setDecisionType(DecisionType.CREATE)
@@ -94,16 +94,16 @@ public class TestNodeManagement {
                 .setApproved(false)
                 .setExecuted(false)
                 .setDetails(new DeleteDecisionDetails()
-                                .addMachineIds(machineIds)
+                                .setNodeIds(nodeIds)
                 );
 
         DecisionModel prepareDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.PREPARE)
+                .setDecisionType(DecisionType.BOOTSTRAP)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
                 .setExecuted(false)
-                .setDetails(new PrepareDecisionDetails()
-                                .addMachineIds(machineIds)
+                .setDetails(new BootstrapDecisionDetails()
+                                .setNodeIds(nodeIds)
                 );
 
         // create

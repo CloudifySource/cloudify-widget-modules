@@ -6,5 +6,5 @@ package cloudify.widget.pool.manager.dto;
  * Time: 8:41 PM
  */
 public enum DecisionType {
-    CREATE, DELETE, PREPARE
+    CREATE, DELETE, BOOTSTRAP, DELETE_EXPIRED
 }

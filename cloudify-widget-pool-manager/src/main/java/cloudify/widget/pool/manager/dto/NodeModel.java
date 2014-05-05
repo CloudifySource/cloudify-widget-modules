@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
  */
 public class NodeModel {
 
-    private static Logger logger = LoggerFactory.getLogger(NodeModel.class);
-
     public static final int INITIAL_ID = -1;
 
     public long id = INITIAL_ID;
@@ -20,6 +18,7 @@ public class NodeModel {
     public NodeStatus nodeStatus;
     public String machineId;
     public ISshDetails machineSshDetails;
+    public long expires;
 
     public NodeModel setId(long id) {
         this.id = id;
@@ -52,6 +51,10 @@ public class NodeModel {
         return this;
     }
 
+    public NodeModel setExpires(long expires) {
+        this.expires = expires;
+        return this;
+    }
 
     @Override
     public String toString() {
@@ -61,6 +64,7 @@ public class NodeModel {
                 ", nodeStatus=" + nodeStatus +
                 ", machineId='" + machineId + '\'' +
                 ", machineSshDetails='" + machineSshDetails + '\'' +
+                ", expires='" + expires + '\'' +
                 '}';
     }
 

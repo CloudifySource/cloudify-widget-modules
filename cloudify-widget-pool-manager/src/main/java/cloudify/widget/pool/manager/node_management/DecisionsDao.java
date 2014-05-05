@@ -2,7 +2,7 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.Utils;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.DecisionType;
+import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Statement;
 import org.slf4j.Logger;
@@ -81,9 +81,9 @@ public class DecisionsDao {
                 new DecisionModelRowMapper());
     }
 
-    public List<DecisionModel> readAllOfPoolWithDecisionType(String poolId, DecisionType decisionType) {
+    public List<DecisionModel> readAllOfPoolWithDecisionType(String poolId, NodeManagementModuleType nodeManagementModuleType) {
         return jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_DECISION_TYPE + " = ?",
-                new Object[]{poolId, decisionType.name()},
+                new Object[]{poolId, nodeManagementModuleType.name()},
                 new DecisionModelRowMapper());
     }
 

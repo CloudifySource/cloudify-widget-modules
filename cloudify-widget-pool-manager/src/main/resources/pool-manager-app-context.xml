@@ -61,9 +61,12 @@
         <property name="bootstrapScriptResourcePath" value="classpath:bootstrap_machine.sh" />
     </bean>
 
-    <bean id="createNodeManager" class="cloudify.widget.pool.manager.node_management.CreateNodeManager">
-        <!--<property name="nodesDao" ref="nodesDao" />-->
-    </bean>
+    <bean id="nodeManagementModuleProvider" class="cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider"/>
+
+    <bean id="createNodeManagementModule" class="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule"/>
+    <bean id="deleteNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteNodeManagementModule"/>
+    <bean id="bootstrapNodeManagementModule" class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule"/>
+    <bean id="deleteExpiredNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule"/>
 
     <bean id="bootstrapMonitor" class="cloudify.widget.pool.manager.BootstrapMonitor">
             <property name="applicationUrlPattern" value="https://%s:8443"/>

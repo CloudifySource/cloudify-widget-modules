@@ -2,7 +2,7 @@ package cloudify.widget.pool.manager;
 
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.pool.manager.node_management.DecisionsDao;
-import cloudify.widget.pool.manager.node_management.NodeManagerMode;
+import cloudify.widget.pool.manager.node_management.NodeManagementMode;
 import cloudify.widget.pool.manager.tasks.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,10 +170,10 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     @Override
     public void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved) {
         // check if mode allows to change approval
-        NodeManagerMode nodeManagerMode = poolSettings.getNodeManagerMode();
-        if (nodeManagerMode != NodeManagerMode.MANUAL_APPROVAL && nodeManagerMode != NodeManagerMode.MANUAL) {
+        NodeManagementMode nodeManagementMode = poolSettings.getNodeManagement().getMode();
+        if (nodeManagementMode != NodeManagementMode.MANUAL_APPROVAL && nodeManagementMode != NodeManagementMode.MANUAL) {
             throw new RuntimeException(
-                    String.format("update of 'approved' state of decisions is not allowed in mode [%s]", nodeManagerMode));
+                    String.format("update of 'approved' state of decisions is not allowed in mode [%s]", nodeManagementMode));
         }
         DecisionModel decisionModel = decisionsDao.read(decisionId);
         // nothing to change

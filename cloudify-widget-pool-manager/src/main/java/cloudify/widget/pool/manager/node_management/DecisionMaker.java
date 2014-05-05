@@ -5,7 +5,7 @@ package cloudify.widget.pool.manager.node_management;
  * Date: 4/28/14
  * Time: 3:09 PM
  */
-public interface DecisionMaker<T extends NodeManager> {
+public interface DecisionMaker<T extends BaseNodeManagementModule> {
 
     public T decide();
 

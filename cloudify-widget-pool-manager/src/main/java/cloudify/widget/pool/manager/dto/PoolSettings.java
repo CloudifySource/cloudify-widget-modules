@@ -1,7 +1,5 @@
 package cloudify.widget.pool.manager.dto;
 
-import cloudify.widget.pool.manager.node_management.NodeManagerMode;
-
 import java.util.UUID;
 
 /**
@@ -19,7 +17,7 @@ public class PoolSettings {
     private String authKey;
     private int maxNodes;
     private int minNodes;
-    private NodeManagerMode nodeManagerMode;
+    private NodeManagementSettings nodeManagement;
     private BootstrapProperties bootstrapProperties;
     private ProviderSettings provider;
 
@@ -55,12 +53,12 @@ public class PoolSettings {
         this.minNodes = minNodes;
     }
 
-    public NodeManagerMode getNodeManagerMode() {
-        return nodeManagerMode;
+    public NodeManagementSettings getNodeManagement() {
+        return nodeManagement;
     }
 
-    public void setNodeManagerMode(NodeManagerMode nodeManagerMode) {
-        this.nodeManagerMode = nodeManagerMode;
+    public void setNodeManagement(NodeManagementSettings nodeManagement) {
+        this.nodeManagement = nodeManagement;
     }
 
     public ProviderSettings getProvider() {
@@ -118,7 +116,7 @@ public class PoolSettings {
                 ", authKey='***'" +
                 ", maxNodes=" + maxNodes +
                 ", minNodes=" + minNodes +
-                ", nodeManagerMode=" + nodeManagerMode +
+                ", nodeManagement=" + nodeManagement +
                 ", bootstrapProperties=" + bootstrapProperties +
                 ", provider=" + provider +
                 '}';

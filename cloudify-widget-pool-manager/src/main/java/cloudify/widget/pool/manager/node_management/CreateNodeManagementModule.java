@@ -3,7 +3,7 @@ package cloudify.widget.pool.manager.node_management;
 import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.DecisionType;
+import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
 import org.slf4j.Logger;
@@ -18,9 +18,9 @@ import java.util.List;
  * Date: 4/28/14
  * Time: 5:46 PM
  */
-public class CreateNodeManager extends NodeManager<CreateNodeManager> {
+public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateNodeManagementModule> {
 
-    private static Logger logger = LoggerFactory.getLogger(CreateNodeManager.class);
+    private static Logger logger = LoggerFactory.getLogger(CreateNodeManagementModule.class);
 
     @Autowired
     private PoolManagerApi poolManagerApi;
@@ -29,7 +29,7 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
     private ErrorsDao errorsDao;
 
     @Override
-    public CreateNodeManager decide() {
+    public CreateNodeManagementModule decide() {
 
         Constraints constraints = getConstraints();
         List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());
@@ -42,8 +42,7 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
         int numInstancesInQueue = 0;
 
         // check if there are decisions in the queue, and if executing them will satisfy the constraints
-        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(
-                constraints.poolSettings.getUuid(), DecisionType.CREATE);
+        List<DecisionModel> decisionModels = getOwnDecisionModels();
         if (decisionModels != null && !decisionModels.isEmpty()) {
             // figure out how many machines we're intending to create
             for (DecisionModel decisionModel : decisionModels) {
@@ -56,25 +55,19 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
         }
 
 
-        DecisionModel decisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.CREATE)
-                .setPoolId(constraints.poolSettings.getUuid())
-                .setApproved(NodeManagerMode.AUTO_APPROVAL == constraints.nodeManagerMode)
-                .setDetails(new CreateDecisionDetails()
-                        .setNumInstances(constraints.minNodes - nodeModels.size() - numInstancesInQueue));
-
+        DecisionModel decisionModel = generateDecisionModel(new CreateDecisionDetails()
+                .setNumInstances(constraints.minNodes - nodeModels.size() - numInstancesInQueue));
         decisionsDao.create(decisionModel);
 
         return this;
     }
 
     @Override
-    public CreateNodeManager execute() {
+    public CreateNodeManagementModule execute() {
 
         Constraints constraints = getConstraints();
 
-        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(
-                constraints.poolSettings.getUuid(), DecisionType.CREATE);
+        List<DecisionModel> decisionModels = getOwnDecisionModels();
         if (decisionModels == null || decisionModels.isEmpty()) {
             logger.info("no decisions to execute");
             return this;
@@ -120,4 +113,8 @@ public class CreateNodeManager extends NodeManager<CreateNodeManager> {
         return this;
     }
 
+    @Override
+    public NodeManagementModuleType getType() {
+        return NodeManagementModuleType.CREATE;
+    }
 }

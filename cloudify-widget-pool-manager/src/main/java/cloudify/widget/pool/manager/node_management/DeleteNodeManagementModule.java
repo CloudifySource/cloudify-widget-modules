@@ -14,9 +14,9 @@ import java.util.*;
  * Date: 4/28/14
  * Time: 3:27 PM
  */
-public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
+public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteNodeManagementModule> {
 
-    private static Logger logger = LoggerFactory.getLogger(DeleteNodeManager.class);
+    private static Logger logger = LoggerFactory.getLogger(DeleteNodeManagementModule.class);
 
     @Autowired
     private PoolManagerApi poolManagerApi;
@@ -44,7 +44,7 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
 */
 
     @Override
-    public DeleteNodeManager decide() {
+    public DeleteNodeManagementModule decide() {
 
         Constraints constraints = getConstraints();
         List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());
@@ -57,7 +57,7 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
         int nodesInQueue = 0;
 
         // check if there are decisions in the queue, and if executing them will satisfy the constraints
-        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(constraints.poolSettings.getUuid(), DecisionType.DELETE);
+        List<DecisionModel> decisionModels = getOwnDecisionModels();
         if (decisionModels != null && !decisionModels.isEmpty()) {
             // figure out how many machines we're intending to delete
             for (DecisionModel decisionModel : decisionModels) {
@@ -76,12 +76,7 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
         Set<Long> toDeleteIds = _collectNodesToDelete(nodeModels, nodeModels.size() - nodesInQueue - constraints.maxNodes);
         logger.info("toDeleteIds [{}]", toDeleteIds);
 
-        DecisionModel decisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.DELETE)
-                .setPoolId(constraints.poolSettings.getUuid())
-                .setApproved(NodeManagerMode.AUTO_APPROVAL == constraints.nodeManagerMode)
-                .setDetails(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
-
+        DecisionModel decisionModel = generateDecisionModel(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
         decisionsDao.create(decisionModel);
 
         return this;
@@ -108,12 +103,11 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
     }
 
     @Override
-    public DeleteNodeManager execute() {
+    public DeleteNodeManagementModule execute() {
 
         Constraints constraints = getConstraints();
 
-        List<DecisionModel> decisionModels = decisionsDao.readAllOfPoolWithDecisionType(
-                constraints.poolSettings.getUuid(), DecisionType.DELETE);
+        List<DecisionModel> decisionModels = getOwnDecisionModels();
         if (decisionModels == null || decisionModels.isEmpty()) {
             logger.info("no decisions to execute");
             return this;
@@ -158,5 +152,10 @@ public class DeleteNodeManager extends NodeManager<DeleteNodeManager> {
         }
 
         return this;
+    }
+
+    @Override
+    public NodeManagementModuleType getType() {
+        return NodeManagementModuleType.DELETE;
     }
 }

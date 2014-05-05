@@ -36,7 +36,7 @@ public class TestNodeManagement {
     private NodeManagementExecutor nodeManagementExecutor;
 
     @Autowired
-    private CreateNodeManager createNodeManager;
+    private CreateNodeManagementModule createNodeManager;
 
     @Autowired
     private DecisionsDao decisionsDao;
@@ -80,7 +80,7 @@ public class TestNodeManagement {
         nodeIds.addAll(Arrays.asList(1L, 2L, 3L));
 
         DecisionModel createDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.CREATE)
+                .setDecisionType(NodeManagementModuleType.CREATE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
                 .setExecuted(false)
@@ -89,7 +89,7 @@ public class TestNodeManagement {
                 );
 
         DecisionModel deleteDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.DELETE)
+                .setDecisionType(NodeManagementModuleType.DELETE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
                 .setExecuted(false)
@@ -98,7 +98,7 @@ public class TestNodeManagement {
                 );
 
         DecisionModel prepareDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.BOOTSTRAP)
+                .setDecisionType(NodeManagementModuleType.BOOTSTRAP)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
                 .setExecuted(false)
@@ -127,9 +127,9 @@ public class TestNodeManagement {
         List<DecisionModel> decisionsOfPool = decisionsDao.readAllOfPool(poolSettings.getUuid());
         Assert.assertEquals("decisions of pool should have a size of 3", 3, decisionsOfPool.size());
 
-        List<DecisionModel> decisionsWithTypeCreate = decisionsDao.readAllOfPoolWithDecisionType(poolSettings.getUuid(), DecisionType.CREATE);
+        List<DecisionModel> decisionsWithTypeCreate = decisionsDao.readAllOfPoolWithDecisionType(poolSettings.getUuid(), NodeManagementModuleType.CREATE);
         Assert.assertEquals("there should only be 1 decision with type 'create'", 1, decisionsWithTypeCreate.size());
-        Assert.assertEquals("decision should be of type 'create'", DecisionType.CREATE, decisionsWithTypeCreate.iterator().next().decisionType);
+        Assert.assertEquals("decision should be of type 'create'", NodeManagementModuleType.CREATE, decisionsWithTypeCreate.iterator().next().decisionType);
 
         // update
 

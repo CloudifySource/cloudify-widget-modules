@@ -5,7 +5,7 @@ package cloudify.widget.pool.manager.node_management;
  * Date: 4/30/14
  * Time: 1:17 PM
  */
-public enum NodeManagerMode {
+public enum NodeManagementMode {
 
     AUTO_APPROVAL, MANUAL_APPROVAL, MANUAL;
 }

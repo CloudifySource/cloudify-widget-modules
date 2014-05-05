@@ -1,13 +1,14 @@
 package cloudify.widget.pool.manager;
 
+import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.PoolSettings;
-import cloudify.widget.pool.manager.node_management.Constraints;
-import cloudify.widget.pool.manager.node_management.CreateNodeManager;
+import cloudify.widget.pool.manager.node_management.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -27,6 +28,9 @@ public class NodeManagementExecutor {
     private int terminationTimeoutInSeconds = 30;
 
     private int decisionExecutionIntervalInSeconds = 60;
+
+    @Autowired
+    private NodeManagementModuleProvider nodeManagementModuleProvider;
 
     @Autowired
     private ErrorsDao errorsDao;
@@ -67,10 +71,6 @@ public class NodeManagementExecutor {
     }
 
 
-
-    @Autowired
-    private CreateNodeManager createNodeManager;
-
     public class PoolNodeManagementRunner implements Runnable {
 
         private Logger logger = LoggerFactory.getLogger(PoolNodeManagementRunner.class);
@@ -85,12 +85,15 @@ public class NodeManagementExecutor {
         public void run() {
             logger.info("running node management for pool [{}]", _poolSettings.getUuid());
 
-            // TODO take poolSettings.activeNodeManagers into account
-            logger.debug("running create node manager [{}]", createNodeManager);
-            createNodeManager
-                    .having(new Constraints(_poolSettings))
-                    .decide()
-                    .execute();
+            List<NodeManagementModuleType> activeModules = _poolSettings.getNodeManagement().getActiveModules();
+            for (NodeManagementModuleType activeModule : activeModules) {
+                BaseNodeManagementModule nodeManagementModule = nodeManagementModuleProvider.fromType(activeModule);
+                logger.info("running node management module [{}]", nodeManagementModule.getClass());
+                nodeManagementModule
+                        .having(new Constraints(_poolSettings))
+                        .decide()
+                        .execute();
+            }
 
         }
     }

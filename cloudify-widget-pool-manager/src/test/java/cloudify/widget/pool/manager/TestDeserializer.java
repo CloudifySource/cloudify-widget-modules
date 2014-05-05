@@ -23,7 +23,7 @@ import java.io.IOException;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:pool-manager-test-context.xml"})
-@ActiveProfiles({"softlayer"})
+@ActiveProfiles({"dev", "softlayer"})
 public class TestDeserializer {
 
     private static Logger logger = LoggerFactory.getLogger(TestDeserializer.class);

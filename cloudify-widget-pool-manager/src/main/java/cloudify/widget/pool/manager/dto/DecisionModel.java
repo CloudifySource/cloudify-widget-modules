@@ -12,7 +12,7 @@ public class DecisionModel {
     public static final int INITIAL_ID = -1;
 
     public long id = INITIAL_ID;
-    public DecisionType decisionType;
+    public NodeManagementModuleType decisionType;
     public String poolId;
     public boolean approved;
     public boolean executed;
@@ -23,7 +23,7 @@ public class DecisionModel {
         return this;
     }
 
-    public DecisionModel setDecisionType(DecisionType decisionType) {
+    public DecisionModel setDecisionType(NodeManagementModuleType decisionType) {
         this.decisionType = decisionType;
         return this;
     }

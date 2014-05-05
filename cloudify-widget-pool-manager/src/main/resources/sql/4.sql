@@ -9,4 +9,4 @@ create table decisions (
 );
 
 delete from nodes;
-alter table nodes add column expires int;
+alter table nodes add column expires bigint;

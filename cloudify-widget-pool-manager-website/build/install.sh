@@ -94,11 +94,14 @@ upgrade_main(){
     echo "migrating website schema"
     DB=$WEBSITE_DB
     BASEDIR=$INSTALL_LOCATION/website-schema
+    # need to specify latest again because it was rewritten by the migrate_db function
+    UPGRADE_TO=latest
     migrate_db
 
 
     dos2unix $INSTALL_LOCATION/build/nginx.conf
     source $INSTALL_LOCATION/build/nginx.conf | dos2unix > /etc/nginx/sites-enabled/widget-pool-manager.conf
+    service nginx restart
 
     echo "installing service script under widget-pool"
     SERVICE_NAME=widget-pool SERVICE_FILE=$INSTALL_LOCATION/build/service.sh install_initd_script

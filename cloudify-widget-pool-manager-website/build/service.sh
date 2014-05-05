@@ -75,5 +75,5 @@ case "$1" in
     start
     ;;
   *)
-    echo "Usage: $1 {start|stop|restart}"
+    echo "Usage: $0 {start|stop|restart|upgrade|status}"
 esac

@@ -1,3 +1,3 @@
 source /etc/sysconfig/widget-pool-manager
 
-$INSTALL_LOCATION/install.sh upgrade
+$INSTALL_LOCATION/build/install.sh upgrade

@@ -10,10 +10,10 @@ import java.sql.SQLException;
  * User: evgenyf
  * Date: 3/2/14
  */
-public class AccountRowMapper implements RowMapper{
+public class AccountRowMapper implements RowMapper<AccountModel>{
 
     @Override
-    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public AccountModel mapRow(ResultSet rs, int rowNum) throws SQLException {
 
         AccountModel accountModel = new AccountModel();
         accountModel.setId( rs.getLong("id") );

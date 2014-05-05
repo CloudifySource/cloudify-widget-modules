@@ -94,6 +94,12 @@ public class AdminController {
         return accountModel;
     }
 
+    @RequestMapping(value = "/admin/accounts/{accountId}/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public void deleteAccount( @PathVariable("accountId") Long accountId ){
+        accountDao.deleteAccount( accountId );
+    }
+
     @RequestMapping(value = "/admin/accounts/{accountId}/pools", method = RequestMethod.GET)
     @ResponseBody
     public List<PoolConfigurationModel> getAccountPools(@PathVariable("accountId") Long accountId) {

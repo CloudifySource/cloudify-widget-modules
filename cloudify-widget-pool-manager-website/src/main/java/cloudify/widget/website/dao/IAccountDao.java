@@ -19,4 +19,7 @@ public interface IAccountDao {
     public AccountModel readAccountByUuid( String uuid );
 
     public List<AccountModel> readAccounts();
+
+
+    public AccountModel readById( Long accountId );
 }

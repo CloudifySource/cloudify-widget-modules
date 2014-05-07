@@ -25,7 +25,7 @@ import java.util.HashMap;
  */
 public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, Void> {
 
-    private static Logger logger = LoggerFactory.getLogger(CreateMachine.class);
+    private static Logger logger = LoggerFactory.getLogger(BootstrapMachine.class);
 
     @Autowired
     private NodesDao nodesDao;

@@ -223,7 +223,7 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/nodes", method = RequestMethod.POST)
     @ResponseBody
-    public String addMachine(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
+    public void addMachine(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
         throw new UnsupportedOperationException("not supported yet!");
 //        NodeModel nodeModel = new NodeModel();
 //            nodeModel.setPoolUuid(  );

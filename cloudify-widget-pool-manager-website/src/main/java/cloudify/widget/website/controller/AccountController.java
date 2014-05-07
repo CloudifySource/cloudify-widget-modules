@@ -121,9 +121,9 @@ public class AccountController {
 
     @RequestMapping(value="/account/pools/{poolId}/occupy", method=RequestMethod.GET)
     @ResponseBody
-    public NodeModel occupyPool( @ModelAttribute("account") AccountModel accountModel , @PathVariable("poolId") Long poolId ){
+    public NodeModel occupyPoolNode(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId, @RequestBody Long expires){
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
-        return poolManagerApi.occupy( poolSettings );
+        return poolManagerApi.occupy( poolSettings, expires );
     }
 
     @RequestMapping(value="/account/pools/status", method=RequestMethod.GET)

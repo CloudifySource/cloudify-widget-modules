@@ -30,7 +30,7 @@ import java.util.List;
 public class NodesDao {
 
     public static final String TABLE_NAME = "nodes";
-    public static final String COL_NODE_ID = "id";
+    public static final String COL_ID = "id";
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_NODE_STATUS = "node_status";
     public static final String COL_MACHINE_ID = "machine_id";
@@ -95,21 +95,15 @@ public class NodesDao {
                 new NodeModelRowMapper());
     }
 
-    public List<String> readIdsOfPoolWithNodeStatus(String poolId, NodeStatus nodeStatus) {
-        return jdbcTemplate.query("select id from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
-                new Object[]{poolId, nodeStatus.name()},
-                new BeanPropertyRowMapper<String>(String.class));
-    }
-
-    public List<String> readIdsOfPoolWithoutNodeStatus(String poolId, NodeStatus nodeStatus) {
-        return jdbcTemplate.query("select id from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " != ?",
-                new Object[]{poolId, nodeStatus.name()},
-                new BeanPropertyRowMapper<String>(String.class));
+    public List<Long> readExpiredIdsOfPool(String poolId) {
+        return jdbcTemplate.query("select " + COL_ID + " from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_EXPIRES + " < ?",
+                new Object[]{poolId, System.currentTimeMillis()},
+                new BeanPropertyRowMapper<Long>());
     }
 
     public NodeModel read(long nodeId) {
         try {
-            return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where " + COL_NODE_ID + " = ?",
+            return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where " + COL_ID + " = ?",
                     new Object[]{nodeId},
                     new NodeModelRowMapper());
         } catch (EmptyResultDataAccessException e) {
@@ -119,12 +113,17 @@ public class NodesDao {
 
     public int update(NodeModel nodeModel) {
         return jdbcTemplate.update(
-                "update " + TABLE_NAME + " set " + COL_POOL_ID + " = ?," + COL_NODE_STATUS + " = ?," + COL_MACHINE_ID + " = ?," + COL_MACHINE_SSH_DETAILS + " = ?," + COL_EXPIRES + " = ? where " + COL_NODE_ID + " = ?",
+                "update " + TABLE_NAME + " set " + COL_POOL_ID + " = ?," + COL_NODE_STATUS + " = ?," + COL_MACHINE_ID + " = ?," + COL_MACHINE_SSH_DETAILS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ?",
                 nodeModel.poolId, nodeModel.nodeStatus.name(), nodeModel.machineId, Utils.objectToJson( NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)), nodeModel.expires, nodeModel.id);
     }
 
     public int delete(long nodeId) {
-        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_NODE_ID + " = ?", nodeId);
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_ID + " = ?", nodeId);
+    }
+
+    public int setExpired(long nodeId) {
+        return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_ID + " = ?",
+                NodeStatus.EXPIRED, nodeId);
     }
 
     /**
@@ -144,12 +143,13 @@ public class NodesDao {
     }
 
     // TODO combine select and update to a compound statement - no need for two transactions here
-    public NodeModel occupyNode(PoolSettings poolSettings) {
+    public NodeModel occupyNode(PoolSettings poolSettings, long expires) {
         List<NodeModel> nodeModels = jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_NODE_STATUS + " = ? and " + COL_POOL_ID + " = ?",
                 new Object[]{ NodeStatus.BOOTSTRAPPED.name(), poolSettings.getUuid() },
                 new NodeModelRowMapper());
         for (NodeModel nodeModel : nodeModels) {
-            int updated = jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_NODE_ID + " = ? and " + COL_NODE_STATUS + " =  ? ", NodeStatus.OCCUPIED.name(), nodeModel.id, NodeStatus.BOOTSTRAPPED.name());
+            int updated = jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
+                    NodeStatus.OCCUPIED.name(), expires, nodeModel.id, NodeStatus.BOOTSTRAPPED.name());
             if (updated == 1) {
                 return nodeModel;
             }

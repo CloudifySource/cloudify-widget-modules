@@ -23,6 +23,8 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
 
     private static Logger logger = LoggerFactory.getLogger(CreateMachine.class);
 
+    public static final long DEFAULT_EXPIRES = System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 365; // expires in one year
+
     @Autowired
     private NodesDao nodesDao;
 
@@ -52,7 +54,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
                     .setPoolId(poolSettings.getUuid())
                     .setNodeStatus(NodeStatus.CREATED)
                     .setMachineSshDetails(created.getSshDetails())
-                    .setExpires(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 365); // expires in one year
+                    .setExpires(DEFAULT_EXPIRES);
             logger.info("machine created, adding node to database. node model is [{}]", nodeModel);
             nodesDao.create(nodeModel);
             nodeModelCreatedList.add(nodeModel);

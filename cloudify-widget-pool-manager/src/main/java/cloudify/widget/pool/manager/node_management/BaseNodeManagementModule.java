@@ -33,7 +33,7 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
         return _constraints;
     }
 
-    protected DecisionModel generateDecisionModel(DecisionDetails details) {
+    protected DecisionModel createOwnDecisionModel(DecisionDetails details) {
         return new DecisionModel()
                 .setDecisionType(getType())
                 .setPoolId(getConstraints().poolSettings.getUuid())
@@ -41,7 +41,7 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
                 .setDetails(details);
     }
 
-    protected List<DecisionModel> getOwnDecisionModels() {
+    protected List<DecisionModel> getOwnDecisionModelsQueue() {
         return decisionsDao.readAllOfPoolWithDecisionType(getConstraints().poolSettings.getUuid(), getType());
     }
 

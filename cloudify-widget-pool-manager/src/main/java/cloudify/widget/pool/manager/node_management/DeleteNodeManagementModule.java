@@ -57,26 +57,24 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
         int nodesInQueue = 0;
 
         // check if there are decisions in the queue, and if executing them will satisfy the constraints
-        List<DecisionModel> decisionModels = getOwnDecisionModels();
+        List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels != null && !decisionModels.isEmpty()) {
             // figure out how many machines we're intending to delete
             for (DecisionModel decisionModel : decisionModels) {
                 nodesInQueue += ((DeleteDecisionDetails) decisionModel.details).getNodeIds().size();
             }
-            if (nodeModels.size() - nodesInQueue <= constraints.maxNodes) {
-                // no action needed, the queue will satisfy the constraints in the following iteration(s)
-                return this;
-            }
         }
 
-
-//        Set<String> expiredIds = new HashSet<String>(nodesDao.readIdsOfPoolWithNodeStatus(constraints.poolSettings.getUuid(), NodeStatus.EXPIRED));
+        if (nodeModels.size() - nodesInQueue <= constraints.maxNodes) {
+            // no action needed, the queue will satisfy the constraints in the following iteration(s)
+            return this;
+        }
 
         // collect nodes for deletion
         Set<Long> toDeleteIds = _collectNodesToDelete(nodeModels, nodeModels.size() - nodesInQueue - constraints.maxNodes);
         logger.info("toDeleteIds [{}]", toDeleteIds);
 
-        DecisionModel decisionModel = generateDecisionModel(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
+        DecisionModel decisionModel = createOwnDecisionModel(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
         decisionsDao.create(decisionModel);
 
         return this;
@@ -107,7 +105,7 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
 
         Constraints constraints = getConstraints();
 
-        List<DecisionModel> decisionModels = getOwnDecisionModels();
+        List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {
             logger.info("no decisions to execute");
             return this;

@@ -148,8 +148,8 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
-    public NodeModel occupy(PoolSettings poolSettings) {
-        return nodesDao.occupyNode(poolSettings);
+    public NodeModel occupy(PoolSettings poolSettings, long expires) {
+        return nodesDao.occupyNode(poolSettings, expires);
     }
 
     @Override

@@ -42,20 +42,21 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
         int numInstancesInQueue = 0;
 
         // check if there are decisions in the queue, and if executing them will satisfy the constraints
-        List<DecisionModel> decisionModels = getOwnDecisionModels();
+        List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels != null && !decisionModels.isEmpty()) {
             // figure out how many machines we're intending to create
             for (DecisionModel decisionModel : decisionModels) {
                 numInstancesInQueue += ((CreateDecisionDetails) decisionModel.details).getNumInstances();
             }
-            if (numInstancesInQueue + nodeModels.size() >= constraints.minNodes) {
-                // no action needed, the queue will satisfy the constraints in the following iteration(s)
-                return this;
-            }
+        }
+
+        if (numInstancesInQueue + nodeModels.size() >= constraints.minNodes) {
+            // no action needed, the queue will satisfy the constraints in the following iteration(s)
+            return this;
         }
 
 
-        DecisionModel decisionModel = generateDecisionModel(new CreateDecisionDetails()
+        DecisionModel decisionModel = createOwnDecisionModel(new CreateDecisionDetails()
                 .setNumInstances(constraints.minNodes - nodeModels.size() - numInstancesInQueue));
         decisionsDao.create(decisionModel);
 
@@ -67,7 +68,7 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
 
         Constraints constraints = getConstraints();
 
-        List<DecisionModel> decisionModels = getOwnDecisionModels();
+        List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {
             logger.info("no decisions to execute");
             return this;

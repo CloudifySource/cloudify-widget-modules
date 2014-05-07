@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = CreateDecisionDetails.class, name = "createDecisionDetails"),
         @JsonSubTypes.Type(value = DeleteDecisionDetails.class, name = "deleteDecisionDetails"),
-        @JsonSubTypes.Type(value = BootstrapDecisionDetails.class, name = "bootstrapDecisionDetails"),
+        @JsonSubTypes.Type(value = DeleteExpiredDecisionDetails.class, name = "deleteExpiredDecisionDetails"),
+        @JsonSubTypes.Type(value = BootstrapDecisionDetails.class, name = "bootstrapDecisionDetails")
 })
 public interface DecisionDetails {
 }

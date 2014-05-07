@@ -83,12 +83,12 @@ public class NodeManagementExecutor {
 
         @Override
         public void run() {
-            logger.info("running node management for pool [{}]", _poolSettings.getUuid());
+            logger.debug("running node management for pool [{}]", _poolSettings.getUuid());
 
             List<NodeManagementModuleType> activeModules = _poolSettings.getNodeManagement().getActiveModules();
             for (NodeManagementModuleType activeModule : activeModules) {
                 BaseNodeManagementModule nodeManagementModule = nodeManagementModuleProvider.fromType(activeModule);
-                logger.info("running node management module [{}]", nodeManagementModule.getClass());
+                logger.debug("running node management module [{}]", nodeManagementModule.getClass());
                 nodeManagementModule
                         .having(new Constraints(_poolSettings))
                         .decide()

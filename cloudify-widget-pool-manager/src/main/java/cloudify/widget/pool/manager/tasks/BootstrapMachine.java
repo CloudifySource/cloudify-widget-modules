@@ -114,11 +114,12 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
         updateNodeModelStatus(NodeStatus.BOOTSTRAPPING);
         CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine(script, sshDetails);
         int exitStatus = cloudExecResponse.getExitStatus();
-        logger.debug("bootstrap was run on the machine, node id [{}]", taskConfig.getNodeModel().id);
+        logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
+        logger.info("- - - bootstrap script execution output - - - \n{}", cloudExecResponse.getOutput());
         if (exitStatus == 0) {
             updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
         } else {
-            updateNodeModelStatus(NodeStatus.CREATED);
+            updateNodeModelStatus(NodeStatus.EXPIRED);
             String message = "bootstrap execution failed";
             logger.error(message);
             HashMap<String, Object> infoMap = new HashMap<String, Object>();

@@ -120,7 +120,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
         } else {
             updateNodeModelStatus(NodeStatus.EXPIRED);
-            String message = "bootstrap execution failed";
+            String message = "bootstrap script execution failed";
             logger.error(message);
             HashMap<String, Object> infoMap = new HashMap<String, Object>();
             infoMap.put("exitStatus", exitStatus);

@@ -38,6 +38,8 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     private String bootstrapScriptResourcePath;
 
+    private String bootstrapSuccessText;
+
     private ApplicationContext applicationContext;
 
 
@@ -91,6 +93,11 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
             @Override
             public String getBootstrapScriptResourcePath() {
                 return bootstrapScriptResourcePath;
+            }
+
+            @Override
+            public String getBootstrapSuccessText() {
+                return bootstrapSuccessText;
             }
 
             @Override
@@ -213,6 +220,10 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     public void setBootstrapScriptResourcePath(String bootstrapScriptResourcePath) {
         this.bootstrapScriptResourcePath = bootstrapScriptResourcePath;
+    }
+
+    public void setBootstrapSuccessText(String bootstrapSuccessText) {
+        this.bootstrapSuccessText = bootstrapSuccessText;
     }
 
     @Override

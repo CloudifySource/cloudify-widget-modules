@@ -114,9 +114,10 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
         updateNodeModelStatus(NodeStatus.BOOTSTRAPPING);
         CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine(script, sshDetails);
         int exitStatus = cloudExecResponse.getExitStatus();
+        String output = cloudExecResponse.getOutput();
         logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
-        logger.info("- - - bootstrap script execution output - - - \n{}", cloudExecResponse.getOutput());
-        if (exitStatus == 0) {
+        logger.info("- - - bootstrap script execution output - - - \n{}", output);
+        if (exitStatus == 0 && output.contains(taskConfig.getBootstrapSuccessText())) {
             updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
         } else {
             updateNodeModelStatus(NodeStatus.EXPIRED);
@@ -124,7 +125,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             logger.error(message);
             HashMap<String, Object> infoMap = new HashMap<String, Object>();
             infoMap.put("exitStatus", exitStatus);
-            infoMap.put("output", cloudExecResponse.getOutput());
+            infoMap.put("output", output);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())
                             .setTaskName(getTaskName())

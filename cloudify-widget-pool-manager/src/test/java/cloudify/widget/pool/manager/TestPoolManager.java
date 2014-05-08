@@ -61,6 +61,9 @@ public class TestPoolManager {
     private String bootstrapScriptResourcePath;
 
     @Autowired
+    private String bootstrapSuccessText;
+
+    @Autowired
     private Task createMachineTask;
 
     @Autowired
@@ -151,6 +154,11 @@ public class TestPoolManager {
             @Override
             public String getBootstrapScriptResourcePath() {
                 return bootstrapScriptResourcePath;
+            }
+
+            @Override
+            public String getBootstrapSuccessText() {
+                return bootstrapSuccessText;
             }
 
             @Override

@@ -59,6 +59,7 @@
         <property name="statusManager" ref="statusManager" />
         <property name="taskExecutor" ref="taskExecutor" />
         <property name="bootstrapScriptResourcePath" value="classpath:bootstrap_machine.sh" />
+        <property name="bootstrapSuccessText" value="successfully" />
     </bean>
 
     <bean id="nodeManagementModuleProvider" class="cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider"/>

@@ -41,4 +41,8 @@
         <constructor-arg value="classpath:bootstrap_machine.sh" />
     </bean>
 
+    <bean id="bootstrapSuccessText" class="java.lang.String">
+        <constructor-arg value="successfully" />
+    </bean>
+
 </beans>

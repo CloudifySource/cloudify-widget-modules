@@ -3,6 +3,7 @@ package cloudify.widget.pool.manager.tasks;
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.CloudServerCreated;
 import cloudify.widget.pool.manager.CloudServerApiFactory;
+import cloudify.widget.pool.manager.MachineTimeout;
 import cloudify.widget.pool.manager.NodesDao;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.NodeStatus;
@@ -25,7 +26,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
 
 
     @Autowired
-    private Long defaultMachineTimeoutSeconds;
+    private MachineTimeout defaultMachineTimeout;
 
     @Autowired
     private NodesDao nodesDao;
@@ -56,7 +57,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
                     .setPoolId(poolSettings.getUuid())
                     .setNodeStatus(NodeStatus.CREATED)
                     .setMachineSshDetails(created.getSshDetails())
-                    .setExpires(System.currentTimeMillis() + (defaultMachineTimeoutSeconds * 1000));
+                    .setExpires(System.currentTimeMillis() + (defaultMachineTimeout.inMillis()));
             logger.info("machine created, adding node to database. node model is [{}]", nodeModel);
             nodesDao.create(nodeModel);
             nodeModelCreatedList.add(nodeModel);

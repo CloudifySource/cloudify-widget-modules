@@ -124,7 +124,7 @@ public class NodesDao {
 
     public int setExpired(long nodeId) {
         return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_ID + " = ?",
-                NodeStatus.EXPIRED, nodeId);
+                NodeStatus.EXPIRED.name(), nodeId);
     }
 
     /**

@@ -275,9 +275,11 @@ public class TestPoolManager {
         Assert.isTrue(nodeModels.size() == nodesSize,
                 String.format("amount of nodes in pool should be [%s], but instead is [%s]", nodesSize, nodeModels.size()));
 
+        logger.info("listing expired node ids in pool...");
         List<Long> expiredIdsOfPool = nodesDao.readExpiredIdsOfPool(poolSettings.getUuid());
         Assert.notEmpty(expiredIdsOfPool);
         Assert.isTrue(expiredIdsOfPool.size() == nodesSize);
+        logger.info("returned expired node ids [{}]", expiredIdsOfPool);
 
         // update
 

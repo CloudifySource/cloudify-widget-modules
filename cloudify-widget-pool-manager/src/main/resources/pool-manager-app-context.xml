@@ -69,6 +69,11 @@
     <bean id="bootstrapNodeManagementModule" class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule"/>
     <bean id="deleteExpiredNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule"/>
 
+    <bean id="defaultMachineTimeoutSeconds" class="java.lang.Long">
+        <constructor-arg value="60 * 60" /> <!-- one hour -->
+    </bean>
+
+
     <bean id="bootstrapMonitor" class="cloudify.widget.pool.manager.BootstrapMonitor">
             <property name="applicationUrlPattern" value="https://%s:8443"/>
     </bean>

@@ -34,6 +34,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         // we have nothing to do if no expired nodes found
         if (expiredNodeIds.isEmpty()) {
+            logger.info("no expired nodes to delete");
             return this;
         }
 
@@ -50,6 +51,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         if (expiredNodeIdsInQueue.containsAll(expiredNodeIds)) {
             // no action needed, the expired nodes will be handled in the following iteration(s)
+            logger.info("expired nodes are deleted in the next iterations");
             return this;
         }
 

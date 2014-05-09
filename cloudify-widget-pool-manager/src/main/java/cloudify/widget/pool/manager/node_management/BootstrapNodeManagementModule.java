@@ -1,17 +1,13 @@
 package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * User: eliranm
- * Date: 4/28/14
- * Time: 5:46 PM
+ * Date: 5/9/14
+ * Time: 8:26 PM
  */
 public class BootstrapNodeManagementModule extends BaseNodeManagementModule<BootstrapNodeManagementModule> {
-
-    private static Logger logger = LoggerFactory.getLogger(BootstrapNodeManagementModule.class);
 
     @Override
     public BootstrapNodeManagementModule decide() {

@@ -85,6 +85,7 @@ public class NodeManagementExecutor {
         public void run() {
             logger.debug("running node management for pool [{}]", _poolSettings.getUuid());
 
+            // TODO create separate process for each module to prevent blocking of all modules
             List<NodeManagementModuleType> activeModules = _poolSettings.getNodeManagement().getActiveModules();
             for (NodeManagementModuleType activeModule : activeModules) {
                 BaseNodeManagementModule nodeManagementModule = nodeManagementModuleProvider.fromType(activeModule);

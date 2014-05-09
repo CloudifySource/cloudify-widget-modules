@@ -56,7 +56,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
                     .setPoolId(poolSettings.getUuid())
                     .setNodeStatus(NodeStatus.CREATED)
                     .setMachineSshDetails(created.getSshDetails())
-                    .setExpires(System.currentTimeMillis() + defaultMachineTimeoutSeconds);
+                    .setExpires(System.currentTimeMillis() + (defaultMachineTimeoutSeconds * 1000));
             logger.info("machine created, adding node to database. node model is [{}]", nodeModel);
             nodesDao.create(nodeModel);
             nodeModelCreatedList.add(nodeModel);

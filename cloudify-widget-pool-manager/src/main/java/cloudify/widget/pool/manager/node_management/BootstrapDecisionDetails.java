@@ -5,5 +5,5 @@ package cloudify.widget.pool.manager.node_management;
  * Date: 4/29/14
  * Time: 11:31 PM
  */
-public class BootstrapDecisionDetails extends NodeIdsProvidingDecisionDetails {
+public class BootstrapDecisionDetails extends NodeIdsProvidingDecisionDetails<BootstrapDecisionDetails> {
 }

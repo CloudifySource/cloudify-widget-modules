@@ -102,6 +102,13 @@ public class NodesDao {
         return result;
     }
 
+    public List<Long> readIdsOfPoolWithStatus(String poolId, NodeStatus nodeStatus) {
+        List<Long> result = jdbcTemplate.queryForList("select " + COL_ID + " from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
+                new Object[]{poolId, nodeStatus.name()},
+                Long.class);
+        return result;
+    }
+
     public NodeModel read(long nodeId) {
         try {
             return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where " + COL_ID + " = ?",

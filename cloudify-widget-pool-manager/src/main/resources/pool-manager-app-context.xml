@@ -31,7 +31,7 @@
 
     <bean id="nodeManagementExecutor" class="cloudify.widget.pool.manager.NodeManagementExecutor">
         <property name="executorService" ref="nodeManagementPool" />
-        <property name="decisionExecutionIntervalInSeconds" value="3" />
+        <property name="decisionExecutionIntervalInSeconds" value="60" />
     </bean>
 
     <!--<bean id="taskDecorator" class="cloudify.widget.pool.manager.tasks.TaskRegistrar$DecoratorImpl" scope="prototype">-->

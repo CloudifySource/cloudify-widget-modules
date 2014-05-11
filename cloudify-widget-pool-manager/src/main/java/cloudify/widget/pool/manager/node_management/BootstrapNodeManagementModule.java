@@ -7,7 +7,7 @@ import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
  * Date: 5/9/14
  * Time: 8:26 PM
  */
-public class BootstrapNodeManagementModule extends BaseNodeManagementModule<BootstrapNodeManagementModule> {
+public class BootstrapNodeManagementModule extends BaseNodeManagementModule<BootstrapNodeManagementModule, BootstrapDecisionDetails> {
 
     @Override
     public BootstrapNodeManagementModule decide() {

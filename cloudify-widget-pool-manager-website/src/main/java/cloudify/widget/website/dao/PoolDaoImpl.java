@@ -77,7 +77,7 @@ public class PoolDaoImpl implements IPoolDao {
         try {
             poolSettings = objectMapper.readValue(poolSettingsJson, PoolSettings.class);
             if (poolSettingsJson.contains("uuid")) {
-                logger.warn("uuid was received in pool settings json. it will not be persisted, and a new uuid will be generated.");
+                logger.warn("uuid was received in pool settings json. it will be ignored, and a new uuid will be generated.");
                 poolSettings.regenerateUuid();
             }
             poolSettingsJson = objectMapper.writeValueAsString(poolSettings);

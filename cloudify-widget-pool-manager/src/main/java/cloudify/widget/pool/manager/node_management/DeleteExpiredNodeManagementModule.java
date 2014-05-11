@@ -20,7 +20,7 @@ import java.util.Set;
  * Date: 4/28/14
  * Time: 5:46 PM
  */
-public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<DeleteExpiredNodeManagementModule> {
+public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<DeleteExpiredNodeManagementModule, DeleteExpiredDecisionDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(DeleteExpiredNodeManagementModule.class);
 
@@ -34,7 +34,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         // we have nothing to do if no expired nodes found
         if (expiredNodeIds.isEmpty()) {
-            logger.info("no expired nodes to delete");
+            logger.debug("no expired nodes to delete");
             return this;
         }
 

@@ -11,7 +11,7 @@ import java.util.List;
  * Date: 4/24/14
  * Time: 11:09 PM
  */
-public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModule> implements DecisionMaker<T>, ModuleTypeProvider {
+public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModule, D extends DecisionDetails> implements DecisionMaker<T>, ModuleTypeProvider {
 
     @Autowired
     protected DecisionsDao decisionsDao;
@@ -33,7 +33,7 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
         return _constraints;
     }
 
-    protected DecisionModel createOwnDecisionModel(DecisionDetails details) {
+    protected DecisionModel createOwnDecisionModel(D details) {
         return new DecisionModel()
                 .setDecisionType(getType())
                 .setPoolId(getConstraints().poolSettings.getUuid())

@@ -117,7 +117,9 @@ public class AdminController {
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}", method = RequestMethod.POST)
     @ResponseBody
     public boolean updateAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId, @RequestBody String newPoolSettingJson) {
-        return poolDao.updatePool(poolConfigurationId, accountId, newPoolSettingJson);
+        boolean updated = poolDao.updatePool(poolConfigurationId, accountId, newPoolSettingJson);
+        nodeManagementExecutor.update(poolDao.readPoolById(poolConfigurationId).poolSettings);
+        return updated;
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/delete", method = RequestMethod.POST)

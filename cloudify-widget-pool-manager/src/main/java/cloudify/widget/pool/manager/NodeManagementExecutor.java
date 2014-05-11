@@ -2,12 +2,15 @@ package cloudify.widget.pool.manager;
 
 import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.PoolSettings;
-import cloudify.widget.pool.manager.node_management.*;
+import cloudify.widget.pool.manager.node_management.BaseNodeManagementModule;
+import cloudify.widget.pool.manager.node_management.Constraints;
+import cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,8 +39,8 @@ public class NodeManagementExecutor {
     private ErrorsDao errorsDao;
 
     // TODO get rid of this - it has to be persisted somewhere
-    // key: poolId, value: scheduled future returned from starting the scheduled task for this pool
-    private Map<String, ScheduledFuture> poolExecutions = new HashMap<String, ScheduledFuture>();
+    // key: poolId, value: pool execution including scheduled futures returned from starting scheduled tasks for this pool's active modules, and the runner instance
+    private Map<String, List<PoolExecution>> poolExecutions = new HashMap<String, List<PoolExecution>>();
 
 
     public void init() {
@@ -55,46 +58,97 @@ public class NodeManagementExecutor {
     }
 
 
-
     public void start(PoolSettings poolSettings) {
-        ScheduledFuture<?> scheduledFuture = executorService.scheduleAtFixedRate(
-                new PoolNodeManagementRunner(poolSettings), 0, decisionExecutionIntervalInSeconds, TimeUnit.SECONDS);
-        poolExecutions.put(poolSettings.getUuid(), scheduledFuture);
+        List<NodeManagementModuleType> activeModules = poolSettings.getNodeManagement().getActiveModules();
+        if (activeModules == null || activeModules.isEmpty()) {
+            return;
+        }
+        LinkedList<PoolExecution> executionList = new LinkedList<PoolExecution>();
+        for (NodeManagementModuleType activeModule : activeModules) {
+            logger.info("starting scheduled execution of node management module [{}]", activeModule);
+            PoolNodeManagementModuleRunner runner = new PoolNodeManagementModuleRunner(activeModule, poolSettings);
+            ScheduledFuture<?> scheduledFuture = executorService.scheduleAtFixedRate(
+                    runner, 0, decisionExecutionIntervalInSeconds, TimeUnit.SECONDS);
+            executionList.add(new PoolExecution().setScheduled(scheduledFuture).setRunner(runner));
+        }
+        poolExecutions.put(poolSettings.getUuid(), executionList);
     }
 
     public void stop(PoolSettings poolSettings) {
-        ScheduledFuture scheduledFuture = poolExecutions.get(poolSettings.getUuid());
-        if (scheduledFuture == null) {
+        String poolSettingsUuid = poolSettings.getUuid();
+        if (!poolExecutions.containsKey(poolSettingsUuid)) {
             return;
         }
-        scheduledFuture.cancel(true);
+        List<PoolExecution> executionList = poolExecutions.get(poolSettingsUuid);
+        if (executionList != null && !executionList.isEmpty()) {
+            logger.info("stopping all scheduled executions of node management modules for pool settings [{}]", poolSettingsUuid);
+            for (PoolExecution execution : executionList) {
+                execution.getScheduled().cancel(true);
+            }
+        }
+        poolExecutions.remove(poolSettingsUuid);
+    }
+
+    public void update(PoolSettings poolSettings) {
+        logger.info("updating...");
+        String poolSettingsUuid = poolSettings.getUuid();
+        if (!poolExecutions.containsKey(poolSettingsUuid)) {
+            return;
+        }
+        List<PoolExecution> executionList = poolExecutions.get(poolSettingsUuid);
+        if (executionList != null && !executionList.isEmpty()) {
+            logger.info("updating pool settings in all scheduled executions of node management modules for pool settings [{}]", poolSettingsUuid);
+            for (PoolExecution execution : executionList) {
+                execution.getRunner().updatePoolSettings(poolSettings);
+            }
+        }
     }
 
 
-    public class PoolNodeManagementRunner implements Runnable {
+    public static class PoolExecution {
 
-        private Logger logger = LoggerFactory.getLogger(PoolNodeManagementRunner.class);
+        // holds the execution id, to cancel it when pool settings is removed
+        private ScheduledFuture scheduled;
+        // used for updating the pool settings while the execution is running
+        private PoolNodeManagementModuleRunner runner;
 
-        private final PoolSettings _poolSettings;
+        public PoolNodeManagementModuleRunner getRunner() {
+            return runner;
+        }
+        public PoolExecution setRunner(PoolNodeManagementModuleRunner runner) {
+            this.runner = runner;
+            return this;
+        }
+        public ScheduledFuture getScheduled() {
+            return scheduled;
+        }
+        public PoolExecution setScheduled(ScheduledFuture scheduled) {
+            this.scheduled = scheduled;
+            return this;
+        }
+    }
 
-        public PoolNodeManagementRunner(PoolSettings poolSettings) {
-            _poolSettings = poolSettings;
+    public class PoolNodeManagementModuleRunner implements Runnable {
+
+        private Logger logger = LoggerFactory.getLogger(PoolNodeManagementModuleRunner.class);
+
+        private BaseNodeManagementModule _nodeManagementModule;
+
+        public PoolNodeManagementModuleRunner(NodeManagementModuleType type, PoolSettings poolSettings) {
+            _nodeManagementModule = nodeManagementModuleProvider.fromType(type)
+                    .having(new Constraints(poolSettings));
+        }
+
+        public void updatePoolSettings(PoolSettings poolSettings) {
+            _nodeManagementModule.having(new Constraints(poolSettings));
         }
 
         @Override
         public void run() {
-            logger.debug("running node management for pool [{}]", _poolSettings.getUuid());
-
-            // TODO create separate process for each module to prevent blocking of all modules
-            List<NodeManagementModuleType> activeModules = _poolSettings.getNodeManagement().getActiveModules();
-            for (NodeManagementModuleType activeModule : activeModules) {
-                BaseNodeManagementModule nodeManagementModule = nodeManagementModuleProvider.fromType(activeModule);
-                logger.debug("running node management module [{}]", nodeManagementModule.getClass());
-                nodeManagementModule
-                        .having(new Constraints(_poolSettings))
-                        .decide()
-                        .execute();
-            }
+            logger.debug("running node management module [{}]", _nodeManagementModule.getClass());
+            _nodeManagementModule
+                    .decide()
+                    .execute();
 
         }
     }

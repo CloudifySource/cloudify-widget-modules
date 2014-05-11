@@ -14,7 +14,7 @@ import java.util.*;
  * Date: 4/28/14
  * Time: 3:27 PM
  */
-public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteNodeManagementModule> {
+public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteNodeManagementModule, DeleteDecisionDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(DeleteNodeManagementModule.class);
 

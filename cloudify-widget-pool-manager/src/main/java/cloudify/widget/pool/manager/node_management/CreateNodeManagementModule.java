@@ -18,7 +18,7 @@ import java.util.List;
  * Date: 4/28/14
  * Time: 5:46 PM
  */
-public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateNodeManagementModule> {
+public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateNodeManagementModule, CreateDecisionDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(CreateNodeManagementModule.class);
 

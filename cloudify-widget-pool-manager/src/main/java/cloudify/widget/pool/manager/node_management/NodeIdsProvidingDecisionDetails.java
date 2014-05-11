@@ -9,7 +9,7 @@ import java.util.Set;
 * Date: 4/29/14
 * Time: 11:31 PM
 */
-public abstract class NodeIdsProvidingDecisionDetails implements DecisionDetails {
+public abstract class NodeIdsProvidingDecisionDetails<T extends NodeIdsProvidingDecisionDetails> implements DecisionDetails {
 
     private Set<Long> _nodeIds = Collections.synchronizedSet(new HashSet<Long>());
 
@@ -17,19 +17,19 @@ public abstract class NodeIdsProvidingDecisionDetails implements DecisionDetails
         return _nodeIds;
     }
 
-    public NodeIdsProvidingDecisionDetails setNodeIds(Set<Long> nodeIds) {
+    public T setNodeIds(Set<Long> nodeIds) {
         _nodeIds = nodeIds;
-        return this;
+        return (T) this;
     }
 
-    public NodeIdsProvidingDecisionDetails addNodeId(long nodeId) {
+    public T addNodeId(long nodeId) {
         _nodeIds.add(nodeId);
-        return this;
+        return (T) this;
     }
 
-    public NodeIdsProvidingDecisionDetails removeNodeId(long nodeId) {
+    public T removeNodeId(long nodeId) {
         _nodeIds.remove(nodeId);
-        return this;
+        return (T) this;
     }
 
     @Override

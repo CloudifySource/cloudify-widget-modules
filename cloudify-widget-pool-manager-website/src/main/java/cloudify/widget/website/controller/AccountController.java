@@ -1,10 +1,10 @@
 package cloudify.widget.website.controller;
 
+import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.dto.PoolStatus;
-import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
 import cloudify.widget.website.models.AccountModel;
@@ -86,7 +86,9 @@ public class AccountController {
     public boolean updatePoolConfiguration( @ModelAttribute("account") AccountModel accountModel,
                                             @PathVariable("poolId") Long poolId, @RequestBody String poolSettingJson ) {
 
-        return poolDao.updatePool( poolId, accountModel.getId(), poolSettingJson );
+        boolean updated = poolDao.updatePool(poolId, accountModel.getId(), poolSettingJson);
+        nodeManagementExecutor.update(poolDao.readPoolById(poolId).poolSettings);
+        return updated;
     }
 
     @RequestMapping(value="/account/pools/{poolId}/delete", method=RequestMethod.POST)

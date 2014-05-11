@@ -68,6 +68,7 @@
         <property name="jdbcTemplate" ref="websiteJdbcTemplate"></property>
     </bean>
 
+    <bean class="cloudify.widget.website.handlers.NodeManagementRecoveryHandler" />
 
 
     <beans profile="manager-app,default,dev">

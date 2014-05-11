@@ -90,7 +90,6 @@ public class NodeManagementExecutor {
     }
 
     public void update(PoolSettings poolSettings) {
-        logger.info("updating...");
         String poolSettingsUuid = poolSettings.getUuid();
         if (!poolExecutions.containsKey(poolSettingsUuid)) {
             return;

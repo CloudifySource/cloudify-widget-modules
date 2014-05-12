@@ -4,6 +4,7 @@ import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.node_management.BaseNodeManagementModule;
 import cloudify.widget.pool.manager.node_management.Constraints;
+import cloudify.widget.pool.manager.node_management.DecisionsDao;
 import cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,9 @@ public class NodeManagementExecutor {
     private NodeManagementModuleProvider nodeManagementModuleProvider;
 
     @Autowired
+    private DecisionsDao decisionsDao;
+
+    @Autowired
     private ErrorsDao errorsDao;
 
     // TODO get rid of this - it has to be persisted somewhere
@@ -59,6 +63,10 @@ public class NodeManagementExecutor {
 
 
     public void start(PoolSettings poolSettings) {
+        // clean all undeleted decisions first, just in case
+        logger.debug(" cleaning all decisions of pool [{}]", poolSettings.getUuid());
+        decisionsDao.deleteAllOfPool(poolSettings.getUuid());
+
         List<NodeManagementModuleType> activeModules = poolSettings.getNodeManagement().getActiveModules();
         if (activeModules == null || activeModules.isEmpty()) {
             return;

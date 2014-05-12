@@ -171,7 +171,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     @Override
     public void abortDecision(PoolSettings poolSettings, long decisionId) {
-        decisionsDao.deleteNotApprovedAndNotExecuted(decisionId);
+        decisionsDao.deleteIfNotApprovedAndNotExecuted(decisionId);
     }
 
     @Override

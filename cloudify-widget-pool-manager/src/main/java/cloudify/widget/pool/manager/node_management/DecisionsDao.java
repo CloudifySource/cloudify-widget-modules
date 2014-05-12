@@ -109,10 +109,20 @@ public class DecisionsDao {
     }
 
     // TODO should this only be called on MANUAL mode?
-    public int deleteNotApprovedAndNotExecuted(long decisionId) {
+    public int deleteIfNotApprovedAndNotExecuted(long decisionId) {
         return jdbcTemplate.update(
                 "delete p1 from " + TABLE_NAME + " as p1 cross join (select " + COL_ID + " from " + TABLE_NAME + " where " + COL_ID + " = ? and " + COL_APPROVED + " = ? and " + COL_EXECUTED + " = ?) as p2 using (" + COL_ID + ")",
                 decisionId, false, false);
+    }
+
+    public int deleteAllOfPool(String poolId) {
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_POOL_ID + " = ?",
+                poolId);
+    }
+
+    public int deleteAllNotOfPools(List<String> poolIds) {
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_POOL_ID + " not in (?)",
+                poolIds);
     }
 
 

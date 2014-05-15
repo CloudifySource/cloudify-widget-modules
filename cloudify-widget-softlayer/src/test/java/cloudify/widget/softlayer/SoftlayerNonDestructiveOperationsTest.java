@@ -1,14 +1,10 @@
 package cloudify.widget.softlayer;
 
-import cloudify.widget.api.clouds.CloudExecResponse;
-import cloudify.widget.api.clouds.CloudServer;
-import cloudify.widget.api.clouds.CloudServerApi;
-import cloudify.widget.api.clouds.CloudServerCreated;
-import cloudify.widget.api.clouds.IConnectDetails;
+import cloudify.widget.api.clouds.*;
 import cloudify.widget.common.CollectionUtils;
-import cloudify.widget.common.StringUtils;
+import cloudify.widget.common.MachineIsRunningCondition;
+import cloudify.widget.common.WaitTimeout;
 import junit.framework.Assert;
-import org.apache.commons.collections.ListUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -18,8 +14,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -75,17 +69,17 @@ public class SoftlayerNonDestructiveOperationsTest {
         Assert.assertEquals( "should create number of machines specified", machineOptions.machinesCount(), CollectionUtils.size(cloudServerCreatedCollection) );
 
 
-        logger.info("Start test create softlayer machine, completed");
         cloudServerApi.connect( connectDetails );
-        Collection<CloudServer> machinesWithTag = cloudServerApi.getAllMachinesWithTag("testsoft-4");
+        Collection<CloudServer> machinesWithTag = cloudServerApi.listByMask(machineOptions.getMask());
         Assert.assertEquals( "should list machines that were created", machineOptions.machinesCount(), CollectionUtils.size(machinesWithTag));
         logger.info("machines returned, size is [{}]", machinesWithTag.size());
         for (CloudServer cloudServer : machinesWithTag) {
             logger.info("cloud server name [{}]", cloudServer.getName());
         }
 
-        /** get machine by id **/
-        Collection<CloudServer> cloudServers = cloudServerApi.getAllMachinesWithTag(tagMask);
+        // get machine by id
+
+        Collection<CloudServer> cloudServers = cloudServerApi.listByMask(tagMask);
         for (CloudServer cloudServer : cloudServers) {
             logger.info("cloud server found with id [{}]", cloudServer.getId());
             CloudServer cs = cloudServerApi.get(cloudServer.getId());
@@ -93,23 +87,32 @@ public class SoftlayerNonDestructiveOperationsTest {
             Assert.assertNotNull("expecting machine to have ip", cs.getServerIp().publicIp);
         }
 
-        /** run script on machine **/ 
-        final String echoString = "hello world";
-        Collection<CloudServer> machines = cloudServerApi.getAllMachinesWithTag("testsoft-4");
+        // run script on machine
 
-        for (CloudServer machine : machines) {
-            String publicIp = machine.getServerIp().publicIp;
-            CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine("echo " + echoString, publicIp, null);
+        logger.info("starting run-script on machine...");
+        final String echoString = "hello world";
+        Collection<CloudServer> machines = cloudServerApi.listByMask(machineOptions.getMask());
+
+        for (final CloudServer machine : machines) {
+
+            logger.info("looking for the SshDetails in the CloudServerCreated matching the CloudServer");
+            CloudServerCreated created = CollectionUtils.firstBy(cloudServerCreatedCollection, new CollectionUtils.Predicate<CloudServerCreated>() {
+                @Override
+                public boolean evaluate(CloudServerCreated object) {
+                    return object.getId().equals(machine.getId());
+                }
+            });
+            SoftlayerSshDetails sshDetails = (SoftlayerSshDetails) created.getSshDetails();
+
+            CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine("echo " + echoString, sshDetails);
             logger.info("run Script on machine, completed, response [{}]" , cloudExecResponse );
             assertTrue( "Script must have [" + echoString + "]" , cloudExecResponse.getOutput().contains( echoString ) );
         }
 
 
-        /**
-         * teardown
-         */
+        // teardown
 
-         logger.info("deleting all machines");
+        logger.info("deleting all machines");
 
         for (CloudServer machine : machines) {
             logger.info("waiting for machine to run");
@@ -155,26 +158,6 @@ public class SoftlayerNonDestructiveOperationsTest {
 
     public void setWaitMachineIsRunningTimeout( WaitTimeout waitTimeout ){
         this.waitMachineIsRunningTimeout = waitTimeout;
-    }
-
-    public static class MachineIsRunningCondition implements WaitTimeout.Condition {
-        public CloudServer machine;
-
-        @Override
-        public boolean apply() {
-            return machine.isRunning();
-        }
-
-        public void setMachine(CloudServer machine) {
-            this.machine = machine;
-        }
-
-        @Override
-        public String toString() {
-            return "MachineIsRunningCondition{" +
-                    "machine=" + machine +
-                    '}';
-        }
     }
 
     public static class MachineIsStoppedCondition implements WaitTimeout.Condition{

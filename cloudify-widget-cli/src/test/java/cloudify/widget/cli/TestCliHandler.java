@@ -2,7 +2,6 @@ package cloudify.widget.cli;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;

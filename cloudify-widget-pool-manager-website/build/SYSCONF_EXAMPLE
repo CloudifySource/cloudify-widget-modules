@@ -1,0 +1,11 @@
+DOMAIN=my.domain.com
+PORT=8011
+DB_ADMIN=root
+DB_ADMIN_PASSWORD=root
+MANAGER_DB=managerpool
+WEBSITE_DB=managerwebsite
+INSTALL_LOCATION=/opt/pool-manager-website
+WEBSITE_ME_CONTEXT_RESOURCE=<an online url for prod-context.xml>
+
+# alternatively, you can put the sysconfig available somewhere online and simply write
+# eval "`wget --no-cache --no-check-certificate -O - 'url_to_sysconfig' | dos2unix`"

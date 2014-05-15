@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <util:properties id="managerProperties">
+        <prop key="jdbc.driverClassName">com.mysql.jdbc.Driver</prop>
+        <prop key="jdbc.url">jdbc:mysql://127.0.0.1:3306/managerpool</prop>
+        <prop key="jdbc.username">root</prop>
+        <prop key="jdbc.password">root</prop>
+    </util:properties>
+
+    <bean id="conf" class="cloudify.widget.website.config.AppConfig">
+        <property name="adminUuid" value="20659db0-b8a2-11e3-a5e2-0800300c9a66"/>
+        <property name="jdbcDriverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:3306/managerwebsite"/>
+        <property name="jdbcUsername" value="root"/>
+        <property name="jdbcPassword" value="root"/>
+    </bean>
+</beans>

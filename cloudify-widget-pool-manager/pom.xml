@@ -14,17 +14,27 @@
     <groupId>cloudify.widget</groupId>
     <artifactId>cloudify-widget-pool-manager</artifactId>
     <version>1.0.0</version>
-    <name>${project.artifactId}</name>
+    <name>pool-manager</name>
 
     <dependencies>
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <groupId>cloudify.widget</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>cloudify.widget</groupId>
             <artifactId>softlayer</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cloudify.widget</groupId>
+            <artifactId>hpcloudcompute</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cloudify.widget</groupId>
+            <artifactId>ec2</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>

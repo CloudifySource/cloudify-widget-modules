@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <context:component-scan base-package="cloudify.widget.softlayer" />
+
+    <context:property-placeholder  properties-ref="managerProperties"/>
+
+
+<!--
+    <bean id="backgroundTaskPool" class="cloudify.widget.pool.manager.BackgroundExecutorServiceFactory">
+        <property name="poolSize" value="20" />
+    </bean>
+-->
+
+    <bean id="taskPool" class="cloudify.widget.pool.manager.FixedSizeExecutorServiceFactory">
+        <property name="poolSize" value="200" />
+    </bean>
+
+    <bean id="taskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init" destroy-method="destroy">
+        <property name="executorService" ref="taskPool" />
+        <!--<property name="backgroundExecutorService" ref="backgroundTaskPool" />-->
+    </bean>
+
+    <!--<bean id="taskDecorator" class="cloudify.widget.pool.manager.tasks.TaskRegistrar$DecoratorImpl" scope="prototype">-->
+    <!--</bean>-->
+
+    <bean id="createMachineTask" class="cloudify.widget.pool.manager.tasks.CreateMachine" scope="prototype">
+    </bean>
+
+    <bean id="deleteMachineTask" class="cloudify.widget.pool.manager.tasks.DeleteMachine" scope="prototype">
+    </bean>
+
+    <bean id="bootstrapMachineTask" class="cloudify.widget.pool.manager.tasks.BootstrapMachine" scope="prototype">
+    </bean>
+
+
+
+    <bean id="statusManager" class="cloudify.widget.pool.manager.StatusManager"></bean>
+
+    <bean id="poolManagerApi" class="cloudify.widget.pool.manager.PoolManagerApiImpl">
+        <property name="nodesDao" ref="nodesDao" />
+        <property name="errorsDao" ref="errorsDao" />
+        <property name="tasksDao" ref="tasksDao" />
+        <property name="nodeMappingsDao" ref="cloudNodesDao" />
+        <property name="statusManager" ref="statusManager" />
+        <property name="taskExecutor" ref="taskExecutor" />
+        <property name="bootstrapScriptResourcePath" value="classpath:bootstrap_machine.sh" />
+    </bean>
+
+    <bean id="nodeManagementRunner" class="cloudify.widget.pool.manager.node_management.NodeManagementRunner">
+    </bean>
+
+    <bean id="createNodeManager" class="cloudify.widget.pool.manager.node_management.CreateNodeManager">
+        <!--<property name="nodesDao" ref="nodesDao" />-->
+    </bean>
+
+    <bean id="bootstrapMonitor" class="cloudify.widget.pool.manager.BootstrapMonitor">
+            <property name="applicationUrlPattern" value="https://%s:8443"/>
+    </bean>
+
+
+    <bean id="poolManagerDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <bean id="poolManagerJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="poolManagerDataSource" />
+    </bean>
+
+    <bean id="nodesDao" class="cloudify.widget.pool.manager.NodesDao">
+        <property name="jdbcTemplate" ref="poolManagerJdbcTemplate"/>
+    </bean>
+
+    <bean id="errorsDao" class="cloudify.widget.pool.manager.ErrorsDao">
+        <property name="jdbcTemplate" ref="poolManagerJdbcTemplate"/>
+    </bean>
+
+    <bean id="decisionsDao" class="cloudify.widget.pool.manager.node_management.DecisionsDao">
+        <property name="jdbcTemplate" ref="poolManagerJdbcTemplate"/>
+    </bean>
+
+    <bean id="tasksDao" class="cloudify.widget.pool.manager.InMemoryTasksDao"/>
+
+    <bean id="cloudNodesDao" class="cloudify.widget.pool.manager.NodeMappingsDao"/>
+
+    <beans profile="dev,default">
+        <util:properties location="classpath:/conf/dev/me.properties" id="managerProperties"/>
+    </beans>
+
+    <beans profile="softlayer">
+        <bean id="softlayerCloudCredentials" class="cloudify.widget.softlayer.SoftlayerConnectDetails">
+            <property name="key" value="${softlayer_api_key}"/>
+            <property name="username" value="${softlayer_user}"/>
+            <property name="networkId" value="274"/>
+        </bean>
+
+        <bean id="cloudServer" class="cloudify.widget.softlayer.SoftlayerCloudServerApi">
+            <property name="connectDetails" ref="softlayerCloudCredentials"/>
+        </bean>
+
+        <bean id="machineOptions" class="cloudify.widget.softlayer.SoftlayerMachineOptions">
+            <property name="mask" value="networkfix"/>
+            <property name="hardwareId" value="1643,21275,13887"/>
+            <property name="locationId" value="37473"/>
+            <property name="osFamily" value="CENTOS"/>
+            <property name="machinesCount" value="1"/>
+        </bean>
+
+    </beans>
+
+
+    <beans profile="ibmprod">
+    </beans>
+
+</beans>

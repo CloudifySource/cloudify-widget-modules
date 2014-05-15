@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/mvc  http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+    <bean id="conf" class="cloudify.widget.website.config.AppConfig"/>
+
+    <import resource="${websiteMeContext}"/>
+
+
+    <mvc:annotation-driven/>
+    <context:component-scan base-package="cloudify.widget.website.controller" />
+
+    <!--<bean id="nodesDataAccessManager" class="cloudify.widget.pool.manager.NodesDataAccessManager" />-->
+    <!--<bean id="taskErrorsDataAccessManager" class="cloudify.widget.pool.manager.ErrorsDataAccessManager" />-->
+
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/admin/**"/>
+            <bean class="cloudify.widget.website.interceptors.AdminAuthenticationInterceptor"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="cloudify.widget.website.interceptors.AccountAuthenticationInterceptor"/>
+        </mvc:interceptor>
+        <!--<mvc:interceptor>-->
+            <!--<mvc:mapping path="/**"/>-->
+            <!--<mvc:exclude-mapping path="/admin/**"/>-->
+            <!--<mvc:exclude-mapping path="/account/**"/>-->
+            <!--<bean class="cloudify.widget.website.interceptors.AuthenticationInterceptor"/>-->
+        <!--</mvc:interceptor>-->
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="cloudify.widget.website.interceptors.ExceptionInterceptor"/>
+        </mvc:interceptor>
+
+    </mvc:interceptors>
+
+    <bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler"/>
+
+    <bean id="resourceDao" class="cloudify.widget.website.dao.ResourceDaoImpl">
+        <property name="jdbcTemplate" ref="websiteJdbcTemplate"/>
+        <property name="lobHandler" ref="lobHandler"/>
+    </bean>
+
+    <bean id="websiteDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="#{conf.jdbcDriverClassName}"/>
+        <property name="url" value="#{conf.jdbcUrl}"/>
+        <property name="username" value="#{conf.jdbcUsername}"/>
+        <property name="password" value="#{conf.jdbcPassword}"/>
+    </bean>
+
+    <bean id="websiteJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="websiteDataSource" />
+        <!--<property name="dataSource" ref="websiteDataSource"></property>-->
+    </bean>
+
+    <bean id="accountDao" class="cloudify.widget.website.dao.AccountDaoImpl">
+        <property name="jdbcTemplate" ref="websiteJdbcTemplate"></property>
+    </bean>
+
+    <bean id="poolDao" class="cloudify.widget.website.dao.PoolDaoImpl">
+        <property name="jdbcTemplate" ref="websiteJdbcTemplate"></property>
+    </bean>
+
+
+
+    <beans profile="manager-app,default,dev">
+        <import resource="classpath:pool-manager-app-context.xml"/>
+    </beans>
+    <beans profile="manager-dev">
+        <import resource="classpath:pool-manager-dev-context.xml"/>
+    </beans>
+</beans>

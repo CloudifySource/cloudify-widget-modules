@@ -1,11 +1,6 @@
 package cloudify.widget.ec2;
 
 import cloudify.widget.api.clouds.MachineOptions;
-import cloudify.widget.common.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.jclouds.compute.domain.OsFamily;
-
-import java.util.Arrays;
 
 /**
  * User: evgenyf
@@ -13,42 +8,30 @@ import java.util.Arrays;
  */
 public class Ec2MachineOptions implements MachineOptions {
 
-    private String name;
+    private String mask;
     private int machinesCount;
-    private OsFamily osFamily;
     private String locationId;
     private String hardwareId;
     private String imageId;
-    private String tags;
 
     public Ec2MachineOptions(){}
 
-    public Ec2MachineOptions( String name ){
-        this( name, 1 );
+    public Ec2MachineOptions( String mask){
+        this(mask, 1 );
     }
 
-    public Ec2MachineOptions( String name, int machinesCount ){
-        this.name = name;
+    public Ec2MachineOptions( String mask, int machinesCount ){
+        this.mask = mask;
         this.machinesCount = machinesCount;
     }
 
-    public String name() {
-        return name;
+    public String getMask() {
+        return mask;
     }
 
-    public Ec2MachineOptions setName( String name ){
-        this.name = name;
+    public Ec2MachineOptions setMask(String mask){
+        this.mask = mask;
         return this;
-    }
-
-    public Ec2MachineOptions setTags( String tags ){
-        this.tags = tags;
-        return this;
-    }
-
-    public Iterable<String> tags() {
-        String[] split = tags.split(",");
-        return Arrays.asList( split );
     }
 
     public Ec2MachineOptions setMachinesCount( int machinesCount ){
@@ -56,7 +39,7 @@ public class Ec2MachineOptions implements MachineOptions {
         return this;
     }
 
-    public int machinesCount() {
+    public int getMachinesCount() {
         return machinesCount;
     }
 
@@ -65,7 +48,7 @@ public class Ec2MachineOptions implements MachineOptions {
         return this;
     }
 
-    public String locationId(){
+    public String getLocationId(){
         return locationId;
     }
 
@@ -74,7 +57,7 @@ public class Ec2MachineOptions implements MachineOptions {
         return this;
     }
 
-    public String hardwareId(){
+    public String getHardwareId(){
         return hardwareId;
     }
 
@@ -83,21 +66,44 @@ public class Ec2MachineOptions implements MachineOptions {
         return this;
     }
 
-    public String imageId(){
+    public String getImageId(){
         return imageId;
     }
 
-    public Ec2MachineOptions setOsFamily( OsFamily osFamily ){
-        this.osFamily = osFamily;
-        return this;
-    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-    public OsFamily osFamily(){
-        return osFamily;
+        Ec2MachineOptions that = (Ec2MachineOptions) o;
+
+        if (machinesCount != that.machinesCount) return false;
+        if (hardwareId != null ? !hardwareId.equals(that.hardwareId) : that.hardwareId != null) return false;
+        if (imageId != null ? !imageId.equals(that.imageId) : that.imageId != null) return false;
+        if (locationId != null ? !locationId.equals(that.locationId) : that.locationId != null) return false;
+        if (mask != null ? !mask.equals(that.mask) : that.mask != null) return false;
+
+        return true;
     }
 
     @Override
-    public String getMask() {
-        return tags;
+    public int hashCode() {
+        int result = mask != null ? mask.hashCode() : 0;
+        result = 31 * result + machinesCount;
+        result = 31 * result + (locationId != null ? locationId.hashCode() : 0);
+        result = 31 * result + (hardwareId != null ? hardwareId.hashCode() : 0);
+        result = 31 * result + (imageId != null ? imageId.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Ec2MachineOptions{" +
+                "mask='" + mask + '\'' +
+                ", machinesCount=" + machinesCount +
+                ", locationId='" + locationId + '\'' +
+                ", hardwareId='" + hardwareId + '\'' +
+                ", imageId='" + imageId + '\'' +
+                '}';
     }
 }

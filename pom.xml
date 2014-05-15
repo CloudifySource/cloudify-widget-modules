@@ -9,9 +9,10 @@
         <module>cloudify-widget-api</module>
         <module>cloudify-widget-common</module>
         <module>cloudify-widget-softlayer</module>
-        <module>cloudify-widget-hpcloud</module>
         <module>cloudify-widget-cli</module>
         <module>cloudify-widget-ec2</module>
+        <module>cloudify-widget-mailer</module>
+        <module>cloudify-widget-hpcloudcompute</module>
         <module>cloudify-widget-pool-manager</module>
         <module>cloudify-widget-pool-manager-website</module>
     </modules>
@@ -32,22 +33,22 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>4.0.1.RELEASE</version>
-            <scope>test</scope>
+            <!--<version>4.0.1.RELEASE</version>-->
+            <version>3.2.5.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>4.0.1.RELEASE</version>
+            <!--<version>4.0.1.RELEASE</version>-->
+            <version>3.2.5.RELEASE</version>
             <scope>test</scope>
-
         </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logbackVersion}</version>
             <scope>test</scope>
-
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -101,7 +102,7 @@
     <properties>
         <skipTests>true</skipTests>
         <jCloudsVersion>1.6.2-incubating</jCloudsVersion>
-        <slf4jVersion>1.7.2</slf4jVersion>
+        <slf4jVersion>1.7.5</slf4jVersion>
         <logbackVersion>1.0.9</logbackVersion>
     </properties>
 </project>

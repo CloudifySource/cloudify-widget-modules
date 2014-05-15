@@ -16,15 +16,15 @@
     <bean id="cloudServer" class="cloudify.widget.ec2.Ec2CloudServerApi"/>
 
     <bean id="machineOptions" class="cloudify.widget.ec2.Ec2MachineOptions">
-        <property name="name" value="testawsec2"/>
+        <property name="mask" value="testawsec2"/>
         <property name="tags" value="testtag1,testtag2"/>
         <property name="hardwareId" value="m1.small"/>
-        <property name="imageId" value="eu-west-1/ami-0fbe967b"/>
-        <!--property name="imageId" value="eu-west-1/ami-31bd9545"/-->
-        <property name="osFamily" value="CENTOS"/>
+        <property name="locationId" value="eu-west-1"/>
+        <!--property name="imageId" value="eu-west-1/ami-0fbe967b"/-->
+        <property name="imageId" value="eu-west-1/ami-c37474b7"/>
         <property name="machinesCount" value="1"/>
     </bean>
 
     <bean id="waitMachineIsRunningTimeout" class="cloudify.widget.common.WaitTimeout"/>
-    <bean id="waitMachineIsStoppedTimeout" class="cloudify.widget.common.WaitTimeout"/>
+    <bean id="waitMachineIsNotRunning" class="cloudify.widget.common.WaitTimeout"/>
 </beans>

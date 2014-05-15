@@ -13,6 +13,13 @@
     </parent>
 
     <dependencies>
+<!--
+        <dependency>
+            <groupId>cloudify.widget</groupId>
+            <artifactId>modules</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+-->
         <dependency>
             <groupId>cloudify.widget</groupId>
             <artifactId>common</artifactId>
@@ -22,7 +29,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>cloudify.widget</groupId>
@@ -43,6 +49,11 @@
             <groupId>org.apache.jclouds.provider</groupId>
             <artifactId>softlayer-cci-embedded</artifactId>
             <version>${jCloudsVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-exec</artifactId>
+            <version>1.2</version>
         </dependency>
     </dependencies>
 

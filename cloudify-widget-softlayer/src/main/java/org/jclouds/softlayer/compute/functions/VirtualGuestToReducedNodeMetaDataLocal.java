@@ -26,7 +26,6 @@ import org.jclouds.compute.domain.NodeMetadataBuilder;
 import org.jclouds.compute.functions.GroupNamingConvention;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
-import org.jclouds.softlayer.compute.functions.VirtualGuestToNodeMetadata;
 import org.jclouds.softlayer.domain.OperatingSystem;
 import org.jclouds.softlayer.domain.Password;
 import org.jclouds.softlayer.domain.VirtualGuest;

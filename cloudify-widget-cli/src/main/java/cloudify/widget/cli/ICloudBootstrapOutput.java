@@ -1,7 +1,5 @@
 package cloudify.widget.cli;
 
-import cloudify.widget.api.clouds.ServerIp;
-
 /**
  * Created with IntelliJ IDEA.
  * User: guym

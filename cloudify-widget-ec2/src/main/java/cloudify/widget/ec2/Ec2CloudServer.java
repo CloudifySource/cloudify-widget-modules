@@ -2,9 +2,11 @@ package cloudify.widget.ec2;
 
 import cloudify.widget.api.clouds.CloudServer;
 import cloudify.widget.api.clouds.ServerIp;
+import cloudify.widget.common.CollectionUtils;
 import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
+
+import java.util.Set;
 
 /**
  * User: evgeny
@@ -13,10 +15,10 @@ import org.jclouds.compute.domain.NodeMetadata;
  */
 public class Ec2CloudServer implements CloudServer {
 
-    private final ComputeMetadata computeMetadata;
+    private final NodeMetadata computeMetadata;
     private final ComputeService computeService;
 
-    public Ec2CloudServer(ComputeService computeService, ComputeMetadata computeMetadata) {
+    public Ec2CloudServer(ComputeService computeService, NodeMetadata computeMetadata) {
         this.computeService = computeService;
         this.computeMetadata = computeMetadata;
     }
@@ -33,19 +35,15 @@ public class Ec2CloudServer implements CloudServer {
 
     @Override
     public boolean isRunning(){
-//        return getStatus() == Ec2CloudServerStatus.RUNNING;
-        // TODO implement functionality
-        return false;
+        return getStatus() == Ec2CloudServerStatus.RUNNING;
     }
 
     @Override
     public boolean isStopped(){
-//        return getStatus() == Ec2CloudServerStatus.STOPPED || getStatus() == Ec2CloudServerStatus.UNRECOGNIZED;
-        // TODO implement functionality
-        return false;
+        return !isRunning();
     }
 
-    private Ec2CloudServerStatus getStatus() {
+    Ec2CloudServerStatus getStatus() {
         NodeMetadata.Status status = computeService.getNodeMetadata(computeMetadata.getId()).getStatus();
         return Ec2CloudServerStatus.fromValue(status.toString());
     }
@@ -53,7 +51,14 @@ public class Ec2CloudServer implements CloudServer {
     @Override
     public ServerIp getServerIp() {
         ServerIp serverIp = new ServerIp();
-        serverIp.privateIp = computeMetadata.getProviderId();
+        Set<String> publicAddresses = computeMetadata.getPublicAddresses();
+        Set<String> privateAddresses = computeMetadata.getPrivateAddresses();
+        if( !CollectionUtils.isEmpty(publicAddresses) ){
+            serverIp.publicIp = CollectionUtils.first( publicAddresses ) ;
+        }
+        if( !CollectionUtils.isEmpty( privateAddresses ) ){
+            serverIp.privateIp = CollectionUtils.first( privateAddresses ) ;
+        }
         return serverIp;
     }
 }

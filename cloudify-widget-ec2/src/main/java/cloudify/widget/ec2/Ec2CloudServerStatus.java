@@ -9,9 +9,7 @@ import cloudify.widget.api.clouds.ICloudServerStatus;
  */
 public enum Ec2CloudServerStatus implements ICloudServerStatus {
 
-    // TODO list actual statuses from EC2 cloud API
-    ACTIVE, BUILD, REBUILD, SUSPENDED, PAUSED, RESIZE, VERIFY_RESIZE, REVERT_RESIZE,
-    PASSWORD, REBOOT, HARD_REBOOT, DELETED, UNKNOWN, ERROR, STOPPED, UNRECOGNIZED;
+    PENDING, TERMINATED, SUSPENDED, RUNNING, ERROR, UNRECOGNIZED;
 
     public String value() {
         return name();
@@ -24,5 +22,4 @@ public enum Ec2CloudServerStatus implements ICloudServerStatus {
             return UNRECOGNIZED;
         }
     }
-
 }

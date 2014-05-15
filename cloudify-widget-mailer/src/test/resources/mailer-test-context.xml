@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <context:property-placeholder location="conf/dev/me.conf"/>
+
+
+    <bean id="gmailAuthenticator" class="org.apache.commons.mail.DefaultAuthenticator">
+        <constructor-arg name="userName" value="${mailer.auth.userName}" />
+        <constructor-arg name="password" value="${mailer.auth.password}" />
+    </bean>
+
+    <bean id="mailerConfig" class="cloudify.widget.mailer.MailerConfig">
+        <constructor-arg name="smtpPort" value="${mailer.conf.smtpPort}" />
+        <constructor-arg name="hostName" value="${mailer.conf.hostName}" />
+        <constructor-arg name="tlsEnabled" value="${mailer.conf.tlsEnabled}" />
+        <constructor-arg name="authenticator" ref="gmailAuthenticator" />
+    </bean>
+
+    <bean id="mailBuilder" class="cloudify.widget.mailer.Mail$MailBuilder">
+        <constructor-arg name="from" value="${mailer.mail.from}" />
+        <constructor-arg name="to">
+            <list>
+                <value>${mailer.mail.to1}</value>
+            </list>
+        </constructor-arg>
+        <constructor-arg name="subject" value="testing... testing..." />
+    </bean>
+
+</beans>

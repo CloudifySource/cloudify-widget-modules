@@ -1,0 +1,23 @@
+PLEASE MAKE SURE TO SET DEFAULTS TO MYSQL DATABASE
+
+set global storage_engine=INNODB
+create database `NAME`  CHARACTER SET utf8 COLLATE utf8_general_ci;
+create database `NAME`  DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+
+
+You can also start the service with a flag
+mysqld --default-storage-engine=InnoDB
+
+Or modify you my.cnf
+[mysqld]
+character-set-server=utf8
+collation-server=utf8_general_ci
+default-storage-engine=INNODB
+
+
+To install the Jetty REST API component we need to run sql scripts from folder
+cloudify-widget-pool-manager/src/main/resources/sql/XXX.sql
+
+according to ascending numbers.
+
+

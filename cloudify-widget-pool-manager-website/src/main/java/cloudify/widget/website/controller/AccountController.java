@@ -1,5 +1,6 @@
 package cloudify.widget.website.controller;
 
+import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.PoolSettings;
@@ -35,6 +36,10 @@ public class AccountController {
     @Autowired
     private PoolManagerApi poolManagerApi;
 
+    @Autowired
+    private NodeManagementExecutor nodeManagementExecutor;
+
+
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
     }
@@ -66,7 +71,9 @@ public class AccountController {
     @ResponseBody
     public Long createPool(@ModelAttribute("account") AccountModel accountModel, @RequestBody String poolSettingJson){
         try{
-            return poolDao.createPool( accountModel.getId(), poolSettingJson );
+            Long poolId = poolDao.createPool(accountModel.getId(), poolSettingJson);
+            nodeManagementExecutor.start(poolDao.readPoolById(poolId).poolSettings);
+            return poolId;
         }catch(Exception e){
             logger.error("unable to createPool", e);
             return null;
@@ -79,7 +86,9 @@ public class AccountController {
     public boolean updatePoolConfiguration( @ModelAttribute("account") AccountModel accountModel,
                                             @PathVariable("poolId") Long poolId, @RequestBody String poolSettingJson ) {
 
-        return poolDao.updatePool( poolId, accountModel.getId(), poolSettingJson );
+        boolean updated = poolDao.updatePool(poolId, accountModel.getId(), poolSettingJson);
+        nodeManagementExecutor.update(poolDao.readPoolById(poolId).poolSettings);
+        return updated;
     }
 
     @RequestMapping(value="/account/pools/{poolId}/delete", method=RequestMethod.POST)
@@ -87,6 +96,7 @@ public class AccountController {
     public boolean deletePoolConfiguration( @ModelAttribute("account") AccountModel accountModel,
                                             @PathVariable("poolId") Long poolId ) {
 
+        nodeManagementExecutor.stop(poolDao.readPoolById(poolId).poolSettings);
         return poolDao.deletePool(poolId, accountModel.getId());
     }
 
@@ -113,9 +123,10 @@ public class AccountController {
 
     @RequestMapping(value="/account/pools/{poolId}/occupy", method=RequestMethod.GET)
     @ResponseBody
-    public NodeModel occupyPool( @ModelAttribute("account") AccountModel accountModel , @PathVariable("poolId") Long poolId ){
+    public NodeModel occupyPoolNode(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId, @RequestBody String expires) {
+        long expiresLong = Long.parseLong(expires);
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
-        return poolManagerApi.occupy( poolSettings );
+        return poolManagerApi.occupy(poolSettings, expiresLong);
     }
 
     @RequestMapping(value="/account/pools/status", method=RequestMethod.GET)

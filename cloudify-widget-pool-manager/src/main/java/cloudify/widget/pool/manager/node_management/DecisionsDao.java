@@ -2,7 +2,7 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.Utils;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.DecisionType;
+import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Statement;
 import org.slf4j.Logger;
@@ -35,9 +35,8 @@ public class DecisionsDao {
     public static final String COL_DECISION_TYPE = "decision_type";
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_APPROVED = "approved";
+    public static final String COL_EXECUTED = "executed";
     public static final String COL_DETAILS = "details";
-
-    public static final String COL_ALIAS_COUNT = "count";
 
     private JdbcTemplate jdbcTemplate;
 
@@ -56,13 +55,14 @@ public class DecisionsDao {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
                         PreparedStatement ps = con.prepareStatement(
-                                "insert into " + TABLE_NAME + " (" + COL_DECISION_TYPE + "," + COL_POOL_ID + "," + COL_APPROVED + "," + COL_DETAILS + ") values (?, ?, ?, ?)",
+                                "insert into " + TABLE_NAME + " (" + COL_DECISION_TYPE + "," + COL_POOL_ID + "," + COL_APPROVED + "," + COL_EXECUTED + "," + COL_DETAILS + ") values (?, ?, ?, ?, ?)",
                                 Statement.RETURN_GENERATED_KEYS // specify to populate the generated key holder
                         );
                         ps.setString(1, decisionModel.decisionType.name());
                         ps.setString(2, decisionModel.poolId);
                         ps.setBoolean(3, decisionModel.approved);
-                        ps.setString(4, Utils.objectToJson(decisionModel.details));
+                        ps.setBoolean(4, decisionModel.executed);
+                        ps.setString(5, Utils.objectToJson(decisionModel.details));
                         return ps;
                     }
                 },
@@ -81,9 +81,9 @@ public class DecisionsDao {
                 new DecisionModelRowMapper());
     }
 
-    public List<DecisionModel> readAllOfPoolWithDecisionType(String poolId, DecisionType decisionType) {
+    public List<DecisionModel> readAllOfPoolWithDecisionType(String poolId, NodeManagementModuleType nodeManagementModuleType) {
         return jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_DECISION_TYPE + " = ?",
-                new Object[]{poolId, decisionType.name()},
+                new Object[]{poolId, nodeManagementModuleType.name()},
                 new DecisionModelRowMapper());
     }
 
@@ -99,12 +99,30 @@ public class DecisionsDao {
 
     public int update(DecisionModel decisionModel) {
         return jdbcTemplate.update(
-                "update " + TABLE_NAME + " set " + COL_DECISION_TYPE + " = ?," + COL_POOL_ID + " = ?," + COL_APPROVED + " = ?," + COL_DETAILS + " = ? where " + COL_ID + " = ?",
-                decisionModel.decisionType.name(), decisionModel.poolId, decisionModel.approved, Utils.objectToJson(decisionModel.details), decisionModel.id);
+                "update " + TABLE_NAME + " set " + COL_DECISION_TYPE + " = ?," + COL_POOL_ID + " = ?," + COL_APPROVED + " = ?," + COL_EXECUTED + " = ?," + COL_DETAILS + " = ? where " + COL_ID + " = ?",
+                decisionModel.decisionType.name(), decisionModel.poolId, decisionModel.approved, decisionModel.executed, Utils.objectToJson(decisionModel.details), decisionModel.id);
     }
 
     public int delete(long decisionId) {
-        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_ID + " = ?", decisionId);
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_ID + " = ?",
+                decisionId);
+    }
+
+    // TODO should this only be called on MANUAL mode?
+    public int deleteIfNotApprovedAndNotExecuted(long decisionId) {
+        return jdbcTemplate.update(
+                "delete p1 from " + TABLE_NAME + " as p1 cross join (select " + COL_ID + " from " + TABLE_NAME + " where " + COL_ID + " = ? and " + COL_APPROVED + " = ? and " + COL_EXECUTED + " = ?) as p2 using (" + COL_ID + ")",
+                decisionId, false, false);
+    }
+
+    public int deleteAllOfPool(String poolId) {
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_POOL_ID + " = ?",
+                poolId);
+    }
+
+    public int deleteAllNotOfPools(List<String> poolIds) {
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_POOL_ID + " not in (?)",
+                poolIds);
     }
 
 

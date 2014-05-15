@@ -12,9 +12,10 @@ public class DecisionModel {
     public static final int INITIAL_ID = -1;
 
     public long id = INITIAL_ID;
-    public DecisionType decisionType;
+    public NodeManagementModuleType decisionType;
     public String poolId;
     public boolean approved;
+    public boolean executed;
     public DecisionDetails details;
 
     public DecisionModel setId(long id) {
@@ -22,7 +23,7 @@ public class DecisionModel {
         return this;
     }
 
-    public DecisionModel setDecisionType(DecisionType decisionType) {
+    public DecisionModel setDecisionType(NodeManagementModuleType decisionType) {
         this.decisionType = decisionType;
         return this;
     }
@@ -34,6 +35,11 @@ public class DecisionModel {
 
     public DecisionModel setApproved(boolean approved) {
         this.approved = approved;
+        return this;
+    }
+
+    public DecisionModel setExecuted(boolean executed) {
+        this.executed = executed;
         return this;
     }
 
@@ -49,6 +55,7 @@ public class DecisionModel {
                 ", decisionType='" + decisionType + '\'' +
                 ", poolId='" + poolId + '\'' +
                 ", approved=" + approved +
+                ", executed=" + executed +
                 ", details=" + details +
                 '}';
     }

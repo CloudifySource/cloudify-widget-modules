@@ -2,6 +2,7 @@ package cloudify.widget.website;
 
 import cloudify.widget.common.CollectionUtils;
 import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.node_management.NodeManagementMode;
 import cloudify.widget.softlayer.SoftlayerConnectDetails;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -130,8 +132,13 @@ public class MySqlOperationsTest {
         ManagerSettings managerSettings = new ManagerSettings();
         PoolsSettingsList poolsSettingsList = new PoolsSettingsList();
 
+        NodeManagementSettings nodeManagementSettings = new NodeManagementSettings();
+        nodeManagementSettings.setMode(NodeManagementMode.AUTO_APPROVAL);
+        nodeManagementSettings.setActiveModules(Arrays.asList(NodeManagementModuleType.CREATE));
+
         PoolSettings poolSettings = new PoolSettings();
         poolSettings.setName("softlayer_pool");
+        poolSettings.setNodeManagement(nodeManagementSettings);
         poolSettings.setMinNodes(4);
         poolSettings.setMaxNodes(6);
         poolSettings.setAuthKey("authKey");

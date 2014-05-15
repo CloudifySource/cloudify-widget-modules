@@ -5,6 +5,6 @@ package cloudify.widget.pool.manager.dto;
  * Date: 4/28/14
  * Time: 8:41 PM
  */
-public enum DecisionType {
-    CREATE, DELETE, PREPARE
+public enum NodeManagementModuleType {
+    CREATE, DELETE, BOOTSTRAP, DELETE_EXPIRED
 }

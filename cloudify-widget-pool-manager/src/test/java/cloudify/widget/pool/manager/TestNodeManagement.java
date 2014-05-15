@@ -33,10 +33,10 @@ public class TestNodeManagement {
     private SettingsDataAccessManager settingsDataAccessManager;
 
     @Autowired
-    private NodeManagementRunner nodeManagementRunner;
+    private NodeManagementExecutor nodeManagementExecutor;
 
     @Autowired
-    private CreateNodeManager createNodeManager;
+    private CreateNodeManagementModule createNodeManager;
 
     @Autowired
     private DecisionsDao decisionsDao;
@@ -51,8 +51,6 @@ public class TestNodeManagement {
 
     @Test
     public void testDecisionMaker() throws IOException {
-
-        createNodeManager.mode(NodeManager.Mode.MANUAL_APPROVAL);
 
         PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp);
         logger.info("- pool settings [{}]", poolSettings.getProvider().getName());
@@ -78,31 +76,34 @@ public class TestNodeManagement {
 
         PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp);
 
-        Set<String> machineIds = new HashSet<String>();
-        machineIds.addAll(Arrays.asList("a", "b", "c"));
+        Set<Long> nodeIds = new HashSet<Long>();
+        nodeIds.addAll(Arrays.asList(1L, 2L, 3L));
 
         DecisionModel createDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.CREATE)
+                .setDecisionType(NodeManagementModuleType.CREATE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
+                .setExecuted(false)
                 .setDetails(new CreateDecisionDetails()
                                 .setNumInstances(3)
                 );
 
         DecisionModel deleteDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.DELETE)
+                .setDecisionType(NodeManagementModuleType.DELETE)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
+                .setExecuted(false)
                 .setDetails(new DeleteDecisionDetails()
-                                .addMachineIds(machineIds)
+                                .setNodeIds(nodeIds)
                 );
 
         DecisionModel prepareDecisionModel = new DecisionModel()
-                .setDecisionType(DecisionType.PREPARE)
+                .setDecisionType(NodeManagementModuleType.BOOTSTRAP)
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
-                .setDetails(new PrepareDecisionDetails()
-                                .addMachineIds(machineIds)
+                .setExecuted(false)
+                .setDetails(new BootstrapDecisionDetails()
+                                .setNodeIds(nodeIds)
                 );
 
         // create
@@ -126,9 +127,9 @@ public class TestNodeManagement {
         List<DecisionModel> decisionsOfPool = decisionsDao.readAllOfPool(poolSettings.getUuid());
         Assert.assertEquals("decisions of pool should have a size of 3", 3, decisionsOfPool.size());
 
-        List<DecisionModel> decisionsWithTypeCreate = decisionsDao.readAllOfPoolWithDecisionType(poolSettings.getUuid(), DecisionType.CREATE);
+        List<DecisionModel> decisionsWithTypeCreate = decisionsDao.readAllOfPoolWithDecisionType(poolSettings.getUuid(), NodeManagementModuleType.CREATE);
         Assert.assertEquals("there should only be 1 decision with type 'create'", 1, decisionsWithTypeCreate.size());
-        Assert.assertEquals("decision should be of type 'create'", DecisionType.CREATE, decisionsWithTypeCreate.iterator().next().decisionType);
+        Assert.assertEquals("decision should be of type 'create'", NodeManagementModuleType.CREATE, decisionsWithTypeCreate.iterator().next().decisionType);
 
         // update
 

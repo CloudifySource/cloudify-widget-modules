@@ -2,8 +2,6 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.dto.PoolSettings;
 
-import java.util.ArrayList;
-
 /**
 * User: eliranm
 * Date: 4/28/14
@@ -17,8 +15,7 @@ public class Constraints {
 
     public int maxNodes;
 
-    // TODO TBD default should be all active?
-    public ArrayList<String> activeNodeManagers = new ArrayList<String>();
+    public NodeManagementMode nodeManagementMode;
 
     public Constraints(PoolSettings ps) {
         if (ps == null) {
@@ -28,7 +25,7 @@ public class Constraints {
         poolSettings = ps;
         minNodes = ps.getMinNodes();
         maxNodes = ps.getMaxNodes();
-//            activeNodeManagers = poolSettings.getActiveNodeManagers(); // TODO
+        nodeManagementMode = ps.getNodeManagement().getMode();
     }
 
 

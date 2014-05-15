@@ -30,11 +30,12 @@ import java.util.List;
 public class NodesDao {
 
     public static final String TABLE_NAME = "nodes";
-    public static final String COL_NODE_ID = "id";
+    public static final String COL_ID = "id";
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_NODE_STATUS = "node_status";
     public static final String COL_MACHINE_ID = "machine_id";
     public static final String COL_MACHINE_SSH_DETAILS = "machine_ssh_details";
+    public static final String COL_EXPIRES = "expires";
     public static final String COL_ALIAS_COUNT = "count";
 
     private JdbcTemplate jdbcTemplate;
@@ -57,13 +58,14 @@ public class NodesDao {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
                         PreparedStatement ps = con.prepareStatement(
-                                "insert into " + TABLE_NAME + " (" + COL_POOL_ID + "," + COL_NODE_STATUS + "," + COL_MACHINE_ID + "," + COL_MACHINE_SSH_DETAILS + ") values (?, ?, ?, ?)",
+                                "insert into " + TABLE_NAME + " (" + COL_POOL_ID + "," + COL_NODE_STATUS + "," + COL_MACHINE_ID + "," + COL_MACHINE_SSH_DETAILS + "," + COL_EXPIRES + ") values (?, ?, ?, ?, ?)",
                                 Statement.RETURN_GENERATED_KEYS // specify to populate the generated key holder
                         );
                         ps.setString(1, nodeModel.poolId);
                         ps.setString(2, nodeModel.nodeStatus.name());
                         ps.setString(3, nodeModel.machineId);
-                        ps.setString(4, Utils.objectToJson( NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)));
+                        ps.setString(4, Utils.objectToJson(NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)));
+                        ps.setLong(5, nodeModel.expires);
                         return ps;
                     }
                 },
@@ -93,21 +95,23 @@ public class NodesDao {
                 new NodeModelRowMapper());
     }
 
-    public List<String> readIdsOfPoolWithNodeStatus(String poolId, NodeStatus nodeStatus) {
-        return jdbcTemplate.query("select id from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
-                new Object[]{poolId, nodeStatus.name()},
-                new BeanPropertyRowMapper<String>(String.class));
+    public List<Long> readExpiredIdsOfPool(String poolId) {
+        List<Long> result = jdbcTemplate.queryForList("select " + COL_ID + " from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_EXPIRES + " < ?",
+                new Object[]{poolId, System.currentTimeMillis()},
+                Long.class);
+        return result;
     }
 
-    public List<String> readIdsOfPoolWithoutNodeStatus(String poolId, NodeStatus nodeStatus) {
-        return jdbcTemplate.query("select id from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " != ?",
+    public List<Long> readIdsOfPoolWithStatus(String poolId, NodeStatus nodeStatus) {
+        List<Long> result = jdbcTemplate.queryForList("select " + COL_ID + " from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
                 new Object[]{poolId, nodeStatus.name()},
-                new BeanPropertyRowMapper<String>(String.class));
+                Long.class);
+        return result;
     }
 
     public NodeModel read(long nodeId) {
         try {
-            return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where " + COL_NODE_ID + " = ?",
+            return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where " + COL_ID + " = ?",
                     new Object[]{nodeId},
                     new NodeModelRowMapper());
         } catch (EmptyResultDataAccessException e) {
@@ -117,12 +121,17 @@ public class NodesDao {
 
     public int update(NodeModel nodeModel) {
         return jdbcTemplate.update(
-                "update " + TABLE_NAME + " set " + COL_POOL_ID + " = ?," + COL_NODE_STATUS + " = ?," + COL_MACHINE_ID + " = ?," + COL_MACHINE_SSH_DETAILS + " = ? where " + COL_NODE_ID + " = ?",
-                nodeModel.poolId, nodeModel.nodeStatus.name(), nodeModel.machineId, Utils.objectToJson( NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)), nodeModel.id);
+                "update " + TABLE_NAME + " set " + COL_POOL_ID + " = ?," + COL_NODE_STATUS + " = ?," + COL_MACHINE_ID + " = ?," + COL_MACHINE_SSH_DETAILS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ?",
+                nodeModel.poolId, nodeModel.nodeStatus.name(), nodeModel.machineId, Utils.objectToJson(NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)), nodeModel.expires, nodeModel.id);
     }
 
     public int delete(long nodeId) {
-        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_NODE_ID + " = ?", nodeId);
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_ID + " = ?", nodeId);
+    }
+
+    public int setExpired(long nodeId) {
+        return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_ID + " = ?",
+                NodeStatus.EXPIRED.name(), nodeId);
     }
 
     /**
@@ -142,12 +151,13 @@ public class NodesDao {
     }
 
     // TODO combine select and update to a compound statement - no need for two transactions here
-    public NodeModel occupyNode(PoolSettings poolSettings) {
+    public NodeModel occupyNode(PoolSettings poolSettings, long expires) {
         List<NodeModel> nodeModels = jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_NODE_STATUS + " = ? and " + COL_POOL_ID + " = ?",
-                new Object[]{ NodeStatus.BOOTSTRAPPED.name(), poolSettings.getUuid() },
+                new Object[]{NodeStatus.BOOTSTRAPPED.name(), poolSettings.getUuid()},
                 new NodeModelRowMapper());
         for (NodeModel nodeModel : nodeModels) {
-            int updated = jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_NODE_ID + " = ? and " + COL_NODE_STATUS + " =  ? ", NodeStatus.OCCUPIED.name(), nodeModel.id, NodeStatus.BOOTSTRAPPED.name());
+            int updated = jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
+                    NodeStatus.OCCUPIED.name(), expires, nodeModel.id, NodeStatus.BOOTSTRAPPED.name());
             if (updated == 1) {
                 return nodeModel;
             }
@@ -155,7 +165,7 @@ public class NodesDao {
         return null;
     }
 
-    public static class NodeModelRowMapper extends BeanPropertyRowMapper<NodeModel>{
+    public static class NodeModelRowMapper extends BeanPropertyRowMapper<NodeModel> {
 
         public NodeModelRowMapper() {
             super(NodeModel.class);
@@ -164,7 +174,7 @@ public class NodesDao {
         @Override
         protected Object getColumnValue(ResultSet rs, int index, PropertyDescriptor pd) throws SQLException {
             Class<?> propertyType = pd.getPropertyType();
-            if ( ISshDetails.class.isAssignableFrom( propertyType) ){
+            if (ISshDetails.class.isAssignableFrom(propertyType)) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 String sshDetailsString = rs.getString(index);
                 try {

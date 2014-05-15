@@ -9,4 +9,5 @@ public interface BootstrapMachineConfig extends TaskConfig, NodeModelProvider {
 
     String getBootstrapScriptResourcePath();
 
+    String getBootstrapSuccessText();
 }

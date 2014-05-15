@@ -25,7 +25,7 @@ import java.util.HashMap;
  */
 public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, Void> {
 
-    private static Logger logger = LoggerFactory.getLogger(CreateMachine.class);
+    private static Logger logger = LoggerFactory.getLogger(BootstrapMachine.class);
 
     @Autowired
     private NodesDao nodesDao;
@@ -34,14 +34,14 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     private ErrorsDao errorsDao;
 
 
-
-
     @Override
     public Void call() throws Exception {
 
-        if (taskConfig.getNodeModel().nodeStatus == NodeStatus.BOOTSTRAPPED ||
-                taskConfig.getNodeModel().nodeStatus == NodeStatus.BOOTSTRAPPING) {
-            String message = String.format("node with id [%s] is bootstrapping or is already bootstrapped, aborting bootstrap task", taskConfig.getNodeModel().id);
+        NodeModel nodeModel = taskConfig.getNodeModel();
+        if (nodeModel.nodeStatus == NodeStatus.BOOTSTRAPPED ||
+                nodeModel.nodeStatus == NodeStatus.BOOTSTRAPPING) {
+            String message = String.format(
+                    "node with id [%s] is bootstrapping or is already bootstrapped, aborting bootstrap task", nodeModel.id);
             logger.info(message);
             throw new RuntimeException(message);
         }
@@ -52,7 +52,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
 
         CloudServerApi cloudServerApi = CloudServerApiFactory.create(poolSettings.getProvider().getName());
         cloudServerApi.connect(poolSettings.getProvider().getConnectDetails());
-        ISshDetails sshDetails = taskConfig.getNodeModel().machineSshDetails;
+        ISshDetails sshDetails = nodeModel.machineSshDetails;
 
         runBootstrapScriptOnMachine(script, cloudServerApi, sshDetails);
 
@@ -109,36 +109,23 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
                 .replaceAll("##recipeRelativePath##", bootstrapProperties.getRecipeRelativePath())
                 .replaceAll("##recipeUrl##", bootstrapProperties.getRecipeUrl());
     }
-/*
-    private CloudServer getCloudServer(CloudServerApi cloudServerApi) {
-        String machineId = taskConfig.getNodeModel().machineId;
-        CloudServer cloudServer = cloudServerApi.get(machineId);
-        if (cloudServer == null) {
-            String message = String.format("machine with id [%s] was not found", machineId);
-            logger.error(message);
-            errorsDao.create(new ErrorModel()
-                    .setTaskName(TASK_NAME)
-                    .setPoolId(poolSettings.getUuid())
-                    .setMessage(message));
-            throw new RuntimeException(message);
-        }
-        return cloudServer;
-    }*/
 
     private void runBootstrapScriptOnMachine(String script, CloudServerApi cloudServerApi, ISshDetails sshDetails) {
         updateNodeModelStatus(NodeStatus.BOOTSTRAPPING);
         CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine(script, sshDetails);
         int exitStatus = cloudExecResponse.getExitStatus();
-        logger.debug("bootstrap was run on the machine, node id [{}]", taskConfig.getNodeModel().id);
-        if (exitStatus == 0) {
+        String output = cloudExecResponse.getOutput();
+        logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
+        logger.info("- - - bootstrap script execution output - - - \n{}", output);
+        if (exitStatus == 0 && output.contains(taskConfig.getBootstrapSuccessText())) {
             updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
         } else {
-            updateNodeModelStatus(NodeStatus.CREATED);
-            String message = "bootstrap execution failed";
+            updateNodeModelStatus(NodeStatus.EXPIRED); // this node is out of service - it's nominated for removal
+            String message = "bootstrap script execution failed";
             logger.error(message);
             HashMap<String, Object> infoMap = new HashMap<String, Object>();
             infoMap.put("exitStatus", exitStatus);
-            infoMap.put("output", cloudExecResponse.getOutput());
+            infoMap.put("output", output);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())
                             .setTaskName(getTaskName())

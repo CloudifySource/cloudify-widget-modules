@@ -54,8 +54,14 @@ public interface PoolManagerApi {
 
     void removeRunningTask(long taskId);
 
-    NodeModel occupy( PoolSettings poolSettings );
+    NodeModel occupy( PoolSettings poolSettings, long expires );
 
     List<NodeMappings> listCloudNodes (PoolSettings poolSettings);
+
+    List<DecisionModel> listDecisions(PoolSettings poolSettings);
+
+    void abortDecision(PoolSettings poolSettings, long decisionId);
+
+    void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved);
 
 }

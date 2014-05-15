@@ -2,6 +2,7 @@ package cloudify.widget.pool.manager;
 
 import cloudify.widget.common.CollectionUtils;
 import cloudify.widget.common.FileUtils;
+import cloudify.widget.ec2.Ec2SshDetails;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.pool.manager.tasks.*;
 import org.junit.After;
@@ -19,10 +20,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.util.Assert;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -59,6 +57,9 @@ public class TestPoolManager {
 
     @Autowired
     private String bootstrapScriptResourcePath;
+
+    @Autowired
+    private String bootstrapSuccessText;
 
     @Autowired
     private Task createMachineTask;
@@ -154,6 +155,11 @@ public class TestPoolManager {
             }
 
             @Override
+            public String getBootstrapSuccessText() {
+                return bootstrapSuccessText;
+            }
+
+            @Override
             public NodeModel getNodeModel() {
                 return finalNodeModel;
             }
@@ -228,7 +234,10 @@ public class TestPoolManager {
             nodes.add(new NodeModel()
                     .setPoolId(poolSettings.getUuid())
                     .setNodeStatus(NodeStatus.CREATED)
-                    .setMachineId("test_machine_id"));
+                    .setMachineId("test_machine_id")
+                    .setMachineSshDetails(new Ec2SshDetails())
+                    .setExpires(System.currentTimeMillis()) // expires now, to test expiration later
+            );
         }
 
         NodeModel firstNode = nodes.get(0);
@@ -265,6 +274,12 @@ public class TestPoolManager {
         Assert.notEmpty(nodeModels, "nodes in pool should not be empty");
         Assert.isTrue(nodeModels.size() == nodesSize,
                 String.format("amount of nodes in pool should be [%s], but instead is [%s]", nodesSize, nodeModels.size()));
+
+        logger.info("listing expired node ids in pool...");
+        List<Long> expiredIdsOfPool = nodesDao.readExpiredIdsOfPool(poolSettings.getUuid());
+        Assert.notEmpty(expiredIdsOfPool);
+        Assert.isTrue(expiredIdsOfPool.size() == nodesSize);
+        logger.info("returned expired node ids [{}]", expiredIdsOfPool);
 
         // update
 
@@ -321,9 +336,29 @@ public class TestPoolManager {
         // going through all files under the 'sql' folder, and executing all of them.
         Iterator<File> sqlFileIterator = org.apache.commons.io.FileUtils.iterateFiles(
                 FileUtils.getFileInClasspath("sql"), new String[]{"sql"}, false);
+
+        List<File> orderedSqlFiles = new ArrayList<File>();
         while (sqlFileIterator.hasNext()) {
             File file = sqlFileIterator.next();
-            List<String> statements = readSqlStatementsFromFile(file);
+            orderedSqlFiles.add(file);
+        }
+        // sort the sql executions, relying on numbered file names
+        Collections.sort(orderedSqlFiles, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                String o1NoExtension = _stripExtension(o1.getName());
+                String o2NoExtension = _stripExtension(o2.getName());
+                return Integer.parseInt(o1NoExtension) - Integer.parseInt(o2NoExtension);
+            }
+            private String _stripExtension(String name) {
+                return name.substring(0, name.indexOf('.'));
+            }
+        });
+
+        for (File sqlFile : orderedSqlFiles) {
+            logger.info("executing statements in file [{}]", sqlFile.getName());
+            List<String> statements = readSqlStatementsFromFile(sqlFile);
+            logger.info("found statements [{}]", statements);
             for (String stmt : statements) {
                 jdbcTemplate.update(stmt);
             }

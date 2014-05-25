@@ -1,6 +1,5 @@
 package cloudify.widget.pool.manager.node_management;
 
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

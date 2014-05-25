@@ -1,4 +1,4 @@
-package cloudify.widget.pool.manager.dto;
+package cloudify.widget.pool.manager.node_management;
 
 /**
  * User: eliranm

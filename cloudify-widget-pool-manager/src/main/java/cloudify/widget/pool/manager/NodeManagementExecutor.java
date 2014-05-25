@@ -1,6 +1,6 @@
 package cloudify.widget.pool.manager;
 
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
+import cloudify.widget.pool.manager.node_management.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.node_management.BaseNodeManagementModule;
 import cloudify.widget.pool.manager.node_management.Constraints;

@@ -33,7 +33,7 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
         return _constraints;
     }
 
-    protected DecisionModel createOwnDecisionModel(D details) {
+    protected DecisionModel buildOwnDecisionModel(D details) {
         return new DecisionModel()
                 .setDecisionType(getType())
                 .setPoolId(getConstraints().poolSettings.getUuid())

@@ -95,6 +95,12 @@ public class NodesDao {
                 new NodeModelRowMapper());
     }
 
+    public List<NodeModel> readAllOfPoolWithStatus(String poolId, NodeStatus nodeStatus) {
+        return jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
+                new Object[]{poolId, nodeStatus.name()},
+                new NodeModelRowMapper());
+    }
+
     public List<Long> readExpiredIdsOfPool(String poolId) {
         List<Long> result = jdbcTemplate.queryForList("select " + COL_ID + " from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_EXPIRES + " < ?",
                 new Object[]{poolId, System.currentTimeMillis()},

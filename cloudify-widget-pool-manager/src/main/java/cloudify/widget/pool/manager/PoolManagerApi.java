@@ -64,4 +64,6 @@ public interface PoolManagerApi {
 
     void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved);
 
+    void cleanPool(PoolSettings poolSettings, TaskCallback<Collection<String>> taskCallback);
+
 }

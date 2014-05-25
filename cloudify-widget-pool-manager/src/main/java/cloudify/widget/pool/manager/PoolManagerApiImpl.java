@@ -107,19 +107,6 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
         }, poolSettings, taskCallback);
     }
 
-    private Task getBootstrapMachineTask() {
-        return applicationContext.getBean(BootstrapMachine.class);
-    }
-
-    private Task getCreateMachineTask() {
-        return applicationContext.getBean(CreateMachine.class);
-    }
-
-    private Task getDeleteMachineTask() {
-        return applicationContext.getBean(DeleteMachine.class);
-    }
-
-
     @Override
     public List<ErrorModel> listTaskErrors(PoolSettings poolSettings) {
         if (poolSettings == null) return null;
@@ -189,6 +176,37 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
         }
         decisionsDao.update(decisionModel.setApproved(approved));
     }
+
+    @Override
+    public void cleanPool(PoolSettings poolSettings, TaskCallback<Collection<String>> taskCallback) {
+        if (poolSettings == null) return;
+
+        List<NodeModel> bootstrappedNodes = nodesDao.readAllOfPoolWithStatus(poolSettings.getUuid(), NodeStatus.BOOTSTRAPPED);
+        for (final NodeModel node : bootstrappedNodes) {
+            logger.info("deleting bootstrapped node [{}]", node);
+            taskExecutor.execute(getDeleteMachineTask(), new DeleteMachineConfig() {
+                @Override
+                public NodeModel getNodeModel() {
+                    return node;
+                }
+            }, poolSettings, taskCallback);
+        }
+    }
+
+
+
+    private Task getBootstrapMachineTask() {
+        return applicationContext.getBean(BootstrapMachine.class);
+    }
+
+    private Task getCreateMachineTask() {
+        return applicationContext.getBean(CreateMachine.class);
+    }
+
+    private Task getDeleteMachineTask() {
+        return applicationContext.getBean(DeleteMachine.class);
+    }
+
 
     public void setErrorsDao(ErrorsDao errorsDao) {
         this.errorsDao = errorsDao;

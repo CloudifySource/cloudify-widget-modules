@@ -1,6 +1,7 @@
 package cloudify.widget.pool.manager.dto;
 
 import cloudify.widget.pool.manager.node_management.DecisionDetails;
+import cloudify.widget.pool.manager.node_management.NodeManagementModuleType;
 
 /**
  * User: eliranm

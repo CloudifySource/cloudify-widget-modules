@@ -1,6 +1,7 @@
 package cloudify.widget.pool.manager.dto;
 
 import cloudify.widget.pool.manager.node_management.NodeManagementMode;
+import cloudify.widget.pool.manager.node_management.NodeManagementModuleType;
 
 import java.util.List;
 

@@ -42,7 +42,7 @@
     </bean>
 
     <bean id="bootstrapSuccessText" class="java.lang.String">
-        <constructor-arg value="successfully" />
+        <constructor-arg value="successfully" /> <!-- TODO figure out the exact phrase that indicates bootstrap success -->
     </bean>
 
 </beans>

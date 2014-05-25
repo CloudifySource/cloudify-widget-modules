@@ -2,7 +2,6 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.NodeStatus;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
@@ -46,7 +45,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
         if (decisionModels != null && !decisionModels.isEmpty()) {
             // fetch all node ids we're intending to delete due to expiration
             for (DecisionModel decisionModel : decisionModels) {
-                createdNodeIdsInQueue.addAll(((BootstrapDecisionDetails) decisionModel.details).getNodeIds());
+                createdNodeIdsInQueue.add(((BootstrapDecisionDetails) decisionModel.details).getNodeId());
             }
         }
 
@@ -61,9 +60,11 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
 
         logger.info("createdNodeIds [{}]", createdNodeIds);
 
-        DecisionModel decisionModel = createOwnDecisionModel(new BootstrapDecisionDetails()
-                .setNodeIds(new HashSet<Long>(createdNodeIds)));
-        decisionsDao.create(decisionModel);
+        for (Long createdNodeId : createdNodeIds) {
+            DecisionModel decisionModel = buildOwnDecisionModel(new BootstrapDecisionDetails()
+                    .setNodeId(createdNodeId));
+            decisionsDao.create(decisionModel);
+        }
 
         return this;
     }
@@ -86,30 +87,23 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
 
                 // TODO avoid casting - used generics in model
                 final BootstrapDecisionDetails details = (BootstrapDecisionDetails) decisionModel.details;
-                // copy to avoid concurrent modification
-                Set<Long> toBootstrapIds = new HashSet<Long>(details.getNodeIds());
-                logger.debug("bootstrapping [{}] instances via pool manager task executor", toBootstrapIds);
-                for (final Long toBootstrapId : toBootstrapIds) {
-                    poolManagerApi.bootstrapNode(constraints.poolSettings, toBootstrapId, new TaskCallback<NodeModel>() {
+                final long toBootstrapId = details.getNodeId();
+                logger.debug("bootstrapping instance with id [{}] via pool manager task executor", toBootstrapId);
 
-                        @Override
-                        public void onSuccess(NodeModel result) {
-                            logger.debug("node with id [{}] bootstrapped successfully", toBootstrapId);
-                            // it's the last node - remove the decision model
-                            if (details.getNodeIds().size() == 1) {
-                                decisionsDao.delete(decisionModel.id);
-                                return;
-                            }
-                            // just decrement the number of instances to be deleted
-                            decisionsDao.update(decisionModel.setDetails(details.removeNodeId(toBootstrapId)));
-                        }
+                poolManagerApi.bootstrapNode(constraints.poolSettings, toBootstrapId, new TaskCallback<NodeModel>() {
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            logger.error("failed to bootstrap node", t);
-                        }
-                    });
-                }
+                    @Override
+                    public void onSuccess(NodeModel result) {
+                        logger.debug("node with id [{}] bootstrapped successfully", toBootstrapId);
+                        decisionsDao.delete(decisionModel.id);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        logger.error("failed to bootstrap node", t);
+                        // todo - persist error
+                    }
+                });
 
                 logger.debug("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));

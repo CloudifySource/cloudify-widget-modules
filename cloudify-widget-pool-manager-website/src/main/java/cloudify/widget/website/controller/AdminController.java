@@ -129,6 +129,13 @@ public class AdminController {
         return poolDao.deletePool(poolConfigurationId, accountId);
     }
 
+    @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/clean", method = RequestMethod.POST)
+    @ResponseBody
+    public void cleanAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
+        PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId).getPoolSettings();
+        poolManagerApi.cleanPool(poolSettings);
+    }
+
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}", method = RequestMethod.GET)
     @ResponseBody
     public PoolConfigurationModel getAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {

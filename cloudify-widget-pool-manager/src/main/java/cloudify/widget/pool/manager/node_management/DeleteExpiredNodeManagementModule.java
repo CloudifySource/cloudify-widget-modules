@@ -42,7 +42,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
         if (decisionModels != null && !decisionModels.isEmpty()) {
             // fetch all node ids we're intending to delete due to expiration
             for (DecisionModel decisionModel : decisionModels) {
-                expiredNodeIdsInQueue.addAll(((DeleteExpiredDecisionDetails) decisionModel.details).getNodeIds());
+                expiredNodeIdsInQueue.add(((DeleteExpiredDecisionDetails) decisionModel.details).getNodeId());
             }
         }
 
@@ -62,9 +62,11 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         logger.info("expiredNodeIds [{}]", expiredNodeIds);
 
-        DecisionModel decisionModel = buildOwnDecisionModel(new DeleteExpiredDecisionDetails()
-                .setNodeIds(new HashSet<Long>(expiredNodeIds)));
-        decisionsDao.create(decisionModel);
+        for (Long expiredNodeId : expiredNodeIds) {
+            DecisionModel decisionModel = buildOwnDecisionModel(new DeleteExpiredDecisionDetails()
+                    .setNodeId(expiredNodeId));
+            decisionsDao.create(decisionModel);
+        }
 
         return this;
     }
@@ -87,30 +89,22 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
                 // TODO avoid casting - used generics in model
                 final DeleteExpiredDecisionDetails details = (DeleteExpiredDecisionDetails) decisionModel.details;
-                // copy to avoid concurrent modification
-                Set<Long> toDeleteIds = new HashSet<Long>(details.getNodeIds());
-                logger.debug("deleting [{}] instances via pool manager task executor", toDeleteIds);
-                for (final Long toDeleteId : toDeleteIds) {
-                    poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
+                final long toDeleteId = details.getNodeId();
+                logger.debug("deleting instance with id [{}] via pool manager task executor", toDeleteId);
+                poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
 
-                        @Override
-                        public void onSuccess(Void result) {
-                            logger.debug("node with id [{}] deleted successfully", toDeleteId);
-                            // it's the last node - remove the decision model
-                            if (details.getNodeIds().size() == 1) {
-                                decisionsDao.delete(decisionModel.id);
-                                return;
-                            }
-                            // just decrement the number of instances to be deleted
-                            decisionsDao.update(decisionModel.setDetails(details.removeNodeId(toDeleteId)));
-                        }
+                    @Override
+                    public void onSuccess(Void result) {
+                        logger.debug("node with id [{}] deleted successfully", toDeleteId);
+                        decisionsDao.delete(decisionModel.id);
+                    }
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            logger.error("failed to delete node", t);
-                        }
-                    });
-                }
+                    @Override
+                    public void onFailure(Throwable t) {
+                        logger.error("failed to delete node", t);
+                        // todo - persist error
+                    }
+                });
 
                 logger.debug("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));

@@ -59,10 +59,8 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
         // check if there are decisions in the queue, and if executing them will satisfy the constraints
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels != null && !decisionModels.isEmpty()) {
-            // figure out how many machines we're intending to delete
-            for (DecisionModel decisionModel : decisionModels) {
-                nodesInQueue += ((DeleteDecisionDetails) decisionModel.details).getNodeIds().size();
-            }
+            // how many machines we're intending to delete
+            nodesInQueue += decisionModels.size();
         }
 
         if (nodeModels.size() - nodesInQueue <= constraints.maxNodes) {
@@ -74,8 +72,11 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
         Set<Long> toDeleteIds = _collectNodesToDelete(nodeModels, nodeModels.size() - nodesInQueue - constraints.maxNodes);
         logger.info("toDeleteIds [{}]", toDeleteIds);
 
-        DecisionModel decisionModel = buildOwnDecisionModel(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
-        decisionsDao.create(decisionModel);
+        for (Long toDeleteId : toDeleteIds) {
+            DecisionModel decisionModel = buildOwnDecisionModel(new DeleteDecisionDetails()
+                    .setNodeId(toDeleteId));
+            decisionsDao.create(decisionModel);
+        }
 
         return this;
     }
@@ -120,29 +121,22 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
                 // TODO avoid casting - used generics in model
                 final DeleteDecisionDetails details = (DeleteDecisionDetails) decisionModel.details;
                 // copy to avoid concurrent modification
-                Set<Long> toDeleteIds = new HashSet<Long>(details.getNodeIds());
-                logger.debug("deleting [{}] instances via pool manager task executor", toDeleteIds);
-                for (final Long toDeleteId : toDeleteIds) {
-                    poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
+                final long toDeleteId = details.getNodeId();
+                logger.debug("deleting instance with id [{}] via pool manager task executor", toDeleteId);
+                poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
 
-                        @Override
-                        public void onSuccess(Void result) {
-                            logger.debug("node with id [{}] deleted successfully", toDeleteId);
-                            // it's the last node - remove the decision model
-                            if (details.getNodeIds().size() == 1) {
-                                decisionsDao.delete(decisionModel.id);
-                                return;
-                            }
-                            // just decrement the number of instances to be deleted
-                            decisionsDao.update(decisionModel.setDetails(details.removeNodeId(toDeleteId)));
-                        }
+                    @Override
+                    public void onSuccess(Void result) {
+                        logger.debug("node with id [{}] deleted successfully", toDeleteId);
+                        decisionsDao.delete(decisionModel.id);
+                    }
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            logger.error("failed to delete node", t);
-                        }
-                    });
-                }
+                    @Override
+                    public void onFailure(Throwable t) {
+                        logger.error("failed to delete node", t);
+                        // todo - persist error
+                    }
+                });
 
                 logger.debug("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));

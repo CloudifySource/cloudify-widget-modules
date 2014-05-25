@@ -64,6 +64,11 @@ public interface PoolManagerApi {
 
     void updateDecisionApproval(PoolSettings poolSettings, long decisionId, boolean approved);
 
-    void cleanPool(PoolSettings poolSettings, TaskCallback<Collection<String>> taskCallback);
+    /**
+     * Deletes all bootstrapped nodes from the pool.
+     *
+     * @param poolSettings
+     */
+    void cleanPool(PoolSettings poolSettings);
 
 }

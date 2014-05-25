@@ -100,6 +100,15 @@ public class AccountController {
         return poolDao.deletePool(poolId, accountModel.getId());
     }
 
+    @RequestMapping(value="/account/pools/{poolId}/clean", method=RequestMethod.POST)
+    @ResponseBody
+    public void cleanPool( @ModelAttribute("account") AccountModel accountModel,
+                                            @PathVariable("poolId") Long poolId ) {
+
+        PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
+        poolManagerApi.cleanPool(poolSettings);
+    }
+
     @RequestMapping(value="/account/pools/{poolId}/status", method=RequestMethod.GET)
     @ResponseBody
     public PoolStatus getPoolStatus( @ModelAttribute("account") AccountModel accountModel,

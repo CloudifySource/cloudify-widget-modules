@@ -178,7 +178,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
-    public void cleanPool(PoolSettings poolSettings, TaskCallback<Collection<String>> taskCallback) {
+    public void cleanPool(PoolSettings poolSettings) {
         if (poolSettings == null) return;
 
         List<NodeModel> bootstrappedNodes = nodesDao.readAllOfPoolWithStatus(poolSettings.getUuid(), NodeStatus.BOOTSTRAPPED);
@@ -189,7 +189,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
                 public NodeModel getNodeModel() {
                     return node;
                 }
-            }, poolSettings, taskCallback);
+            }, poolSettings);
         }
     }
 

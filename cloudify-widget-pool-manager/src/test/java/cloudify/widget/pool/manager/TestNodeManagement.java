@@ -84,9 +84,7 @@ public class TestNodeManagement {
                 .setPoolId(poolSettings.getUuid())
                 .setApproved(false)
                 .setExecuted(false)
-                .setDetails(new CreateDecisionDetails()
-                                .setNumInstances(3)
-                );
+                .setDetails(new CreateDecisionDetails());
 
         DecisionModel deleteDecisionModel = new DecisionModel()
                 .setDecisionType(NodeManagementModuleType.DELETE)

@@ -3,7 +3,6 @@ package cloudify.widget.pool.manager.node_management;
 import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
 import org.slf4j.Logger;
@@ -44,10 +43,8 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
         // check if there are decisions in the queue, and if executing them will satisfy the constraints
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels != null && !decisionModels.isEmpty()) {
-            // figure out how many machines we're intending to create
-            for (DecisionModel decisionModel : decisionModels) {
-                numInstancesInQueue += ((CreateDecisionDetails) decisionModel.details).getNumInstances();
-            }
+            // how many machines we're intending to create
+            numInstancesInQueue += decisionModels.size();
         }
 
         if (numInstancesInQueue + nodeModels.size() >= constraints.minNodes) {
@@ -55,10 +52,11 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
             return this;
         }
 
-
-        DecisionModel decisionModel = createOwnDecisionModel(new CreateDecisionDetails()
-                .setNumInstances(constraints.minNodes - nodeModels.size() - numInstancesInQueue));
-        decisionsDao.create(decisionModel);
+        int numInstances = constraints.minNodes - nodeModels.size() - numInstancesInQueue;
+        for (int i = 0; i < numInstances; i++) {
+            DecisionModel decisionModel = buildOwnDecisionModel(new CreateDecisionDetails());
+            decisionsDao.create(decisionModel);
+        }
 
         return this;
     }
@@ -68,43 +66,34 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
 
         Constraints constraints = getConstraints();
 
-        List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
-        if (decisionModels == null || decisionModels.isEmpty()) {
+        List<DecisionModel> decisionModelsQueue = getOwnDecisionModelsQueue();
+        if (decisionModelsQueue == null || decisionModelsQueue.isEmpty()) {
             logger.info("no decisions to execute");
             return this;
         }
-        logger.debug("found [{}] decisions", decisionModels.size());
+        logger.debug("found [{}] decisions", decisionModelsQueue.size());
 
-        for (final DecisionModel decisionModel : decisionModels) {
+        for (final DecisionModel decisionModel : decisionModelsQueue) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
 
             if (decisionModel.approved && !decisionModel.executed) {
 
-                // TODO avoid casting - used generics in model
-                final CreateDecisionDetails details = (CreateDecisionDetails) decisionModel.details;
-                int numInstances = details.getNumInstances();
-                logger.debug("creating [{}] instances via pool manager task executor", numInstances);
-                for (int i = 0; i < numInstances; i++) {
-                    poolManagerApi.createNode(constraints.poolSettings, new TaskCallback<Collection<NodeModel>>() {
+                logger.debug("creating machine instance via pool manager task executor");
+                poolManagerApi.createNode(constraints.poolSettings, new TaskCallback<Collection<NodeModel>>() {
 
-                        @Override
-                        public void onSuccess(Collection<NodeModel> result) {
-                            logger.debug("node created successfully, result is [{}]", result);
-                            // it's the last node - remove the decision model
-                            if (details.getNumInstances() == 1) {
-                                decisionsDao.delete(decisionModel.id);
-                                return;
-                            }
-                            // just decrement the number of instances to be created
-                            decisionsDao.update(decisionModel.setDetails(details.decrementNumInstances()));
-                        }
+                    @Override
+                    public void onSuccess(Collection<NodeModel> result) {
+                        logger.debug("node created successfully, result is [{}]", result);
+                        // remove the decision model
+                        decisionsDao.delete(decisionModel.id);
+                    }
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            logger.error("failed to create node", t);
-                        }
-                    });
-                }
+                    @Override
+                    public void onFailure(Throwable t) {
+                        logger.error("failed to create node", t);
+                        // todo - persist error
+                    }
+                });
 
                 logger.debug("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));

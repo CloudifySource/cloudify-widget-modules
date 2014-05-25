@@ -2,7 +2,6 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.Utils;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Statement;
 import org.slf4j.Logger;

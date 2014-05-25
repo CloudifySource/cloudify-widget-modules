@@ -3,6 +3,7 @@ package cloudify.widget.website;
 import cloudify.widget.common.CollectionUtils;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.pool.manager.node_management.NodeManagementMode;
+import cloudify.widget.pool.manager.node_management.NodeManagementModuleType;
 import cloudify.widget.softlayer.SoftlayerConnectDetails;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;

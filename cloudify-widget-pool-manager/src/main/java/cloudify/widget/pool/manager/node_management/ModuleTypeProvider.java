@@ -1,7 +1,5 @@
 package cloudify.widget.pool.manager.node_management;
 
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
-
 /**
  * User: eliranm
  * Date: 5/5/14

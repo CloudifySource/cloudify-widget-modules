@@ -2,7 +2,6 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.NodeStatus;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
@@ -61,7 +60,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
 
         logger.info("createdNodeIds [{}]", createdNodeIds);
 
-        DecisionModel decisionModel = createOwnDecisionModel(new BootstrapDecisionDetails()
+        DecisionModel decisionModel = buildOwnDecisionModel(new BootstrapDecisionDetails()
                 .setNodeIds(new HashSet<Long>(createdNodeIds)));
         decisionsDao.create(decisionModel);
 

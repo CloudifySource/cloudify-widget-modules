@@ -74,7 +74,7 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
         Set<Long> toDeleteIds = _collectNodesToDelete(nodeModels, nodeModels.size() - nodesInQueue - constraints.maxNodes);
         logger.info("toDeleteIds [{}]", toDeleteIds);
 
-        DecisionModel decisionModel = createOwnDecisionModel(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
+        DecisionModel decisionModel = buildOwnDecisionModel(new DeleteDecisionDetails().setNodeIds(toDeleteIds));
         decisionsDao.create(decisionModel);
 
         return this;

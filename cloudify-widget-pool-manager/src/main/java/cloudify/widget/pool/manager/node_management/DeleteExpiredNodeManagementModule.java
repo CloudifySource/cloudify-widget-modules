@@ -2,9 +2,6 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import cloudify.widget.pool.manager.dto.NodeManagementModuleType;
-import cloudify.widget.pool.manager.dto.NodeModel;
-import cloudify.widget.pool.manager.dto.NodeStatus;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +62,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         logger.info("expiredNodeIds [{}]", expiredNodeIds);
 
-        DecisionModel decisionModel = createOwnDecisionModel(new DeleteExpiredDecisionDetails()
+        DecisionModel decisionModel = buildOwnDecisionModel(new DeleteExpiredDecisionDetails()
                 .setNodeIds(new HashSet<Long>(expiredNodeIds)));
         decisionsDao.create(decisionModel);
 

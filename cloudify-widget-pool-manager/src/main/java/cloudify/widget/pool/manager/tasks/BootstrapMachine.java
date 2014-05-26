@@ -73,7 +73,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             logger.error(message, e);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())
-                            .setTaskName(getTaskName())
+                            .setSource(getTaskName().name())
                             .setMessage(message)
             );
             throw new RuntimeException(message);
@@ -91,7 +91,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             logger.error(message, e);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())
-                            .setTaskName(getTaskName())
+                            .setSource(getTaskName().name())
                             .setMessage(message)
             );
             throw new RuntimeException(message);
@@ -128,7 +128,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             infoMap.put("output", output);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())
-                            .setTaskName(getTaskName())
+                            .setSource(getTaskName().name())
                             .setMessage(message)
                             .setInfoFromMap(infoMap)
             );

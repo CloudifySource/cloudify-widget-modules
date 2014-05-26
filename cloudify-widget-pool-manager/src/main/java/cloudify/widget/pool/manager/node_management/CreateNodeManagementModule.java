@@ -83,15 +83,13 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
 
                     @Override
                     public void onSuccess(Collection<NodeModel> result) {
-                        logger.debug("node created successfully, result is [{}]", result);
-                        // remove the decision model
-                        decisionsDao.delete(decisionModel.id);
+                        teardownDecisionExecution(decisionModel);
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
-                        logger.error("failed to create node", t);
-                        // todo - persist error
+                        writeError(t);
+                        teardownDecisionExecution(decisionModel);
                     }
                 });
 

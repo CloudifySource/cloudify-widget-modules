@@ -21,28 +21,6 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
     @Autowired
     private PoolManagerApi poolManagerApi;
 
-
-/*
-    @Autowired
-    private StatusManager statusManager;
-
-    @Autowired
-    private ErrorsDao errorsDao;
-*/
-/*
-        PoolStatus status = statusManager.getPoolStatus(poolSettings);
-        if (status.getCurrentSize() <= poolSettings.getMinNodes()) {
-            String message = "pool has reached its minimum capacity as defined in the pool settings";
-            logger.error(message);
-            errorsDao.create(new ErrorModel()
-                            .setTaskName(getTaskName())
-                            .setPoolId(poolSettings.getUuid())
-                            .setMessage(message)
-            );
-            throw new RuntimeException(message);
-        }
-*/
-
     @Override
     public DeleteNodeManagementModule decide() {
 
@@ -104,7 +82,7 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
     @Override
     public DeleteNodeManagementModule execute() {
 
-        Constraints constraints = getConstraints();
+        final Constraints constraints = getConstraints();
 
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {
@@ -127,14 +105,13 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
 
                     @Override
                     public void onSuccess(Void result) {
-                        logger.debug("node with id [{}] deleted successfully", toDeleteId);
-                        decisionsDao.delete(decisionModel.id);
+                        teardownDecisionExecution(decisionModel);
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
-                        logger.error("failed to delete node", t);
-                        // todo - persist error
+                        writeError(t);
+                        teardownDecisionExecution(decisionModel);
                     }
                 });
 

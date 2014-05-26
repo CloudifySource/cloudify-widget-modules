@@ -160,7 +160,7 @@ public class TaskRegistrar {
             HashMap<String, Object> infoMap = Maps.newHashMap();
             infoMap.put("stackTrace", thrown.getStackTrace());
             _errorsDao.create(new ErrorModel()
-                            .setTaskName(_taskName)
+                            .setSource(_taskName.name())
                             .setMessage(thrown.getMessage())
                             .setMessage(thrown.getMessage())
                             .setInfoFromMap(infoMap)

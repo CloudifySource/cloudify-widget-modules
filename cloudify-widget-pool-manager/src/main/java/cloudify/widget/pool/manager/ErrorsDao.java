@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -23,10 +22,11 @@ public class ErrorsDao {
 
     public static final String TABLE_NAME = "errors";
     public static final String COL_ERROR_ID = "id";
-    public static final String COL_TASK_NAME = "task_name";
+    public static final String COL_SOURCE = "source";
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_MESSAGE = "message";
     public static final String COL_INFO = "info";
+    public static final String COL_TIMESTAMP = "timestamp";
 
     private JdbcTemplate jdbcTemplate;
 
@@ -44,13 +44,14 @@ public class ErrorsDao {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
                         PreparedStatement ps = con.prepareStatement(
-                                "insert into " + TABLE_NAME + " (" + COL_TASK_NAME + "," + COL_POOL_ID + "," + COL_MESSAGE + "," + COL_INFO + ") values (?, ?, ?, ?)",
+                                "insert into " + TABLE_NAME + " (" + COL_SOURCE + "," + COL_POOL_ID + "," + COL_MESSAGE + "," + COL_INFO + "," + COL_TIMESTAMP + ") values (?, ?, ?, ?, ?)",
                                 Statement.RETURN_GENERATED_KEYS // specify to populate the generated key holder
                         );
-                        ps.setString(1, errorModel.taskName.name());
+                        ps.setString(1, errorModel.source);
                         ps.setString(2, errorModel.poolId);
                         ps.setString(3, errorModel.message);
                         ps.setString(4, errorModel.info);
+                        ps.setLong(5, errorModel.timestamp);
                         return ps;
                     }
                 },
@@ -81,8 +82,8 @@ public class ErrorsDao {
 
     public int update(ErrorModel errorModel) {
         return jdbcTemplate.update(
-                "update " + TABLE_NAME + " set " + COL_TASK_NAME + " = ?," + COL_POOL_ID + " = ?," + COL_MESSAGE + " = ?," + COL_INFO + " = ? where " + COL_ERROR_ID + " = ?",
-                errorModel.taskName.name(), errorModel.poolId, errorModel.message, errorModel.info, errorModel.id);
+                "update " + TABLE_NAME + " set " + COL_SOURCE + " = ?," + COL_POOL_ID + " = ?," + COL_MESSAGE + " = ?," + COL_INFO + " = ?," + COL_TIMESTAMP + " = ? where " + COL_ERROR_ID + " = ?",
+                errorModel.source, errorModel.poolId, errorModel.message, errorModel.info, errorModel.timestamp, errorModel.id);
     }
 
     public int delete(long errorId) {

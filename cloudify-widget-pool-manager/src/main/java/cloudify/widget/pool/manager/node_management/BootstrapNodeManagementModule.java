@@ -94,14 +94,13 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
 
                     @Override
                     public void onSuccess(NodeModel result) {
-                        logger.debug("node with id [{}] bootstrapped successfully", toBootstrapId);
-                        decisionsDao.delete(decisionModel.id);
+                        teardownDecisionExecution(decisionModel);
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
-                        logger.error("failed to bootstrap node", t);
-                        // todo - persist error
+                        writeError(t);
+                        teardownDecisionExecution(decisionModel);
                     }
                 });
 

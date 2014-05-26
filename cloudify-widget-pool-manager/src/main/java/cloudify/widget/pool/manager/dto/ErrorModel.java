@@ -1,6 +1,5 @@
 package cloudify.widget.pool.manager.dto;
 
-import cloudify.widget.pool.manager.tasks.TaskName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -16,18 +15,19 @@ public class ErrorModel {
     public static final int INITIAL_ID = -1;
 
     public long id = INITIAL_ID;
-    public TaskName taskName = TaskName.UNKNOWN;
+    public String source = "N/A";
     public String poolId;
     public String message;
     public String info;
+    public long timestamp = System.currentTimeMillis();
 
     public ErrorModel setId(long id) {
         this.id = id;
         return this;
     }
 
-    public ErrorModel setTaskName(TaskName taskName) {
-        this.taskName = taskName;
+    public ErrorModel setSource(String source) {
+        this.source = source;
         return this;
     }
 
@@ -62,12 +62,13 @@ public class ErrorModel {
 
     @Override
     public String toString() {
-        return "TaskErrorModel{" +
+        return "ErrorModel{" +
                 "id=" + id +
-                ", taskName=" + taskName +
+                ", source='" + source + '\'' +
                 ", poolId='" + poolId + '\'' +
                 ", message='" + message + '\'' +
                 ", info='" + info + '\'' +
+                ", timestamp=" + timestamp +
                 '}';
     }
 }

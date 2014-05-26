@@ -111,7 +111,7 @@ public class TestPoolManager {
         ErrorModel errorModel = CollectionUtils.first(errorModels);
         Assert.notNull(errorModel, "task error should not be null");
         logger.info("task message is [{}]", errorModel.message);
-        Assert.isTrue(errorModel.taskName == TaskName.DELETE_MACHINE, "task name should be " + TaskName.DELETE_MACHINE);
+        Assert.isTrue(TaskName.DELETE_MACHINE.name().equals(errorModel.source), "task name should be " + TaskName.DELETE_MACHINE);
 
         // create
 

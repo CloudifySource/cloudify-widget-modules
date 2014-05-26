@@ -95,14 +95,13 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
                     @Override
                     public void onSuccess(Void result) {
-                        logger.debug("node with id [{}] deleted successfully", toDeleteId);
-                        decisionsDao.delete(decisionModel.id);
+                        teardownDecisionExecution(decisionModel);
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
-                        logger.error("failed to delete node", t);
-                        // todo - persist error
+                        writeError(t);
+                        teardownDecisionExecution(decisionModel);
                     }
                 });
 

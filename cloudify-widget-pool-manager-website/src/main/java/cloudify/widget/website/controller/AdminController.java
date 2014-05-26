@@ -189,7 +189,15 @@ public class AdminController {
     @ResponseBody
     public List<ErrorModel> getPoolErrors(@PathVariable("poolId") Long poolConfigurationId) {
         PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
-        return poolManagerApi.listTaskErrors(poolSettings);
+        return poolManagerApi.listErrors(poolSettings);
+    }
+
+    @RequestMapping(value = "/admin/pools/{poolId}/errors/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public void deletePoolErrors(@PathVariable("poolId") Long poolConfigurationId) {
+        logger.info("- - - - - - - - - - - delete pool errors!");
+        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        poolManagerApi.deleteErrors(poolSettings);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/tasks", method = RequestMethod.GET)

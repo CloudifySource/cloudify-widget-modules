@@ -26,7 +26,6 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
     @Autowired
     private PoolManagerApi poolManagerApi;
 
-
     @Override
     public BootstrapNodeManagementModule decide() {
         Constraints constraints = getConstraints();

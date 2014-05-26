@@ -108,18 +108,24 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
-    public List<ErrorModel> listTaskErrors(PoolSettings poolSettings) {
+    public List<ErrorModel> listErrors(PoolSettings poolSettings) {
         if (poolSettings == null) return null;
         return errorsDao.readAllOfPool(poolSettings.getUuid());
     }
 
     @Override
-    public ErrorModel getTaskError(long errorId) {
+    public void deleteErrors(PoolSettings poolSettings) {
+        if (poolSettings == null) return;
+        errorsDao.deleteAllOfPool(poolSettings.getUuid());
+    }
+
+    @Override
+    public ErrorModel getError(long errorId) {
         return errorsDao.read(errorId);
     }
 
     @Override
-    public void removeTaskError(long errorId) {
+    public void deleteError(long errorId) {
         errorsDao.delete(errorId);
     }
 

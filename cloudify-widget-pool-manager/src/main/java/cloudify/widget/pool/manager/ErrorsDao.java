@@ -90,4 +90,8 @@ public class ErrorsDao {
         return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_ERROR_ID + " = ?", errorId);
     }
 
+    public int deleteAllOfPool(String poolId) {
+        return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_POOL_ID + " = ?", poolId);
+    }
+
 }

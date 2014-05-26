@@ -107,7 +107,7 @@ public class TestPoolManager {
         logger.info("executing delete machine task that's bound to fail...");
         testTaskExecutor.execute(deleteMachineTask, null, poolSettings, null);
 
-        List<ErrorModel> errorModels = poolManagerApi.listTaskErrors(poolSettings);
+        List<ErrorModel> errorModels = poolManagerApi.listErrors(poolSettings);
         ErrorModel errorModel = CollectionUtils.first(errorModels);
         Assert.notNull(errorModel, "task error should not be null");
         logger.info("task message is [{}]", errorModel.message);

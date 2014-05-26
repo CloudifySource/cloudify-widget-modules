@@ -44,11 +44,13 @@ public interface PoolManagerApi {
      */
     void bootstrapNode(PoolSettings poolSettings, long nodeId, TaskCallback<NodeModel> taskCallback);
 
-    List<ErrorModel> listTaskErrors(PoolSettings poolSettings);
+    List<ErrorModel> listErrors(PoolSettings poolSettings);
 
-    ErrorModel getTaskError(long errorId);
+    void deleteErrors(PoolSettings poolSettings);
 
-    void removeTaskError(long errorId);
+    ErrorModel getError(long errorId);
+
+    void deleteError(long errorId);
 
     List<TaskModel> listRunningTasks(PoolSettings poolSettings);
 

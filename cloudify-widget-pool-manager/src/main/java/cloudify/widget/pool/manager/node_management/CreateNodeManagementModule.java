@@ -1,6 +1,5 @@
 package cloudify.widget.pool.manager.node_management;
 
-import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
 import cloudify.widget.pool.manager.dto.NodeModel;
@@ -23,9 +22,6 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
 
     @Autowired
     private PoolManagerApi poolManagerApi;
-
-    @Autowired
-    private ErrorsDao errorsDao;
 
     @Override
     public CreateNodeManagementModule decide() {

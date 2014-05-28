@@ -2,15 +2,14 @@ package cloudify.widget.pool.manager.node_management;
 
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
+import cloudify.widget.pool.manager.dto.NodeStatus;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * User: eliranm
@@ -57,7 +56,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         // mark expired nodes with a status
         for (long expiredNodeId : expiredNodeIds) {
-            nodesDao.setExpired(expiredNodeId);
+            nodesDao.updateStatus(expiredNodeId, NodeStatus.EXPIRED);
         }
 
         logger.info("expiredNodeIds [{}]", expiredNodeIds);

@@ -138,6 +138,13 @@ public class AccountController {
         return poolManagerApi.occupy(poolSettings, expiresLong);
     }
 
+    @RequestMapping(value="/account/pools/{poolId}/nodes/{nodeId}/expire", method=RequestMethod.POST)
+    @ResponseBody
+    public void expirePoolNode(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId, @PathVariable Long nodeId) {
+        PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
+        poolManagerApi.expireNode(poolSettings, nodeId);
+    }
+
     @RequestMapping(value="/account/pools/status", method=RequestMethod.GET)
     @ResponseBody
     public String getPoolsStatus( @ModelAttribute("account") AccountModel accountModel){

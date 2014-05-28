@@ -108,6 +108,11 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
+    public void expireNode(PoolSettings poolSettings, long nodeId) {
+        nodesDao.updateExpires(nodeId, 0);
+    }
+
+    @Override
     public List<ErrorModel> listErrors(PoolSettings poolSettings) {
         if (poolSettings == null) return null;
         return errorsDao.readAllOfPool(poolSettings.getUuid());

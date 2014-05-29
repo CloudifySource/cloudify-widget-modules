@@ -1,37 +1,35 @@
 package cloudify.widget.pool.manager.node_management;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * User: eliranm
  * Date: 5/5/14
  * Time: 5:58 PM
  */
-public class NodeManagementModuleProvider {
+public class NodeManagementModuleProvider implements ApplicationContextAware {
 
-    @Autowired
-    private CreateNodeManagementModule createNodeManagementModule;
-
-    @Autowired
-    private DeleteNodeManagementModule deleteNodeManagementModule;
-
-    @Autowired
-    private BootstrapNodeManagementModule bootstrapNodeManagementModule;
-
-    @Autowired
-    private DeleteExpiredNodeManagementModule deleteExpiredNodeManagementModule;
+    private ApplicationContext applicationContext;
 
     public BaseNodeManagementModule fromType(NodeManagementModuleType type) {
         switch (type) {
             case CREATE:
-                return createNodeManagementModule;
+                return applicationContext.getBean(CreateNodeManagementModule.class);
             case DELETE:
-                return deleteNodeManagementModule;
+                return applicationContext.getBean(DeleteNodeManagementModule.class);
             case BOOTSTRAP:
-                return bootstrapNodeManagementModule;
+                return applicationContext.getBean(BootstrapNodeManagementModule.class);
             case DELETE_EXPIRED:
-                return deleteExpiredNodeManagementModule;
+                return applicationContext.getBean(DeleteExpiredNodeManagementModule.class);
         }
         throw new RuntimeException("unable to return module - no valid type provided");
     }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
 }

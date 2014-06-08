@@ -12,6 +12,8 @@ public class AccountModel {
 
     public String uuid;
 
+    public String description;
+
     public Long getId() {
         return id;
     }
@@ -50,6 +52,15 @@ public class AccountModel {
 
     @Override
     public String toString() {
-        return "AccountModel{id=" + id + ", uuid='" + uuid + '\'' + '}';
+        return "AccountModel{id=" + id + ", uuid='" + uuid + '\'' + ", description= '" + description + "\'" + '}';
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
 }

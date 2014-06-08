@@ -295,12 +295,24 @@ public class AdminController {
     }
 
 
-
     @RequestMapping(value = "/admin/pools/{poolId}/cloud/nodes", method = RequestMethod.GET)
     @ResponseBody
     public List<NodeMappings> getCloudNodes(@PathVariable("poolId") Long poolConfigurationId) {
         PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
         return poolManagerApi.listCloudNodes(poolSettings);
+    }
+
+    @RequestMapping(value = "/admin/accounts/byUuid/{uuid}", method = RequestMethod.GET)
+    @ResponseBody
+    public AccountModel readByUuid(@PathVariable String uuid) {
+        return accountDao.readAccountByUuid(uuid);
+    }
+
+
+    @RequestMapping(value = "/admin/accounts/{accountId}/description", method = RequestMethod.POST)
+    @ResponseBody
+    public AccountModel setAccountDescription(@PathVariable("accountId") Long accountId, @RequestBody String description) {
+        return accountDao.setAccountDescription(accountId, description);
     }
 
 

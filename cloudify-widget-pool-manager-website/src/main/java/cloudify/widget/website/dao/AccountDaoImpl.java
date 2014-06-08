@@ -21,7 +21,7 @@ public class AccountDaoImpl implements IAccountDao {
     private static final String delQuery = "delete from " + TABLE_NAME + " where id = ?";
     private static final String selectSql = "select * from " + TABLE_NAME + " where uuid = ?";
     private static final String selectByIdSql = "select * from " + TABLE_NAME + " where id = ?";
-    private static final String regenerateUuidSql = "update " + TABLE_NAME + " set uuid = ? where id = ?";
+    private static final String setDescriptionSql = "update " + TABLE_NAME + " set description = ? where id = ?";
     private static final String selectAllSql = "select * from " + TABLE_NAME;
 
     private JdbcTemplate jdbcTemplate;
@@ -69,6 +69,12 @@ public class AccountDaoImpl implements IAccountDao {
 
     public AccountModel readById( Long accountId ){
       return jdbcTemplate.queryForObject(selectByIdSql, new Object[]{ accountId }, accountRowMapper );
+    }
+
+    @Override
+    public AccountModel setAccountDescription(Long id, String description) {
+        jdbcTemplate.update(setDescriptionSql, description, id);
+        return readById( id );
     }
 
 }

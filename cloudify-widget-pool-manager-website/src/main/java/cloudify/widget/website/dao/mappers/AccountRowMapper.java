@@ -17,6 +17,7 @@ public class AccountRowMapper implements RowMapper<AccountModel>{
 
         AccountModel accountModel = new AccountModel();
         accountModel.setId( rs.getLong("id") );
+        accountModel.setDescription( rs.getString("description"));
         accountModel.setUuid( rs.getString("uuid") );
 
         return accountModel;

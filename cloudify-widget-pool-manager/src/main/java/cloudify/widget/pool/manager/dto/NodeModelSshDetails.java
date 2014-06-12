@@ -2,6 +2,7 @@ package cloudify.widget.pool.manager.dto;
 
 import cloudify.widget.api.clouds.ISshDetails;
 import cloudify.widget.ec2.Ec2SshDetails;
+import cloudify.widget.hpcloudcompute.HpCloudComputeOpenstackSshDetails;
 import cloudify.widget.hpcloudcompute.HpCloudComputeSshDetails;
 import cloudify.widget.softlayer.SoftlayerSshDetails;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         visible = true) // we want the 'name' property to be in the output as well
 @JsonSubTypes({
         @JsonSubTypes.Type(value = NodeModelSshDetails.HpCloudComputeNodeModelSshDetails.class, name = "hp"),
+        @JsonSubTypes.Type(value = NodeModelSshDetails.HpCloudComputeOpenstackNodeModelSshDetails.class, name = "hpOpenstack"),
         @JsonSubTypes.Type(value = NodeModelSshDetails.Ec2NodeModelSshDetails.class, name = "ec2"),
         @JsonSubTypes.Type(value = NodeModelSshDetails.SoftlayerNodeModelSshDetails.class, name = "softlayer")})
 
@@ -41,6 +43,13 @@ public abstract class NodeModelSshDetails {
         if (sshDetails instanceof HpCloudComputeSshDetails) {
             HpCloudComputeSshDetails details = (HpCloudComputeSshDetails) sshDetails;
             HpCloudComputeNodeModelSshDetails result = new HpCloudComputeNodeModelSshDetails();
+            result.machineSshDetails = details;
+            return result;
+        }
+
+        if (sshDetails instanceof HpCloudComputeOpenstackSshDetails) {
+            HpCloudComputeOpenstackSshDetails details = (HpCloudComputeOpenstackSshDetails) sshDetails;
+            HpCloudComputeOpenstackNodeModelSshDetails result = new HpCloudComputeOpenstackNodeModelSshDetails();
             result.machineSshDetails = details;
             return result;
         }
@@ -93,6 +102,27 @@ public abstract class NodeModelSshDetails {
         }
 
         public void setMachineSshDetails(HpCloudComputeSshDetails machineSshDetails) {
+            this.machineSshDetails = machineSshDetails;
+        }
+    }
+
+    public static class HpCloudComputeOpenstackNodeModelSshDetails extends NodeModelSshDetails {
+        public String name = "hpOpenstack";
+        public HpCloudComputeOpenstackSshDetails machineSshDetails;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public HpCloudComputeOpenstackSshDetails getMachineSshDetails() {
+            return machineSshDetails;
+        }
+
+        public void setMachineSshDetails(HpCloudComputeOpenstackSshDetails machineSshDetails) {
             this.machineSshDetails = machineSshDetails;
         }
     }

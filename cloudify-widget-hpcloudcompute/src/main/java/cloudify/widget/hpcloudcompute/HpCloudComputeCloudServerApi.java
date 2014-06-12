@@ -38,7 +38,7 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpCloudComputeCloudServerApi implements CloudServerApi {
+public class HpCloudComputeCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpCloudComputeCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpCloudComputeSshDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(HpCloudComputeCloudServerApi.class);
 
@@ -53,18 +53,18 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public Collection<CloudServer> listByMask(final String mask) {
+    public Collection<HpCloudComputeCloudServer> listByMask(final String mask) {
 
         Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
             @Override
             public boolean apply(@Nullable ComputeMetadata computeMetadata) {
                 NodeMetadata nodeMetadata = ( NodeMetadata )computeMetadata;
                 return nodeMetadata.getStatus() == NodeMetadata.Status.RUNNING &&
-                        ( mask == null ? true : computeMetadata.getTags().contains( mask ));
+                        ( mask == null || computeMetadata.getTags().contains( mask ));
             }
         });
 
-        return transform(nodeMetadatas, new Function<NodeMetadata, CloudServer>() {
+        return transform(nodeMetadatas, new Function<NodeMetadata, HpCloudComputeCloudServer>() {
             @Override
             public HpCloudComputeCloudServer apply(@Nullable NodeMetadata o) {
                 return new HpCloudComputeCloudServer(computeService, o);
@@ -73,8 +73,8 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public CloudServer get(String serverId) {
-        CloudServer cloudServer = null;
+    public HpCloudComputeCloudServer get(String serverId) {
+        HpCloudComputeCloudServer cloudServer = null;
         NodeMetadata nodeMetadata = computeService.getNodeMetadata(serverId);
         if (nodeMetadata != null) {
             cloudServer = new HpCloudComputeCloudServer( computeService, nodeMetadata );
@@ -98,14 +98,13 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
 
     private ServerApi getApi( String zone ){
         NovaApi novaApi = contextBuilder.buildApi(NovaApi.class);
-        ServerApi serverApi = novaApi.getServerApiForZone( zone );
-        return serverApi;
+        return novaApi.getServerApiForZone( zone );
     }
 
     @Override
     public void rebuild(String id) {
 
-        HpCloudComputeCloudServer cloudServer = ( HpCloudComputeCloudServer )get(id);
+        HpCloudComputeCloudServer cloudServer = get(id);
         String imageId = cloudServer.getImageId();
         String zone = cloudify.widget.common.StringUtils.substringBefore(imageId, IMAGE_DELIMETER);
         String imageIdLocal = cloudify.widget.common.StringUtils.substringAfter( imageId, IMAGE_DELIMETER );
@@ -123,12 +122,11 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
 
 
     @Override
-    public Collection<? extends CloudServerCreated> create( MachineOptions machineOpts ) {
+    public Collection<HpCloudComputeCloudServerCreated> create( HpCloudComputeMachineOptions hpCloudMachineOptions ) {
 
         logger.info( "Starting to create new node(s)..." );
         long startTime = System.currentTimeMillis();
 
-        HpCloudComputeMachineOptions hpCloudMachineOptions = ( HpCloudComputeMachineOptions )machineOpts;
         String name = hpCloudMachineOptions.getMask();
         int machinesCount = hpCloudMachineOptions.getMachinesCount();
         Template template = createTemplate(hpCloudMachineOptions);
@@ -163,7 +161,7 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
             }
         }
 
-        List<CloudServerCreated> newNodesList = new ArrayList<CloudServerCreated>( newNodes.size() );
+        List<HpCloudComputeCloudServerCreated> newNodesList = new ArrayList<HpCloudComputeCloudServerCreated>( newNodes.size() );
         for( NodeMetadata newNode : newNodes ){
             newNodesList.add( new HpCloudComputeCloudServerCreated( newNode ) );
         }
@@ -211,19 +209,15 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public void connect(IConnectDetails connectDetails) {
+    public void connect(HpCloudComputeConnectDetails connectDetails) {
         setConnectDetails(connectDetails);
         connect();
     }
 
     @Override
-    public void setConnectDetails(IConnectDetails connectDetails) {
+    public void setConnectDetails(HpCloudComputeConnectDetails connectDetails) {
         logger.info("connecting");
-        if (!(connectDetails instanceof HpCloudComputeConnectDetails)) {
-            throw new RuntimeException("expected HpCloudComputeConnectDetails implementation");
-        }
-        this.connectDetails = (HpCloudComputeConnectDetails) connectDetails;
-
+        this.connectDetails = connectDetails;
     }
 
     @Override
@@ -324,9 +318,9 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi {
         throw new UnsupportedOperationException( "Method runScriptOnMachine(String script, String serverIp) is not supported anymore. Please use runScriptOnMachine(String script, ISshDetails sshDetails ) instead" );
     }
 
-    public CloudExecResponse runScriptOnMachine(String script, ISshDetails sshDetails ){
+    @Override
+    public CloudExecResponse runScriptOnMachine(String script, HpCloudComputeSshDetails hpCloudSshDetails ){
 
-        HpCloudComputeSshDetails hpCloudSshDetails = ( HpCloudComputeSshDetails )sshDetails;
         String serverIp = hpCloudSshDetails.getPublicIp();
         //retrieve missing ssh details
         String user = hpCloudSshDetails.getUser();//"debian"

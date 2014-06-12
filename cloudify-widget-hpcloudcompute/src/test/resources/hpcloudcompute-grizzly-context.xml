@@ -9,19 +9,25 @@
     <context:property-placeholder location="conf/dev/me-grizzly.conf"/>
 
     <bean id="hpCloudConnectDetails" class="cloudify.widget.hpcloudcompute.HpCloudComputeConnectDetails">
-        <constructor-arg index="0" value="${hpcloud_compute_project}"/>
-        <constructor-arg index="1" value="${hpcloud_compute_key}"/>
-        <constructor-arg index="2" value="${hpcloud_compute_secretKey}"/>
-        <constructor-arg index="3" value="${hpcloud_compute_apiVersion}"/>
+        <property name="project" value="${hpcloud_compute_project}"/>
+        <property name="key" value="${hpcloud_compute_key}"/>
+        <property name="secretKey" value="${hpcloud_compute_secretKey}"/>
+        <property name="apiVersion" value="${hpcloud_compute_apiVersion}"/>
+        <property name="openstackUrl" value="${hpcloud_compute_openstackUrl}" />
     </bean>
 
     <bean id="cloudServer" class="cloudify.widget.hpcloudcompute.HpCloudComputeCloudServerApi"/>
 
+    <bean id="hpCloudComputeOpenstackCloudServerApi" class="cloudify.widget.hpcloudcompute.HpCloudComputeOpenstackCloudServerApi"/>
+
+    <!-- details for account "guym" -->
     <bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions">
         <property name="mask" value="testhpcloudgrizzly"/>
-        <property name="hardwareId" value="region-b.geo-1/100"/>
-        <property name="imageId" value="region-b.geo-1/4ee377d7-e940-4fcc-b957-4b7d2bd7929c"/>
+        <property name="hardwareId" value="region-b.geo-1/100"/> <!-- x-small -->
+        <property name="imageId" value="region-b.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> <!-- centos 6.3 -->
         <property name="machinesCount" value="1"/>
+        <property name="securityGroup" value="default"/>
+        <property name="networkUuid" value="43d185a1-9859-42b1-a580-507c4adb4f93"/>
     </bean>
 
     <bean id="sshUserName" class="java.lang.String">
@@ -30,4 +36,5 @@
 
     <bean id="waitMachineIsRunningTimeout" class="cloudify.widget.common.WaitTimeout"/>
     <bean id="waitMachineIsNotRunning" class="cloudify.widget.common.WaitTimeout"/>
+
 </beans>

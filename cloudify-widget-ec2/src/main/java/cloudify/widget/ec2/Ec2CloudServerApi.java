@@ -29,7 +29,7 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class Ec2CloudServerApi implements CloudServerApi {
+public class Ec2CloudServerApi implements CloudServerApi<Ec2CloudServer, Ec2CloudServerCreated, Ec2ConnectDetails, Ec2MachineOptions, Ec2SshDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(Ec2CloudServerApi.class);
 
@@ -41,18 +41,18 @@ public class Ec2CloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public Collection<CloudServer> listByMask(final String mask) {
+    public Collection<Ec2CloudServer> listByMask(final String mask) {
 
         Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
             @Override
             public boolean apply(@Nullable ComputeMetadata computeMetadata) {
                 NodeMetadata nodeMetadata = ( NodeMetadata )computeMetadata;
                 return nodeMetadata.getStatus() == NodeMetadata.Status.RUNNING &&
-                        ( mask == null ? true : computeMetadata.getTags().contains( mask ));
+                        ( mask == null || computeMetadata.getTags().contains( mask ));
             }
         });
 
-        return transform(nodeMetadatas, new Function<NodeMetadata, CloudServer>() {
+        return transform(nodeMetadatas, new Function<NodeMetadata, Ec2CloudServer>() {
             @Override
             public Ec2CloudServer apply(@Nullable NodeMetadata o) {
                 return new Ec2CloudServer(computeService, o);
@@ -61,8 +61,8 @@ public class Ec2CloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public CloudServer get(String serverId) {
-        CloudServer cloudServer = null;
+    public Ec2CloudServer get(String serverId) {
+        Ec2CloudServer cloudServer = null;
         NodeMetadata nodeMetadata = computeService.getNodeMetadata(serverId);
         if (nodeMetadata != null) {
             cloudServer = new Ec2CloudServer( computeService, nodeMetadata );
@@ -90,12 +90,11 @@ public class Ec2CloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public Collection<? extends CloudServerCreated> create( MachineOptions machineOpts ) {
+    public Collection<Ec2CloudServerCreated> create( Ec2MachineOptions ec2MachineOptions ) {
 
         logger.info( "Starting to create new node(s)..." );
         long startTime = System.currentTimeMillis();
 
-        Ec2MachineOptions ec2MachineOptions = ( Ec2MachineOptions )machineOpts;
         String name = ec2MachineOptions.getMask();
         int machinesCount = ec2MachineOptions.getMachinesCount();
         Template template = createTemplate(ec2MachineOptions);
@@ -114,7 +113,7 @@ public class Ec2CloudServerApi implements CloudServerApi {
         long totalTimeSec = ( endTime - startTime )/1000;
         logger.info( "After create new node, creating took [" + ( totalTimeSec ) + "] sec." );
 
-        List<CloudServerCreated> newNodesList = new ArrayList<CloudServerCreated>( newNodes.size() );
+        List<Ec2CloudServerCreated> newNodesList = new ArrayList<Ec2CloudServerCreated>( newNodes.size() );
         for( NodeMetadata newNode : newNodes ){
             newNodesList.add( new Ec2CloudServerCreated( newNode ) );
         }
@@ -128,19 +127,15 @@ public class Ec2CloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public void connect(IConnectDetails connectDetails) {
+    public void connect(Ec2ConnectDetails connectDetails) {
         setConnectDetails(connectDetails);
         connect();
     }
 
     @Override
-    public void setConnectDetails(IConnectDetails connectDetails) {
+    public void setConnectDetails(Ec2ConnectDetails connectDetails) {
         logger.info("connecting");
-        if (!(connectDetails instanceof Ec2ConnectDetails)) {
-            throw new RuntimeException("expected Ec2ConnectDetails implementation");
-        }
-        this.connectDetails = (Ec2ConnectDetails) connectDetails;
-
+        this.connectDetails = connectDetails;
     }
 
     @Override
@@ -210,9 +205,8 @@ public class Ec2CloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public CloudExecResponse runScriptOnMachine(String script, ISshDetails sshDetails) {
+    public CloudExecResponse runScriptOnMachine(String script, Ec2SshDetails ec2SshDetails) {
 
-        Ec2SshDetails ec2SshDetails = ( Ec2SshDetails )sshDetails;
         //retrieve missing ssh details
         String user = ec2SshDetails.getUser();
         String privateKey = ec2SshDetails.getPrivateKey();

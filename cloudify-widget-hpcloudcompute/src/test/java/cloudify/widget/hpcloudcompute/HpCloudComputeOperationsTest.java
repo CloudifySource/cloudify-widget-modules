@@ -89,13 +89,13 @@ public class HpCloudComputeOperationsTest {
                     return object.getId().equals(machine.getId());
                 }
             });
-            HpCloudComputeSshDetails sshDetails = (HpCloudComputeSshDetails) created.getSshDetails();
+            HpFolsomSshDetails sshDetails = (HpFolsomSshDetails) created.getSshDetails();
 
             //if sshUserName defined we need to overwrite it in received sshDetails
 
             if( sshUserName != null ){
-                HpCloudComputeSshDetails hpCloudSshDetails = sshDetails;
-                sshDetails = new HpCloudComputeSshDetails( hpCloudSshDetails.getPort(), sshUserName,
+                HpFolsomSshDetails hpCloudSshDetails = sshDetails;
+                sshDetails = new HpFolsomSshDetails( hpCloudSshDetails.getPort(), sshUserName,
                         hpCloudSshDetails.getPrivateKey(), hpCloudSshDetails.getPublicIp() );
             }
 

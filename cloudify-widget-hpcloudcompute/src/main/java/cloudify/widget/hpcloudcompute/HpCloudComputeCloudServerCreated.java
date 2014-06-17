@@ -36,7 +36,7 @@ public class HpCloudComputeCloudServerCreated implements CloudServerCreated {
         int port = nodeMetadata.getLoginPort();
         String publicIp = CollectionUtils.first(nodeMetadata.getPublicAddresses());
 
-        return new HpCloudComputeSshDetails( port, user, privateKey, publicIp );
+        return new HpFolsomSshDetails( port, user, privateKey, publicIp );
     }
 
 }

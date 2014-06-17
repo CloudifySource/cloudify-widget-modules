@@ -15,6 +15,8 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
     private String hardwareId;
     private String imageId;
     private String securityGroup = null;
+    private String networkUuid;
+    private String keyPairName;
 
     public HpCloudComputeMachineOptions(){}
 
@@ -71,6 +73,22 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
         this.securityGroup = securityGroup;
     }
 
+    public String getNetworkUuid() {
+        return networkUuid;
+    }
+
+    public void setNetworkUuid(String networkUuid) {
+        this.networkUuid = networkUuid;
+    }
+
+    public String getKeyPairName() {
+        return keyPairName;
+    }
+
+    public void setKeyPairName(String keyPairName) {
+        this.keyPairName = keyPairName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -81,7 +99,11 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
         if (machinesCount != that.machinesCount) return false;
         if (hardwareId != null ? !hardwareId.equals(that.hardwareId) : that.hardwareId != null) return false;
         if (imageId != null ? !imageId.equals(that.imageId) : that.imageId != null) return false;
+        if (keyPairName != null ? !keyPairName.equals(that.keyPairName) : that.keyPairName != null) return false;
         if (mask != null ? !mask.equals(that.mask) : that.mask != null) return false;
+        if (networkUuid != null ? !networkUuid.equals(that.networkUuid) : that.networkUuid != null) return false;
+        if (securityGroup != null ? !securityGroup.equals(that.securityGroup) : that.securityGroup != null)
+            return false;
 
         return true;
     }
@@ -92,6 +114,9 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
         result = 31 * result + machinesCount;
         result = 31 * result + (hardwareId != null ? hardwareId.hashCode() : 0);
         result = 31 * result + (imageId != null ? imageId.hashCode() : 0);
+        result = 31 * result + (securityGroup != null ? securityGroup.hashCode() : 0);
+        result = 31 * result + (networkUuid != null ? networkUuid.hashCode() : 0);
+        result = 31 * result + (keyPairName != null ? keyPairName.hashCode() : 0);
         return result;
     }
 
@@ -102,6 +127,9 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
                 ", machinesCount=" + machinesCount +
                 ", hardwareId='" + hardwareId + '\'' +
                 ", imageId='" + imageId + '\'' +
+                ", securityGroup='" + securityGroup + '\'' +
+                ", networkUuid='" + networkUuid + '\'' +
+                ", keyPairName='" + keyPairName + '\'' +
                 '}';
     }
 }

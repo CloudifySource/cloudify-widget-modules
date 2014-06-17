@@ -13,21 +13,34 @@
         <property name="key" value="${hpcloud_compute_key}"/>
         <property name="secretKey" value="${hpcloud_compute_secretKey}"/>
         <property name="apiVersion" value="${hpcloud_compute_apiVersion}"/>
-        <property name="openstackUrl" value="${hpcloud_compute_openstackUrl}" />
+        <property name="identityEndpoint" value="${hpcloud_compute_identityEndpoint}" />
+        <property name="sshPrivateKey" value="${hpcloud_compute_ssh_private_key}"/>
     </bean>
 
-    <bean id="cloudServer" class="cloudify.widget.hpcloudcompute.HpCloudComputeCloudServerApi"/>
+    <bean id="cloudServer" class="cloudify.widget.hpcloudcompute.HpFolsomCloudServerApi"/>
 
-    <bean id="hpCloudComputeOpenstackCloudServerApi" class="cloudify.widget.hpcloudcompute.HpCloudComputeOpenstackCloudServerApi"/>
+    <bean id="hpGrizzlyCloudServerApi" class="cloudify.widget.hpcloudcompute.HpGrizzlyCloudServerApi"/>
 
     <!-- details for account "guym" -->
+    <!--<bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions">-->
+        <!--<property name="mask" value="testhpcloudgrizzly"/>-->
+        <!--<property name="hardwareId" value="region-b.geo-1/100"/> &lt;!&ndash; x-small &ndash;&gt;-->
+        <!--<property name="imageId" value="region-b.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> &lt;!&ndash; centos 6.3 &ndash;&gt;-->
+        <!--<property name="machinesCount" value="1"/>-->
+        <!--<property name="securityGroup" value="default"/>-->
+        <!--<property name="networkUuid" value="43d185a1-9859-42b1-a580-507c4adb4f93"/>-->
+        <!--<property name="keyPairName" value="hp-grizzly"/>-->
+    <!--</bean>-->
+
+    <!-- details for account "gspm-tenant1" -->
     <bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions">
-        <property name="mask" value="testhpcloudgrizzly"/>
-        <property name="hardwareId" value="region-b.geo-1/100"/> <!-- x-small -->
-        <property name="imageId" value="region-b.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> <!-- centos 6.3 -->
+        <property name="mask" value="test-hp-grizzly"/>
+        <property name="hardwareId" value="region-a.geo-1/102"/> <!-- standard.medium -->
+        <property name="imageId" value="region-a.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> <!-- centos 6.3 -->
         <property name="machinesCount" value="1"/>
         <property name="securityGroup" value="default"/>
-        <property name="networkUuid" value="43d185a1-9859-42b1-a580-507c4adb4f93"/>
+        <property name="networkUuid" value="f32a435c-62fc-49c6-879e-16527a996393"/>
+        <property name="keyPairName" value="widget-server"/>
     </bean>
 
     <bean id="sshUserName" class="java.lang.String">

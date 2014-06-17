@@ -8,7 +8,7 @@ import cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions;
  * Date: 2/27/14
  * Time: 3:22 PM
  */
-public class HpProviderSettings extends ProviderSettings {
+public class HpGrizzlyProviderSettings extends ProviderSettings {
 
     public HpCloudComputeConnectDetails connectDetails;
     public HpCloudComputeMachineOptions machineOptions;

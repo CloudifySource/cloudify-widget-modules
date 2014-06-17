@@ -1,14 +1,27 @@
 package cloudify.widget.hpcloudcompute;
 
 import cloudify.widget.api.clouds.CloudExecResponse;
+import cloudify.widget.api.clouds.CloudProvider;
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.ISecurityGroupDetails;
+import cloudify.widget.common.CloudExecResponseImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.net.HostAndPort;
+import com.google.inject.Module;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import org.jclouds.ContextBuilder;
+import org.jclouds.compute.ComputeService;
+import org.jclouds.compute.ComputeServiceContext;
+import org.jclouds.compute.domain.ExecResponse;
+import org.jclouds.domain.LoginCredentials;
+import org.jclouds.openstack.nova.v2_0.config.NovaProperties;
+import org.jclouds.ssh.SshClient;
+import org.jclouds.sshj.config.SshjSshClientModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -34,8 +47,10 @@ import java.util.regex.Pattern;
  * Date: 6/10/14
  * Time: 7:24 PM
  */
-public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpCloudComputeOpenstackCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpCloudComputeSshDetails> {
+public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpGrizzlyCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpGrizzlySshDetails> {
 
+
+    private static Logger logger = LoggerFactory.getLogger(HpGrizzlyCloudServerApi.class);
 
     private static final String MACHINE_STATUS_ACTIVE = "ACTIVE";
     private static final int HTTP_NOT_FOUND = 404;
@@ -45,21 +60,22 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
 
     private final Client client;
 
-    private long throttlingTimeout = -1;
     private String endpoint;
-    private WebResource service;
     private String identityEndpoint;
     private String tokenSession;
+    private WebResource service;
+
     private final DocumentBuilderFactory dbf;
     private final Object xmlFactoryMutex = new Object();
 
-
-    private static Logger logger = LoggerFactory.getLogger(HpCloudComputeOpenstackCloudServerApi.class);
+    private ContextBuilder contextBuilder;
+    private ComputeServiceContext computeServiceContext;
+    private ComputeService computeService;
 
     private HpCloudComputeConnectDetails connectDetails;
 
 
-    public HpCloudComputeOpenstackCloudServerApi() {
+    public HpGrizzlyCloudServerApi() {
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         final ClientConfig config = new DefaultClientConfig();
@@ -69,7 +85,7 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
 
     @Override
     public Collection<HpCloudComputeCloudServer> listByMask(String mask) {
-        list(tokenSession, "servers");
+        listToLog(tokenSession, "servers");
         return null;
     }
 
@@ -93,14 +109,15 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
     }
 
     @Override
-    public Collection<HpCloudComputeOpenstackCloudServerCreated> create(HpCloudComputeMachineOptions machineOpts) {
+    public Collection<HpGrizzlyCloudServerCreated> create(HpCloudComputeMachineOptions machineOpts) {
 
-        LinkedList<HpCloudComputeOpenstackCloudServerCreated> cloudServerCreateds = new LinkedList<HpCloudComputeOpenstackCloudServerCreated>();
+        LinkedList<HpGrizzlyCloudServerCreated> cloudServerCreateds = new LinkedList<HpGrizzlyCloudServerCreated>();
         try {
             HpCloudComputeMachineDetails machineDetails = newServer(tokenSession, Long.MAX_VALUE, machineOpts);
             String machineId = machineDetails.getMachineId();
-            HpCloudComputeOpenstackCloudServerCreated serverCreated = new HpCloudComputeOpenstackCloudServerCreated(machineId);
-            // TODO set ssh details in serverCreated object
+            HpGrizzlySshDetails sshDetails = new HpGrizzlySshDetails(
+                    22, machineDetails.getRemoteUsername(), connectDetails.getSshPrivateKey(), machineDetails.getPublicAddress());
+            HpGrizzlyCloudServerCreated serverCreated = new HpGrizzlyCloudServerCreated(machineId, sshDetails);
             cloudServerCreateds.add(serverCreated);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -111,7 +128,7 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
 
     @Override
     public String createCertificate() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -127,32 +144,113 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
 
     @Override
     public void connect() {
+        // connect openstack
         createAuthenticationToken();
+        // connect jclouds (for ssh)
+        computeServiceContext = computeServiceContext();
+        computeService = computeServiceContext.getComputeService();
+    }
+
+    public ComputeServiceContext computeServiceContext() {
+
+        contextBuilder = createContextBuilder();
+        ComputeServiceContext context = contextBuilder.buildView(ComputeServiceContext.class);
+
+        return context;
+    }
+
+    private ContextBuilder createContextBuilder(){
+
+        String project = connectDetails.getProject();
+        String key = connectDetails.getKey();
+        String secretKey = connectDetails.getSecretKey();
+        String identity = project + ":" + key;
+        String apiVersion = connectDetails.getApiVersion();
+
+        logger.info("creating compute service context, using [{}] apiVersion, identity is [{}]", apiVersion, identity );
+
+        String cloudProvider = CloudProvider.HP.label;
+        logger.info("building new context for provider [{}]", cloudProvider);
+
+        Properties overrides = new Properties();
+        overrides.setProperty("jclouds.keystone.credential-type", "apiAccessKeyCredentials");
+        overrides.setProperty(NovaProperties.AUTO_ALLOCATE_FLOATING_IPS, Boolean.FALSE.toString());
+
+        ContextBuilder contextBuilder = ContextBuilder.newBuilder(cloudProvider)
+                .apiVersion(apiVersion)
+                .credentials(identity, secretKey)
+                .overrides(overrides)
+                .modules(ImmutableSet.<Module>of(new SshjSshClientModule()));
+
+        return contextBuilder;
     }
 
     @Override
     public void createSecurityGroup(ISecurityGroupDetails securityGroupDetails) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public CloudExecResponse runScriptOnMachine(String script, String serverIp) {
-        return null;
+        throw new UnsupportedOperationException( "Method runScriptOnMachine(String script, String serverIp) is not supported anymore. Please use runScriptOnMachine(String script, ISshDetails sshDetails ) instead" );
     }
 
     @Override
-    public CloudExecResponse runScriptOnMachine(String script, HpCloudComputeSshDetails sshDetails) {
-        return null;
+    public CloudExecResponse runScriptOnMachine(String script, HpGrizzlySshDetails sshDetails) {
+
+        String serverIp = sshDetails.getPublicIp();
+        //retrieve missing ssh details
+        String user = sshDetails.getUser();
+        String privateKey = sshDetails.getPrivateKey();
+        int port = sshDetails.getPort();
+
+        logger.debug("Run ssh on server: {} script: {}" , serverIp, script );
+        SshClient.Factory factory = computeServiceContext.getUtils().getSshClientFactory();
+        LoginCredentials loginCredentials = LoginCredentials.builder().user(user).privateKey(privateKey).build();
+        SshClient sshConnection = factory.create(HostAndPort.fromParts(serverIp, port),
+                loginCredentials );
+        ExecResponse execResponse = null;
+        boolean connectionSucceeded = false;
+        int attemptsCount = 0;
+        try{
+            while( !connectionSucceeded && attemptsCount < 10 ){
+                try{
+                    Thread.sleep( 1*1000 );
+                    sshConnection.connect();
+                    connectionSucceeded = true;
+                }
+                catch( Exception e ){
+                    attemptsCount++;
+                    logger.info( "failed to ssh connect, going to sleep..." );
+                }
+            }
+            if( !connectionSucceeded ){
+                throw new RuntimeException( "SSH connect failed" );
+            }
+            logger.info("ssh connected, executing");
+            execResponse = sshConnection.exec(script);
+            logger.info("finished execution");
+        }
+        finally{
+            if (sshConnection != null)
+                sshConnection.disconnect();
+        }
+
+        return new CloudExecResponseImpl( execResponse );
     }
 
 
-    private void list(final String token, String path) {
+    public void listToLog(final String token, String path) {
         logger.info("\n- - - - - - - - - - - - - - - " + path + " - - - - - - - - - - - - - - - - - -");
-        String response = service.path(path)
-                .header("X-Auth-Token", token)
-                .accept(MediaType.APPLICATION_XML)
-                .get(String.class);
-        System.out.println(response);
+        String response = list(token, path);
+        logger.info(response);
+    }
+
+    public String list(String token, String path) {
+        return service.path(path)
+                    .header("X-Auth-Token", token)
+                    .accept(MediaType.APPLICATION_XML)
+                    .get(String.class);
     }
 
 
@@ -222,18 +320,6 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
 
         return nodes;
     }
-
-    // public void listFlavors(final String token) throws Exception {
-    // final WebResource service = client.resource(this.endpoint);
-    //
-    // String response = null;
-    //
-    // response = service.path(this.pathPrefix + "flavors").header("X-Auth-Token", token)
-    // .accept(MediaType.APPLICATION_XML).get(String.class);
-    //
-    // System.out.println(response);
-    //
-    // }
 
     private List<String> listServerIds(final String token) {
 
@@ -320,7 +406,7 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
                         .delete();
 
             } catch (final UniformInterfaceException e) {
-                final String responseEntity = e.getResponse().getEntity(String.class).toString();
+                final String responseEntity = e.getResponse().getEntity(String.class);
                 throw new IllegalArgumentException(e + " Response entity: " + responseEntity);
             }
 
@@ -386,8 +472,6 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
 
             md.setPublicAddress(node.getPublicIp());
             md.setMachineId(serverId);
-            md.setAgentRunning(false);
-            md.setCloudifyInstalled(false);
             md.setRemoteUsername("root");
 
             return md;
@@ -410,7 +494,7 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
         final String serverName = machineOptions.getMask() + System.currentTimeMillis();
         final String securityGroup = machineOptions.getSecurityGroup();
         final String networkUuid = machineOptions.getNetworkUuid();
-//        final String keyPairName = machineOptions.keyPair(); // todo - implement ?
+        final String keyPairName = machineOptions.getKeyPairName();
 
         // Start the machine!
         final String json =
@@ -419,7 +503,7 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
                         "\"name\":\"" + serverName + "\"," +
                         "\"imageRef\":\"" + machineOptions.getImageId() + "\"," +
                         "\"flavorRef\":\"" + machineOptions.getHardwareId() + "\"," +
-//                        "\"key_name\":\"" + keyPairName + "\"," +
+                        "\"key_name\":\"" + keyPairName + "\"," +
                         "\"security_groups\":[{" +
                             "\"name\":\"" + securityGroup + "\"" +
                         "}]," +
@@ -512,8 +596,6 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
                         .header("x-auth-project-id", connectDetails.getProject())
                         .accept(MediaType.APPLICATION_JSON)
                         .get(String.class);
-
-        logger.info("os-floating-ips response: [{}]", response);
 
         final ObjectMapper mapper = new ObjectMapper();
         final Map map = mapper.readValue(new StringReader(response), Map.class);
@@ -668,7 +750,7 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
             throw new IllegalArgumentException("connect details must not be null");
         }
 
-        identityEndpoint = connectDetails.getOpenstackUrl();
+        identityEndpoint = connectDetails.getIdentityEndpoint();
 
         // we only use api-access-key as credential type (password credential type is also available)
         String json =
@@ -709,17 +791,8 @@ public class HpCloudComputeOpenstackCloudServerApi implements CloudServerApi<HpC
         }
     }
 
-    /**
-     * Checks if throttling is now activated, to avoid overloading the cloud.
-     *
-     * @return True if throttling is activate, false otherwise
-     */
-    public boolean isThrottling() {
-        boolean throttling = false;
-        if (throttlingTimeout > 0 && throttlingTimeout - System.currentTimeMillis() > 0) {
-            throttling = true;
-        }
+    public void list(String path) {
+        listToLog(tokenSession, path);
 
-        return throttling;
     }
 }

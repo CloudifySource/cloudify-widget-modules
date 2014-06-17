@@ -7,16 +7,16 @@ import cloudify.widget.api.clouds.ISshDetails;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpCloudComputeOpenstackSshDetails implements ISshDetails {
+public class HpFolsomSshDetails implements ISshDetails {
 
     private int port;
     private String user;
     private String privateKey;
     private String publicIp;
 
-    public HpCloudComputeOpenstackSshDetails() {}
+    public HpFolsomSshDetails() {}
 
-    public HpCloudComputeOpenstackSshDetails(int port, String user, String privateKey, String publicIp){
+    public HpFolsomSshDetails(int port, String user, String privateKey, String publicIp){
         this.port = port;
         this.user = user;
         this.privateKey = privateKey;
@@ -42,7 +42,7 @@ public class HpCloudComputeOpenstackSshDetails implements ISshDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        HpCloudComputeOpenstackSshDetails that = (HpCloudComputeOpenstackSshDetails) o;
+        HpFolsomSshDetails that = (HpFolsomSshDetails) o;
 
         if (port != that.port) return false;
         if (privateKey != null ? !privateKey.equals(that.privateKey) : that.privateKey != null) return false;

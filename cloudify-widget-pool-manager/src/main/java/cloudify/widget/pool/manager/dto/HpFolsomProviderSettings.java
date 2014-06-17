@@ -8,7 +8,7 @@ import cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions;
  * Date: 2/27/14
  * Time: 3:22 PM
  */
-public class HpOpenstackProviderSettings extends ProviderSettings {
+public class HpFolsomProviderSettings extends ProviderSettings {
 
     public HpCloudComputeConnectDetails connectDetails;
     public HpCloudComputeMachineOptions machineOptions;

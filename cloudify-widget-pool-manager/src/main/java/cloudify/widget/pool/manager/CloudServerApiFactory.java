@@ -2,8 +2,8 @@ package cloudify.widget.pool.manager;
 
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.ec2.Ec2CloudServerApi;
-import cloudify.widget.hpcloudcompute.HpCloudComputeCloudServerApi;
-import cloudify.widget.hpcloudcompute.HpCloudComputeOpenstackCloudServerApi;
+import cloudify.widget.hpcloudcompute.HpFolsomCloudServerApi;
+import cloudify.widget.hpcloudcompute.HpGrizzlyCloudServerApi;
 import cloudify.widget.pool.manager.dto.ProviderSettings;
 import cloudify.widget.softlayer.SoftlayerCloudServerApi;
 import org.slf4j.Logger;
@@ -29,11 +29,11 @@ public class CloudServerApiFactory {
      */
     public static CloudServerApi create(ProviderSettings.ProviderName providerName) {
         logger.trace("creating cloud server api implementation for provider [{}]", providerName.name());
-        if (ProviderSettings.ProviderName.hp == providerName) {
-            return new HpCloudComputeCloudServerApi();
+        if (ProviderSettings.ProviderName.hpFolsom == providerName) {
+            return new HpFolsomCloudServerApi();
         }
-        if (ProviderSettings.ProviderName.hpOpenstack == providerName) {
-            return new HpCloudComputeOpenstackCloudServerApi();
+        if (ProviderSettings.ProviderName.hpGrizzly == providerName) {
+            return new HpGrizzlyCloudServerApi();
         }
         if (ProviderSettings.ProviderName.softlayer == providerName) {
             return new SoftlayerCloudServerApi();

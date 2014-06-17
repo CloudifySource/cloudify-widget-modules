@@ -33,13 +33,6 @@
             <artifactId>hpcloud-compute</artifactId>
             <version>${jCloudsVersion}</version>
         </dependency>
-        <!--
-                <dependency>
-                    <groupId>org.apache.jclouds.api</groupId>
-                    <artifactId>openstack-nova</artifactId>
-                    <version>${jCloudsVersion}</version>
-                </dependency>
-        -->
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>

@@ -38,9 +38,9 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpCloudComputeCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpCloudComputeCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpCloudComputeSshDetails> {
+public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpCloudComputeCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpFolsomSshDetails> {
 
-    private static Logger logger = LoggerFactory.getLogger(HpCloudComputeCloudServerApi.class);
+    private static Logger logger = LoggerFactory.getLogger(HpFolsomCloudServerApi.class);
 
     private ContextBuilder contextBuilder;
     private ComputeServiceContext computeServiceContext;
@@ -49,7 +49,7 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi<HpCloudCompu
 
     private static final String IMAGE_DELIMETER = "/";
 
-    public HpCloudComputeCloudServerApi() {
+    public HpFolsomCloudServerApi() {
     }
 
     @Override
@@ -319,7 +319,7 @@ public class HpCloudComputeCloudServerApi implements CloudServerApi<HpCloudCompu
     }
 
     @Override
-    public CloudExecResponse runScriptOnMachine(String script, HpCloudComputeSshDetails hpCloudSshDetails ){
+    public CloudExecResponse runScriptOnMachine(String script, HpFolsomSshDetails hpCloudSshDetails ){
 
         String serverIp = hpCloudSshDetails.getPublicIp();
         //retrieve missing ssh details

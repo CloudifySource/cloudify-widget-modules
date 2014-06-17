@@ -38,7 +38,7 @@ public class TestDeserializer {
 
         Assert.assertNotNull("manager settings should not be null", managerSettings);
 
-        ProviderSettings hpProviderSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp).getProvider();
+        ProviderSettings hpProviderSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hpFolsom).getProvider();
 
         Assert.assertNotNull(String.format("hp provider settings should be found in manager settings [%s]", managerSettings), hpProviderSettings);
 

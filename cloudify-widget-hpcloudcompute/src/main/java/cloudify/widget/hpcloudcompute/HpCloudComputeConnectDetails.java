@@ -16,7 +16,8 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
     private String key;
     private String secretKey;
     private String apiVersion = DEFAULT_API_VERSION;
-    private String openstackUrl;
+    private String identityEndpoint;
+    private String sshPrivateKey;
 
 
     public HpCloudComputeConnectDetails() {}
@@ -64,12 +65,12 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
         this.apiVersion = apiVersion;
     }
 
-    public String getOpenstackUrl() {
-        return openstackUrl;
+    public String getIdentityEndpoint() {
+        return identityEndpoint;
     }
 
-    public void setOpenstackUrl(String openstackUrl) {
-        this.openstackUrl = openstackUrl;
+    public void setIdentityEndpoint(String identityEndpoint) {
+        this.identityEndpoint = identityEndpoint;
     }
 
     @Override
@@ -81,7 +82,8 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
 
         if (apiVersion != null ? !apiVersion.equals(that.apiVersion) : that.apiVersion != null) return false;
         if (key != null ? !key.equals(that.key) : that.key != null) return false;
-        if (openstackUrl != null ? !openstackUrl.equals(that.openstackUrl) : that.openstackUrl != null) return false;
+        if (identityEndpoint != null ? !identityEndpoint.equals(that.identityEndpoint) : that.identityEndpoint != null) return false;
+        if (sshPrivateKey != null ? !sshPrivateKey.equals(that.sshPrivateKey) : that.sshPrivateKey != null) return false;
         if (project != null ? !project.equals(that.project) : that.project != null) return false;
         if (secretKey != null ? !secretKey.equals(that.secretKey) : that.secretKey != null) return false;
 
@@ -94,7 +96,8 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
         result = 31 * result + (key != null ? key.hashCode() : 0);
         result = 31 * result + (secretKey != null ? secretKey.hashCode() : 0);
         result = 31 * result + (apiVersion != null ? apiVersion.hashCode() : 0);
-        result = 31 * result + (openstackUrl != null ? openstackUrl.hashCode() : 0);
+        result = 31 * result + (identityEndpoint != null ? identityEndpoint.hashCode() : 0);
+        result = 31 * result + (sshPrivateKey != null ? sshPrivateKey.hashCode() : 0);
         return result;
     }
 
@@ -104,8 +107,17 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
                 "project='" + project + '\'' +
                 ", key='" + key + '\'' +
                 ", secretKey='***'" +
+                ", sshPrivateKey='***'" +
                 ", apiVersion='" + apiVersion + '\'' +
-                ", openstackUrl='" + openstackUrl + '\'' +
+                ", identityEndpoint='" + identityEndpoint + '\'' +
                 '}';
+    }
+
+    public String getSshPrivateKey() {
+        return sshPrivateKey;
+    }
+
+    public void setSshPrivateKey(String sshPrivateKey) {
+        this.sshPrivateKey = sshPrivateKey;
     }
 }

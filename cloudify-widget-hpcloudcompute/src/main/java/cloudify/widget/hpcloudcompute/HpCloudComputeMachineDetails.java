@@ -8,8 +8,6 @@ package cloudify.widget.hpcloudcompute;
 public class HpCloudComputeMachineDetails {
     private String publicAddress;
     private String machineId;
-    private boolean agentRunning;
-    private boolean cloudifyInstalled;
     private String remoteUsername;
     private String privateAddress;
 
@@ -27,22 +25,6 @@ public class HpCloudComputeMachineDetails {
 
     public String getMachineId() {
         return machineId;
-    }
-
-    public void setAgentRunning(boolean agentRunning) {
-        this.agentRunning = agentRunning;
-    }
-
-    public boolean isAgentRunning() {
-        return agentRunning;
-    }
-
-    public void setCloudifyInstalled(boolean cloudifyInstalled) {
-        this.cloudifyInstalled = cloudifyInstalled;
-    }
-
-    public boolean isCloudifyInstalled() {
-        return cloudifyInstalled;
     }
 
     public void setRemoteUsername(String remoteUsername) {

@@ -30,29 +30,82 @@ public class HpCloudGrizzlyOpenstackTest {
     private HpCloudComputeMachineOptions machineOptions;
 
     @Autowired
-    private HpCloudComputeOpenstackCloudServerApi hpCloudComputeOpenstackCloudServerApi;
+    private HpGrizzlyCloudServerApi hpGrizzlyCloudServerApi;
 
 
     @Test
-    public void testOpenstackApi() {
+    public void testGrizzly() {
 
-        logger.info("connecting to hp openstack api");
-        hpCloudComputeOpenstackCloudServerApi.connect(connectDetails);
+        logger.info("connecting to hp grizzly");
+        hpGrizzlyCloudServerApi.connect(connectDetails);
 
         logger.info("creating server with options [{}]", machineOptions);
-        Collection<HpCloudComputeOpenstackCloudServerCreated> serverCreateds = hpCloudComputeOpenstackCloudServerApi.create(machineOptions);
+        Collection<HpGrizzlyCloudServerCreated> serverCreateds = hpGrizzlyCloudServerApi.create(machineOptions);
 
         logger.info("server created, listing servers with mask [{}]", machineOptions.getMask());
-        hpCloudComputeOpenstackCloudServerApi.listByMask(machineOptions.getMask());
+        hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
 
         String serverId = CollectionUtils.first(serverCreateds).getId();
         logger.info("deleting server with id [{}]", serverId);
-        hpCloudComputeOpenstackCloudServerApi.delete(serverId);
+        hpGrizzlyCloudServerApi.delete(serverId);
 
         logger.info("server deleted, listing servers with mask [{}]", machineOptions.getMask());
-        hpCloudComputeOpenstackCloudServerApi.listByMask(machineOptions.getMask());
+        hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
 
     }
+
+    @Test
+    public void testConnect() {
+
+        logger.info("connecting to hp grizzly");
+        hpGrizzlyCloudServerApi.connect(connectDetails);
+
+    }
+
+    @Test
+    public void testCreate() {
+
+        logger.info("connecting to hp grizzly");
+        hpGrizzlyCloudServerApi.connect(connectDetails);
+
+        logger.info("creating server with options [{}]", machineOptions);
+        Collection<HpGrizzlyCloudServerCreated> serverCreateds = hpGrizzlyCloudServerApi.create(machineOptions);
+
+        logger.info("server created, listing servers with mask [{}]", machineOptions.getMask());
+        hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
+
+    }
+
+    @Test
+    public void testList() {
+
+        logger.info("connecting to hp grizzly");
+        hpGrizzlyCloudServerApi.connect(connectDetails);
+
+        hpGrizzlyCloudServerApi.list("images");
+
+//        logger.info("server created, listing servers with mask [{}]", machineOptions.getMask());
+//        hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
+
+    }
+
+    @Test
+    public void testDelete() {
+
+        logger.info("connecting to hp grizzly");
+        hpGrizzlyCloudServerApi.connect(connectDetails);
+
+        String serverId = "4101945";
+
+        logger.info("deleting server with id [{}]", serverId);
+        hpGrizzlyCloudServerApi.delete(serverId);
+
+        logger.info("server deleted, listing servers with mask [{}]", machineOptions.getMask());
+        hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
+
+    }
+
+
 
 }
 

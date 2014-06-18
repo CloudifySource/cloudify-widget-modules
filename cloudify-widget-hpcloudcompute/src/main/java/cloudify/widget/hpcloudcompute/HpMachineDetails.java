@@ -5,7 +5,7 @@ package cloudify.widget.hpcloudcompute;
  * Date: 6/11/14
  * Time: 2:36 PM
  */
-public class HpCloudComputeMachineDetails {
+public class HpMachineDetails {
     private String publicAddress;
     private String machineId;
     private String remoteUsername;

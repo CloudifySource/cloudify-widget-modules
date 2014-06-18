@@ -18,16 +18,16 @@ import java.util.Collection;
  */
 @ContextConfiguration(locations = {"classpath:hpcloudcompute-grizzly-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class HpGrizzlyTest {
+public class HpCloudGrizzlyOpenstackTest {
 
-    private static Logger logger = LoggerFactory.getLogger(HpGrizzlyTest.class);
+    private static Logger logger = LoggerFactory.getLogger(HpCloudGrizzlyOpenstackTest.class);
 
-
-    @Autowired
-    private HpCloudComputeConnectDetails connectDetails;
 
     @Autowired
-    private HpCloudComputeMachineOptions machineOptions;
+    private HpConnectDetails connectDetails;
+
+    @Autowired
+    private HpMachineOptions machineOptions;
 
     @Autowired
     private HpGrizzlyCloudServerApi hpGrizzlyCloudServerApi;

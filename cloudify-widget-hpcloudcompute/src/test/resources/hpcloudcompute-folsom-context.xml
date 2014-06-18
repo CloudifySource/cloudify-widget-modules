@@ -8,7 +8,7 @@
 
     <context:property-placeholder location="conf/dev/me-folsom.conf"/>
 
-    <bean id="hpCloudConnectDetails" class="cloudify.widget.hpcloudcompute.HpCloudComputeConnectDetails">
+    <bean id="hpCloudConnectDetails" class="cloudify.widget.hpcloudcompute.HpConnectDetails">
         <constructor-arg index="0" value="${hpcloud_compute_project}"/>
         <constructor-arg index="1" value="${hpcloud_compute_key}"/>
         <constructor-arg index="2" value="${hpcloud_compute_secretKey}"/>
@@ -16,7 +16,7 @@
 
     <bean id="cloudServer" class="cloudify.widget.hpcloudcompute.HpFolsomCloudServerApi"/>
 
-    <bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions">
+    <bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpMachineOptions">
         <property name="mask" value="testhpcloudfolsom"/>
         <property name="hardwareId" value="az-2.region-a.geo-1/102"/>
         <property name="imageId" value="az-2.region-a.geo-1/67478"/>

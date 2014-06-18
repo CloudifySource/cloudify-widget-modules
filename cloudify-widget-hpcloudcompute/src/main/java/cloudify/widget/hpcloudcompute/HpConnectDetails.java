@@ -8,7 +8,7 @@ import cloudify.widget.api.clouds.IConnectDetails;
  * Date: 2/11/14
  * Time: 10:31 AM
  */
-public class HpCloudComputeConnectDetails implements IConnectDetails {
+public class HpConnectDetails implements IConnectDetails {
 
     public static final String DEFAULT_API_VERSION = "1.1";
 
@@ -20,13 +20,13 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
     private String sshPrivateKey;
 
 
-    public HpCloudComputeConnectDetails() {}
+    public HpConnectDetails() {}
 
-    public HpCloudComputeConnectDetails( String project, String key, String secretKey ) {
+    public HpConnectDetails(String project, String key, String secretKey) {
         this( project, key, secretKey, DEFAULT_API_VERSION);
     }
 
-    public HpCloudComputeConnectDetails( String project, String key, String secretKey, String apiVersion ) {
+    public HpConnectDetails(String project, String key, String secretKey, String apiVersion) {
         this.project = project;
         this.key = key;
         this.secretKey = secretKey;
@@ -78,7 +78,7 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        HpCloudComputeConnectDetails that = (HpCloudComputeConnectDetails) o;
+        HpConnectDetails that = (HpConnectDetails) o;
 
         if (apiVersion != null ? !apiVersion.equals(that.apiVersion) : that.apiVersion != null) return false;
         if (key != null ? !key.equals(that.key) : that.key != null) return false;
@@ -103,7 +103,7 @@ public class HpCloudComputeConnectDetails implements IConnectDetails {
 
     @Override
     public String toString() {
-        return "HpCloudComputeConnectDetails{" +
+        return "HpConnectDetails{" +
                 "project='" + project + '\'' +
                 ", key='" + key + '\'' +
                 ", secretKey='***'" +

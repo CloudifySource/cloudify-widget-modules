@@ -12,11 +12,11 @@ import org.jclouds.domain.LoginCredentials;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpCloudComputeCloudServerCreated implements CloudServerCreated {
+public class HpCloudServerCreated implements CloudServerCreated {
 
 	private final NodeMetadata nodeMetadata;
 
-	public HpCloudComputeCloudServerCreated(NodeMetadata nodeMetadata){
+	public HpCloudServerCreated(NodeMetadata nodeMetadata){
 		this.nodeMetadata = nodeMetadata;
 	}
 

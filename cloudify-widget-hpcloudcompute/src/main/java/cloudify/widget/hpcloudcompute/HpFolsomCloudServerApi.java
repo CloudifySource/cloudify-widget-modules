@@ -38,14 +38,14 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpCloudComputeCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpFolsomSshDetails> {
+public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpCloudServerCreated, HpConnectDetails, HpMachineOptions, HpFolsomSshDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(HpFolsomCloudServerApi.class);
 
     private ContextBuilder contextBuilder;
     private ComputeServiceContext computeServiceContext;
     private ComputeService computeService;
-    private HpCloudComputeConnectDetails connectDetails;
+    private HpConnectDetails connectDetails;
 
     private static final String IMAGE_DELIMETER = "/";
 
@@ -90,7 +90,7 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpC
                 computeService.destroyNode(id);
             }
             catch (Throwable e) {
-                throw new HpCloudComputeServerApiOperationFailureException(
+                throw new HpCloudServerApiOperationFailureException(
                         String.format("delete operation failed for server with id [%s].", id), e);
             }
         }
@@ -122,7 +122,7 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpC
 
 
     @Override
-    public Collection<HpCloudComputeCloudServerCreated> create( HpCloudComputeMachineOptions hpCloudMachineOptions ) {
+    public Collection<HpCloudServerCreated> create( HpMachineOptions hpCloudMachineOptions ) {
 
         logger.info( "Starting to create new node(s)..." );
         long startTime = System.currentTimeMillis();
@@ -161,9 +161,9 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpC
             }
         }
 
-        List<HpCloudComputeCloudServerCreated> newNodesList = new ArrayList<HpCloudComputeCloudServerCreated>( newNodes.size() );
+        List<HpCloudServerCreated> newNodesList = new ArrayList<HpCloudServerCreated>( newNodes.size() );
         for( NodeMetadata newNode : newNodes ){
-            newNodesList.add( new HpCloudComputeCloudServerCreated( newNode ) );
+            newNodesList.add( new HpCloudServerCreated( newNode ) );
         }
 
         logger.info("[{}] new node(s) created [{}]", newNodesList.size(), newNodesList);
@@ -209,13 +209,13 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpC
     }
 
     @Override
-    public void connect(HpCloudComputeConnectDetails connectDetails) {
+    public void connect(HpConnectDetails connectDetails) {
         setConnectDetails(connectDetails);
         connect();
     }
 
     @Override
-    public void setConnectDetails(HpCloudComputeConnectDetails connectDetails) {
+    public void setConnectDetails(HpConnectDetails connectDetails) {
         logger.info("connecting");
         this.connectDetails = connectDetails;
     }
@@ -226,7 +226,7 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpC
         computeService = computeServiceContext.getComputeService();
     }
 
-    public ComputeServiceContext computeServiceContext(HpCloudComputeConnectDetails connectDetails) {
+    public ComputeServiceContext computeServiceContext(HpConnectDetails connectDetails) {
 
         contextBuilder = createContextBuilder();
         ComputeServiceContext context = contextBuilder.buildView(ComputeServiceContext.class);
@@ -260,7 +260,7 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpC
         return contextBuilder;
     }
 
-    private Template createTemplate( HpCloudComputeMachineOptions machineOptions ) {
+    private Template createTemplate( HpMachineOptions machineOptions ) {
         TemplateBuilder templateBuilder = computeService.templateBuilder();
  /*
         Set<? extends Image> images = computeService.listImages();

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * we must do this in HpProviderSettings:
  * </p>
  * <pre>
- * public void setConnectDetails(HpCloudComputeConnectDetails connectDetails) {
+ * public void setConnectDetails(HpConnectDetails connectDetails) {
  *     super.connectDetails = connectDetails;
  * }
  * </pre>

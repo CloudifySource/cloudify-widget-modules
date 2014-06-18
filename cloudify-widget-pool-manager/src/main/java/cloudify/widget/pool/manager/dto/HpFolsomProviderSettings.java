@@ -1,7 +1,7 @@
 package cloudify.widget.pool.manager.dto;
 
-import cloudify.widget.hpcloudcompute.HpCloudComputeConnectDetails;
-import cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions;
+import cloudify.widget.hpcloudcompute.HpConnectDetails;
+import cloudify.widget.hpcloudcompute.HpMachineOptions;
 
 /**
  * User: eliranm
@@ -10,14 +10,14 @@ import cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions;
  */
 public class HpFolsomProviderSettings extends ProviderSettings {
 
-    public HpCloudComputeConnectDetails connectDetails;
-    public HpCloudComputeMachineOptions machineOptions;
+    public HpConnectDetails connectDetails;
+    public HpMachineOptions machineOptions;
 
-    public void setConnectDetails(HpCloudComputeConnectDetails connectDetails) {
+    public void setConnectDetails(HpConnectDetails connectDetails) {
         super.setConnectDetails(connectDetails);
     }
 
-    public void setMachineOptions(HpCloudComputeMachineOptions machineOptions) {
+    public void setMachineOptions(HpMachineOptions machineOptions) {
         super.setMachineOptions(machineOptions);
     }
 }

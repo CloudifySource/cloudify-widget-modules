@@ -7,5 +7,5 @@ import org.springframework.test.context.ContextConfiguration;
  * Date: 2/18/14
  */
 @ContextConfiguration(locations = {"classpath:hpcloudcompute-grizzly-context.xml"})
-public class HpCloudGrizzlyTest extends HpCloudComputeOperationsTest{
+public class HpCloudGrizzlyTest extends HpCloudOperationsTest {
 }

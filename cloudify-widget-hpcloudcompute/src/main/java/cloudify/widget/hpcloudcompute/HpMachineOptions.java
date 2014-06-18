@@ -2,13 +2,11 @@ package cloudify.widget.hpcloudcompute;
 
 import cloudify.widget.api.clouds.MachineOptions;
 
-import java.util.Arrays;
-
 /**
  * User: evgenyf
  * Date: 2/9/14
  */
-public class HpCloudComputeMachineOptions implements MachineOptions {
+public class HpMachineOptions implements MachineOptions {
 
     private String mask;
     private int machinesCount;
@@ -18,33 +16,33 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
     private String networkUuid;
     private String keyPairName;
 
-    public HpCloudComputeMachineOptions(){}
+    public HpMachineOptions(){}
 
-    public HpCloudComputeMachineOptions(String mask){
+    public HpMachineOptions(String mask){
         this(mask, 1 );
     }
 
-    public HpCloudComputeMachineOptions(String mask, int machinesCount){
+    public HpMachineOptions(String mask, int machinesCount){
         this.mask = mask;
         this.machinesCount = machinesCount;
     }
 
-    public HpCloudComputeMachineOptions setMask(String mask){
+    public HpMachineOptions setMask(String mask){
         this.mask = mask;
         return this;
     }
 
-    public HpCloudComputeMachineOptions setMachinesCount( int machinesCount ){
+    public HpMachineOptions setMachinesCount( int machinesCount ){
         this.machinesCount = machinesCount;
         return this;
     }
 
-    public HpCloudComputeMachineOptions setHardwareId( String hardwareId ){
+    public HpMachineOptions setHardwareId( String hardwareId ){
         this.hardwareId = hardwareId;
         return this;
     }
 
-    public HpCloudComputeMachineOptions setImageId( String imageId ){
+    public HpMachineOptions setImageId( String imageId ){
         this.imageId = imageId;
         return this;
     }
@@ -94,7 +92,7 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        HpCloudComputeMachineOptions that = (HpCloudComputeMachineOptions) o;
+        HpMachineOptions that = (HpMachineOptions) o;
 
         if (machinesCount != that.machinesCount) return false;
         if (hardwareId != null ? !hardwareId.equals(that.hardwareId) : that.hardwareId != null) return false;
@@ -122,7 +120,7 @@ public class HpCloudComputeMachineOptions implements MachineOptions {
 
     @Override
     public String toString() {
-        return "HpCloudComputeMachineOptions{" +
+        return "HpMachineOptions{" +
                 "mask='" + mask + '\'' +
                 ", machinesCount=" + machinesCount +
                 ", hardwareId='" + hardwareId + '\'' +

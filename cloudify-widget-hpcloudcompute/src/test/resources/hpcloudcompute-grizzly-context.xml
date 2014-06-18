@@ -8,7 +8,7 @@
 
     <context:property-placeholder location="conf/dev/me-grizzly.conf"/>
 
-    <bean id="hpCloudConnectDetails" class="cloudify.widget.hpcloudcompute.HpCloudComputeConnectDetails">
+    <bean id="hpCloudConnectDetails" class="cloudify.widget.hpcloudcompute.HpConnectDetails">
         <property name="project" value="${hpcloud_compute_project}"/>
         <property name="key" value="${hpcloud_compute_key}"/>
         <property name="secretKey" value="${hpcloud_compute_secretKey}"/>
@@ -22,7 +22,7 @@
     <bean id="hpGrizzlyCloudServerApi" class="cloudify.widget.hpcloudcompute.HpGrizzlyCloudServerApi"/>
 
     <!-- details for account "guym" -->
-    <!--<bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions">-->
+    <!--<bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpMachineOptions">-->
         <!--<property name="mask" value="testhpcloudgrizzly"/>-->
         <!--<property name="hardwareId" value="region-b.geo-1/100"/> &lt;!&ndash; x-small &ndash;&gt;-->
         <!--<property name="imageId" value="region-b.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> &lt;!&ndash; centos 6.3 &ndash;&gt;-->
@@ -33,7 +33,7 @@
     <!--</bean>-->
 
     <!-- details for account "gspm-tenant1" -->
-    <bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpCloudComputeMachineOptions">
+    <bean id="machineOptions" class="cloudify.widget.hpcloudcompute.HpMachineOptions">
         <property name="mask" value="test-hp-grizzly"/>
         <property name="hardwareId" value="region-a.geo-1/102"/> <!-- standard.medium -->
         <property name="imageId" value="region-a.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> <!-- centos 6.3 -->

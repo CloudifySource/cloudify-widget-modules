@@ -1,6 +1,6 @@
 package cloudify.widget.pool.manager;
 
-import cloudify.widget.hpcloudcompute.HpCloudComputeConnectDetails;
+import cloudify.widget.hpcloudcompute.HpConnectDetails;
 import cloudify.widget.pool.manager.dto.ManagerSettings;
 import cloudify.widget.pool.manager.dto.ProviderSettings;
 import org.hamcrest.CoreMatchers;
@@ -45,9 +45,9 @@ public class TestDeserializer {
         Assert.assertNotNull("hp provider connect details settings should not be null", hpProviderSettings.getConnectDetails());
 
         Assert.assertThat(
-                String.format("connect details for hp provider should be of type [%s], but instead found type [%s]", HpCloudComputeConnectDetails.class, hpProviderSettings.getConnectDetails().getClass()),
+                String.format("connect details for hp provider should be of type [%s], but instead found type [%s]", HpConnectDetails.class, hpProviderSettings.getConnectDetails().getClass()),
                 hpProviderSettings.getConnectDetails(),
-                CoreMatchers.instanceOf(HpCloudComputeConnectDetails.class));
+                CoreMatchers.instanceOf(HpConnectDetails.class));
     }
 
     public void setSettingsDataAccessManager(SettingsDataAccessManager settingsDataAccessManager) {

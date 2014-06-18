@@ -54,7 +54,7 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 6/10/14
  * Time: 7:24 PM
  */
-public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, HpGrizzlyCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpGrizzlySshDetails> {
+public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, HpGrizzlyCloudServerCreated, HpConnectDetails, HpMachineOptions, HpGrizzlySshDetails> {
 
 
     private static Logger logger = LoggerFactory.getLogger(HpGrizzlyCloudServerApi.class);
@@ -79,7 +79,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
     private ComputeServiceContext computeServiceContext;
     private ComputeService computeService;
 
-    private HpCloudComputeConnectDetails connectDetails;
+    private HpConnectDetails connectDetails;
 
 
     public HpGrizzlyCloudServerApi() {
@@ -131,11 +131,11 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
     }
 
     @Override
-    public Collection<HpGrizzlyCloudServerCreated> create(HpCloudComputeMachineOptions machineOpts) {
+    public Collection<HpGrizzlyCloudServerCreated> create(HpMachineOptions machineOpts) {
 
         LinkedList<HpGrizzlyCloudServerCreated> cloudServerCreateds = new LinkedList<HpGrizzlyCloudServerCreated>();
         try {
-            HpCloudComputeMachineDetails machineDetails = newServer(tokenSession, Long.MAX_VALUE, machineOpts);
+            HpMachineDetails machineDetails = newServer(tokenSession, Long.MAX_VALUE, machineOpts);
             String machineId = machineDetails.getMachineId();
             HpGrizzlySshDetails sshDetails = new HpGrizzlySshDetails(
                     22, machineDetails.getRemoteUsername(), connectDetails.getSshPrivateKey(), machineDetails.getPublicAddress());
@@ -154,13 +154,13 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
     }
 
     @Override
-    public void connect(HpCloudComputeConnectDetails connectDetails) {
+    public void connect(HpConnectDetails connectDetails) {
         setConnectDetails(connectDetails);
         connect();
     }
 
     @Override
-    public void setConnectDetails(HpCloudComputeConnectDetails connectDetails) {
+    public void setConnectDetails(HpConnectDetails connectDetails) {
         this.connectDetails = connectDetails;
     }
 
@@ -468,13 +468,13 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
      * @param machineOptions the cloud template to use for this server
      * @return the server id
      */
-    private HpCloudComputeMachineDetails newServer(final String token, final long endTime, final HpCloudComputeMachineOptions machineOptions)
+    private HpMachineDetails newServer(final String token, final long endTime, final HpMachineOptions machineOptions)
             throws Exception {
 
         final String serverId = createServer(token, machineOptions);
         logger.info("server [{}] was created", serverId );
         try {
-            final HpCloudComputeMachineDetails md = new HpCloudComputeMachineDetails();
+            final HpMachineDetails md = new HpMachineDetails();
             // wait until complete
             waitForServerToReachStatus(md, endTime, serverId, token, MACHINE_STATUS_ACTIVE);
             logger.info("server [{}] is now active", serverId );
@@ -511,7 +511,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
 
     }
 
-    private String createServer(final String token, final HpCloudComputeMachineOptions machineOptions)  {
+    private String createServer(final String token, final HpMachineOptions machineOptions)  {
 
         final String serverName = machineOptions.getMask() + System.currentTimeMillis();
         final String securityGroup = machineOptions.getSecurityGroup();
@@ -576,7 +576,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
         }
     }
 
-    private void waitForServerToReachStatus(final HpCloudComputeMachineDetails md, final long endTime, final String serverId,
+    private void waitForServerToReachStatus(final HpMachineDetails md, final long endTime, final String serverId,
                                             final String token, final String status)
             throws TimeoutException, InterruptedException {
 

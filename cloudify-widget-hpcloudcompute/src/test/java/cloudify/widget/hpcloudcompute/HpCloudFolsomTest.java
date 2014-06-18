@@ -7,5 +7,5 @@ import org.springframework.test.context.ContextConfiguration;
  * Date: 2/18/14
  */
 @ContextConfiguration(locations = {"classpath:hpcloudcompute-folsom-context.xml"})
-public class HpCloudFolsomTest extends HpCloudComputeOperationsTest {
+public class HpCloudFolsomTest extends HpCloudOperationsTest {
 }

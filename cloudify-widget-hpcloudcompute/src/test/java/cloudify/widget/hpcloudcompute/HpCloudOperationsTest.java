@@ -24,9 +24,9 @@ import static org.junit.Assert.assertTrue;
  * Time: 6:55 PM
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-public class HpCloudComputeOperationsTest {
+public class HpCloudOperationsTest {
 
-    private static Logger logger = LoggerFactory.getLogger(HpCloudComputeOperationsTest.class);
+    private static Logger logger = LoggerFactory.getLogger(HpCloudOperationsTest.class);
     private final String[] TAGS = { "hpCloudTestTag1", "hpCloudTestTag2" };
 
     private final String echoString = "hello world";
@@ -38,7 +38,7 @@ public class HpCloudComputeOperationsTest {
     protected IConnectDetails connectDetails;
 
     @Autowired
-    protected HpCloudComputeMachineOptions machineOptions;
+    protected HpMachineOptions machineOptions;
 
     @Autowired
     public WaitTimeout waitMachineIsRunningTimeout;

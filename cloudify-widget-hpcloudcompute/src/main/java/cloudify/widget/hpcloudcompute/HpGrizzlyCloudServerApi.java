@@ -6,6 +6,8 @@ import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.ISecurityGroupDetails;
 import cloudify.widget.common.CloudExecResponseImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Module;
@@ -17,8 +19,11 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
+import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.ExecResponse;
+import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
+import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.openstack.nova.v2_0.config.NovaProperties;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
@@ -41,13 +46,15 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.collect.Collections2.transform;
+
 
 /**
  * User: eliranm
  * Date: 6/10/14
  * Time: 7:24 PM
  */
-public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpGrizzlyCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpGrizzlySshDetails> {
+public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, HpGrizzlyCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpGrizzlySshDetails> {
 
 
     private static Logger logger = LoggerFactory.getLogger(HpGrizzlyCloudServerApi.class);
@@ -84,13 +91,28 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudComputeClo
 
 
     @Override
-    public Collection<HpCloudComputeCloudServer> listByMask(String mask) {
-        listToLog(tokenSession, "servers");
-        return null;
+    public Collection<HpCloudServer> listByMask(final String mask) {
+
+        Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
+            @Override
+            public boolean apply(@Nullable ComputeMetadata computeMetadata) {
+                NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
+
+                return nodeMetadata.getStatus() == NodeMetadata.Status.RUNNING &&
+                        (mask == null || nodeMetadata.getName().contains(mask));
+            }
+        });
+
+        return transform(nodeMetadatas, new Function<NodeMetadata, HpCloudServer>() {
+            @Override
+            public HpCloudServer apply(@Nullable NodeMetadata o) {
+                return new HpCloudServer(computeService, o);
+            }
+        });
     }
 
     @Override
-    public HpCloudComputeCloudServer get(String serverId) {
+    public HpCloudServer get(String serverId) {
         return null;
     }
 
@@ -146,7 +168,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudComputeClo
     public void connect() {
         // connect openstack
         createAuthenticationToken();
-        // connect jclouds (for ssh)
+        // connect jclouds
         computeServiceContext = computeServiceContext();
         computeService = computeServiceContext.getComputeService();
     }

@@ -18,9 +18,9 @@ import java.util.Collection;
  */
 @ContextConfiguration(locations = {"classpath:hpcloudcompute-grizzly-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class HpCloudGrizzlyOpenstackTest {
+public class HpGrizzlyTest {
 
-    private static Logger logger = LoggerFactory.getLogger(HpCloudGrizzlyOpenstackTest.class);
+    private static Logger logger = LoggerFactory.getLogger(HpGrizzlyTest.class);
 
 
     @Autowired
@@ -75,6 +75,24 @@ public class HpCloudGrizzlyOpenstackTest {
         hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
 
     }
+
+
+
+    @Test
+    public void testListByMask() {
+
+        hpGrizzlyCloudServerApi.connect(connectDetails);
+
+        Collection<HpCloudServer> servers = hpGrizzlyCloudServerApi.listByMask(/*machineOptions.getMask()*/ "test-hp1403020006779");
+
+        logger.info("servers size [{}]", servers.size());
+
+        for (HpCloudServer server : servers) {
+            logger.info(server.toString());
+        }
+
+    }
+
 
     @Test
     public void testList() {

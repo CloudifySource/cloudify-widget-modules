@@ -13,12 +13,12 @@ import java.util.Set;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpCloudComputeCloudServer implements CloudServer {
+public class HpCloudServer implements CloudServer {
 
     private final NodeMetadata computeMetadata;
     private final ComputeService computeService;
 
-    public HpCloudComputeCloudServer(ComputeService computeService, NodeMetadata computeMetadata) {
+    public HpCloudServer(ComputeService computeService, NodeMetadata computeMetadata) {
         this.computeService = computeService;
         this.computeMetadata = computeMetadata;
     }
@@ -35,7 +35,7 @@ public class HpCloudComputeCloudServer implements CloudServer {
 
     @Override
     public boolean isRunning(){
-        return getStatus() == HpCloudComputeCloudServerStatus.RUNNING;
+        return getStatus() == HpCloudServerStatus.RUNNING;
     }
 
     @Override
@@ -47,12 +47,12 @@ public class HpCloudComputeCloudServer implements CloudServer {
         return computeMetadata.getImageId();
     }
 
-    HpCloudComputeCloudServerStatus getStatus() {
+    HpCloudServerStatus getStatus() {
         String id = computeMetadata.getId();
         NodeMetadata nodeMetadata = computeService.getNodeMetadata(id);
         if( nodeMetadata != null ){
             NodeMetadata.Status status = nodeMetadata.getStatus();
-            return HpCloudComputeCloudServerStatus.fromValue(status.toString());
+            return HpCloudServerStatus.fromValue(status.toString());
         }
 
         return null;

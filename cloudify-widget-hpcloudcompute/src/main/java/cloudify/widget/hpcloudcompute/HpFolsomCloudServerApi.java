@@ -38,7 +38,7 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 2/10/14
  * Time: 6:55 PM
  */
-public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudComputeCloudServer, HpCloudComputeCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpFolsomSshDetails> {
+public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudServer, HpCloudComputeCloudServerCreated, HpCloudComputeConnectDetails, HpCloudComputeMachineOptions, HpFolsomSshDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(HpFolsomCloudServerApi.class);
 
@@ -53,7 +53,7 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudComputeClou
     }
 
     @Override
-    public Collection<HpCloudComputeCloudServer> listByMask(final String mask) {
+    public Collection<HpCloudServer> listByMask(final String mask) {
 
         Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
             @Override
@@ -64,20 +64,20 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudComputeClou
             }
         });
 
-        return transform(nodeMetadatas, new Function<NodeMetadata, HpCloudComputeCloudServer>() {
+        return transform(nodeMetadatas, new Function<NodeMetadata, HpCloudServer>() {
             @Override
-            public HpCloudComputeCloudServer apply(@Nullable NodeMetadata o) {
-                return new HpCloudComputeCloudServer(computeService, o);
+            public HpCloudServer apply(@Nullable NodeMetadata o) {
+                return new HpCloudServer(computeService, o);
             }
         });
     }
 
     @Override
-    public HpCloudComputeCloudServer get(String serverId) {
-        HpCloudComputeCloudServer cloudServer = null;
+    public HpCloudServer get(String serverId) {
+        HpCloudServer cloudServer = null;
         NodeMetadata nodeMetadata = computeService.getNodeMetadata(serverId);
         if (nodeMetadata != null) {
-            cloudServer = new HpCloudComputeCloudServer( computeService, nodeMetadata );
+            cloudServer = new HpCloudServer( computeService, nodeMetadata );
         }
         return cloudServer;
     }
@@ -104,7 +104,7 @@ public class HpFolsomCloudServerApi implements CloudServerApi<HpCloudComputeClou
     @Override
     public void rebuild(String id) {
 
-        HpCloudComputeCloudServer cloudServer = get(id);
+        HpCloudServer cloudServer = get(id);
         String imageId = cloudServer.getImageId();
         String zone = cloudify.widget.common.StringUtils.substringBefore(imageId, IMAGE_DELIMETER);
         String imageIdLocal = cloudify.widget.common.StringUtils.substringAfter( imageId, IMAGE_DELIMETER );

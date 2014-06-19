@@ -2,8 +2,8 @@ package cloudify.widget.pool.manager.dto;
 
 import cloudify.widget.api.clouds.ISshDetails;
 import cloudify.widget.ec2.Ec2SshDetails;
-import cloudify.widget.hpcloudcompute.HpGrizzlySshDetails;
-import cloudify.widget.hpcloudcompute.HpFolsomSshDetails;
+import cloudify.widget.hp.HpGrizzlySshDetails;
+import cloudify.widget.hp.HpFolsomSshDetails;
 import cloudify.widget.softlayer.SoftlayerSshDetails;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

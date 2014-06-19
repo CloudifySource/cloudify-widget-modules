@@ -1,6 +1,6 @@
 package cloudify.widget.pool.manager;
 
-import cloudify.widget.hpcloudcompute.HpConnectDetails;
+import cloudify.widget.hp.HpConnectDetails;
 import cloudify.widget.pool.manager.dto.ManagerSettings;
 import cloudify.widget.pool.manager.dto.ProviderSettings;
 import org.hamcrest.CoreMatchers;

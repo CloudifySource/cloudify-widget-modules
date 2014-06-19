@@ -12,7 +12,7 @@
         <module>cloudify-widget-cli</module>
         <module>cloudify-widget-ec2</module>
         <module>cloudify-widget-mailer</module>
-        <module>cloudify-widget-hpcloudcompute</module>
+        <module>cloudify-widget-hp</module>
         <module>cloudify-widget-pool-manager</module>
         <module>cloudify-widget-pool-manager-website</module>
     </modules>

@@ -1,7 +1,7 @@
 package cloudify.widget.pool.manager.dto;
 
-import cloudify.widget.hpcloudcompute.HpConnectDetails;
-import cloudify.widget.hpcloudcompute.HpMachineOptions;
+import cloudify.widget.hp.HpConnectDetails;
+import cloudify.widget.hp.HpMachineOptions;
 
 /**
  * User: eliranm

@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>cloudify.widget</groupId>
-            <artifactId>hpcloudcompute</artifactId>
+            <artifactId>hp</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>

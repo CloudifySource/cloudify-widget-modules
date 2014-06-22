@@ -2,8 +2,8 @@ package cloudify.widget.pool.manager;
 
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.ec2.Ec2CloudServerApi;
-import cloudify.widget.hpcloudcompute.HpFolsomCloudServerApi;
-import cloudify.widget.hpcloudcompute.HpGrizzlyCloudServerApi;
+import cloudify.widget.hp.HpFolsomCloudServerApi;
+import cloudify.widget.hp.HpGrizzlyCloudServerApi;
 import cloudify.widget.pool.manager.dto.ProviderSettings;
 import cloudify.widget.softlayer.SoftlayerCloudServerApi;
 import org.slf4j.Logger;

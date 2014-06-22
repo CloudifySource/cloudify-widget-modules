@@ -7,4 +7,7 @@ package cloudify.widget.cli;
  * Time: 2:00 PM
  */
 public interface ICloudBootstrapDetails {
+
+    // allows override for the cloud driver.
+    public void setCloudDriver( String name);
 }

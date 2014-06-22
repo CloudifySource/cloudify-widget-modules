@@ -1,6 +1,5 @@
 package cloudify.widget.cli.softlayer;
 
-import cloudify.widget.cli.ICloudBootstrapDetails;
 
 /**
  * Created with IntelliJ IDEA.
@@ -8,11 +7,15 @@ import cloudify.widget.cli.ICloudBootstrapDetails;
  * Date: 2/13/14
  * Time: 1:02 PM
  */
-public class SoftlayerCloudBootstrapDetails implements ICloudBootstrapDetails{
+public class SoftlayerCloudBootstrapDetails extends AbstractCloudBootstrapDetails{
     private String username;
+
     private String apiKey;
 
 
+    public SoftlayerCloudBootstrapDetails() {
+        driverName = "softlayer";
+    }
 
     public String getUsername() {
         return username;
@@ -34,7 +37,7 @@ public class SoftlayerCloudBootstrapDetails implements ICloudBootstrapDetails{
     public String toString() {
         return "SoftlayerCloudBootstrapDetails{" +
                 "username='" + username + '\'' +
-                ", apiKey='***'" +
-                '}';
+                ", apiKey='" + apiKey + '\'' +
+                "} " + super.toString();
     }
 }

@@ -8,4 +8,6 @@ package cloudify.widget.api.clouds;
  */
 public interface IWidgetLoginHandler {
     public void handleWidgetLogin( IWidgetLoginDetails widgetLoginDetails );
+
+
 }

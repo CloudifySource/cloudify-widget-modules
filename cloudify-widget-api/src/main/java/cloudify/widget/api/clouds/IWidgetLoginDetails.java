@@ -7,4 +7,6 @@ package cloudify.widget.api.clouds;
  * Time: 4:26 PM
  */
 public interface IWidgetLoginDetails{
+
+    public String getEmail();
 }

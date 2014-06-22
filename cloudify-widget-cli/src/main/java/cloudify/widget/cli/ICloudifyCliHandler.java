@@ -30,4 +30,14 @@ public interface ICloudifyCliHandler {
      */
     public String getOutput( ICloudBootstrapDetails details );
 
+    /**
+     *
+     *
+     *
+     * @param destFolder - output of {@link #createNewCloud(ICloudBootstrapDetails)}
+     * @param details - bootstrap details
+     * @return the properties file
+     */
+    public File getPropertiesFile( File destFolder, ICloudBootstrapDetails details  );
+
 }

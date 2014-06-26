@@ -21,6 +21,7 @@ public class EmbeddedJetty {
     private static final String CONFIG_LOCATION = "classpath:context.xml";
     private static final String MAPPING_URL = "/*";
     private static final String DEFAULT_PROFILE = "dev";
+    public static final String WEBSITE_ME_CONTEXT = "websiteMeContext";
 
     private static String configLocation;
 
@@ -62,6 +63,12 @@ public class EmbeddedJetty {
     }
 
     private static WebApplicationContext getContext() {
+
+        if ( System.getProperty(WEBSITE_ME_CONTEXT) == null ){
+            logger.info("setting default website me-context location");
+            System.setProperty(WEBSITE_ME_CONTEXT, "conf/dev/me-context.xml");
+        }
+
         XmlWebApplicationContext context = new XmlWebApplicationContext();
 //        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         String[] configLocations = configLocation == null ?

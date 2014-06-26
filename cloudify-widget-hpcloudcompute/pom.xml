@@ -38,8 +38,22 @@
             <artifactId>openstack-nova</artifactId>
             <version>${jCloudsVersion}</version>
         </dependency>
-
-
     </dependencies>
+
+
+    <profiles>
+        <profile>
+            <id>
+                with-openstack4j
+            </id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.pacesys</groupId>
+                    <artifactId>openstack4j</artifactId>
+                    <version>1.0.2-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

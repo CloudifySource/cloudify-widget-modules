@@ -6,7 +6,7 @@
 
     <context:component-scan base-package="cloudify.widget.hpcloudcompute" />
 
-    <context:property-placeholder location="conf/dev/me-folson.conf"/>
+    <context:property-placeholder location="conf/dev/me-folsom.conf"/>
 
     <bean id="hpCloudConnectDetails" class="cloudify.widget.hpcloudcompute.HpCloudComputeConnectDetails">
         <constructor-arg index="0" value="${hpcloud_compute_project}"/>

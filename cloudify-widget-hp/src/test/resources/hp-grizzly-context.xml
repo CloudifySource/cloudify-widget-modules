@@ -50,4 +50,9 @@
     <bean id="waitMachineIsRunningTimeout" class="cloudify.widget.common.WaitTimeout"/>
     <bean id="waitMachineIsNotRunning" class="cloudify.widget.common.WaitTimeout"/>
 
+    <beans profile="withOverrides">
+        <import resource="conf/dev/overrides.xml"/>
+    </beans>
+
+
 </beans>

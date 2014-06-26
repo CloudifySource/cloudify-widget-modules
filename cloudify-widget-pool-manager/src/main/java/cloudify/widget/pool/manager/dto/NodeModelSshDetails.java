@@ -2,7 +2,8 @@ package cloudify.widget.pool.manager.dto;
 
 import cloudify.widget.api.clouds.ISshDetails;
 import cloudify.widget.ec2.Ec2SshDetails;
-import cloudify.widget.hpcloudcompute.HpCloudComputeSshDetails;
+import cloudify.widget.hp.HpGrizzlySshDetails;
+import cloudify.widget.hp.HpFolsomSshDetails;
 import cloudify.widget.softlayer.SoftlayerSshDetails;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -18,7 +19,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "name",
         visible = true) // we want the 'name' property to be in the output as well
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = NodeModelSshDetails.HpCloudComputeNodeModelSshDetails.class, name = "hp"),
+        @JsonSubTypes.Type(value = NodeModelSshDetails.HpFolsomNodeModelSshDetails.class, name = "hpFolsom"),
+        @JsonSubTypes.Type(value = NodeModelSshDetails.HpGrizzlyNodeModelSshDetails.class, name = "hpGrizzly"),
         @JsonSubTypes.Type(value = NodeModelSshDetails.Ec2NodeModelSshDetails.class, name = "ec2"),
         @JsonSubTypes.Type(value = NodeModelSshDetails.SoftlayerNodeModelSshDetails.class, name = "softlayer")})
 
@@ -38,9 +40,16 @@ public abstract class NodeModelSshDetails {
             return result;
         }
 
-        if (sshDetails instanceof HpCloudComputeSshDetails) {
-            HpCloudComputeSshDetails details = (HpCloudComputeSshDetails) sshDetails;
-            HpCloudComputeNodeModelSshDetails result = new HpCloudComputeNodeModelSshDetails();
+        if (sshDetails instanceof HpFolsomSshDetails) {
+            HpFolsomSshDetails details = (HpFolsomSshDetails) sshDetails;
+            HpFolsomNodeModelSshDetails result = new HpFolsomNodeModelSshDetails();
+            result.machineSshDetails = details;
+            return result;
+        }
+
+        if (sshDetails instanceof HpGrizzlySshDetails) {
+            HpGrizzlySshDetails details = (HpGrizzlySshDetails) sshDetails;
+            HpGrizzlyNodeModelSshDetails result = new HpGrizzlyNodeModelSshDetails();
             result.machineSshDetails = details;
             return result;
         }
@@ -76,9 +85,9 @@ public abstract class NodeModelSshDetails {
         }
     }
 
-    public static class HpCloudComputeNodeModelSshDetails extends NodeModelSshDetails {
-        public String name = "hp";
-        public HpCloudComputeSshDetails machineSshDetails;
+    public static class HpFolsomNodeModelSshDetails extends NodeModelSshDetails {
+        public String name = "hpFolsom";
+        public HpFolsomSshDetails machineSshDetails;
 
         public String getName() {
             return name;
@@ -88,11 +97,32 @@ public abstract class NodeModelSshDetails {
             this.name = name;
         }
 
-        public HpCloudComputeSshDetails getMachineSshDetails() {
+        public HpFolsomSshDetails getMachineSshDetails() {
             return machineSshDetails;
         }
 
-        public void setMachineSshDetails(HpCloudComputeSshDetails machineSshDetails) {
+        public void setMachineSshDetails(HpFolsomSshDetails machineSshDetails) {
+            this.machineSshDetails = machineSshDetails;
+        }
+    }
+
+    public static class HpGrizzlyNodeModelSshDetails extends NodeModelSshDetails {
+        public String name = "hpGrizzly";
+        public HpGrizzlySshDetails machineSshDetails;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public HpGrizzlySshDetails getMachineSshDetails() {
+            return machineSshDetails;
+        }
+
+        public void setMachineSshDetails(HpGrizzlySshDetails machineSshDetails) {
             this.machineSshDetails = machineSshDetails;
         }
     }

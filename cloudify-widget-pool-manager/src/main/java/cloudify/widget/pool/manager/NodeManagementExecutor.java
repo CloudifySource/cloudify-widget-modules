@@ -72,8 +72,8 @@ public class NodeManagementExecutor {
             return;
         }
         LinkedList<PoolExecution> executionList = new LinkedList<PoolExecution>();
+        logger.info("starting scheduled execution of node management modules [{}] in pool [{}]", activeModules, poolSettings.getUuid());
         for (NodeManagementModuleType activeModule : activeModules) {
-            logger.info("starting scheduled execution of node management module [{}]", activeModule);
             PoolNodeManagementModuleRunner runner = new PoolNodeManagementModuleRunner(activeModule, poolSettings);
             ScheduledFuture<?> scheduledFuture = executorService.scheduleAtFixedRate(
                     runner, 0, decisionExecutionIntervalInSeconds, TimeUnit.SECONDS);

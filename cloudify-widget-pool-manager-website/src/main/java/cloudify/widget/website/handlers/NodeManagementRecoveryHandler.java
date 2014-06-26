@@ -1,6 +1,7 @@
 package cloudify.widget.website.handlers;
 
 import cloudify.widget.pool.manager.NodeManagementExecutor;
+import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.node_management.DecisionsDao;
 import cloudify.widget.website.dao.IPoolDao;
 import cloudify.widget.website.models.PoolConfigurationModel;
@@ -36,16 +37,18 @@ public class NodeManagementRecoveryHandler implements ApplicationListener<Contex
         List<PoolConfigurationModel> pools = poolDao.readPools();
 
         List<String> poolSettingsIds = new LinkedList<String>();
+        List<PoolSettings> poolSettingsList = new LinkedList<PoolSettings>();
         for (PoolConfigurationModel pool : pools) {
             poolSettingsIds.add(pool.getPoolSettings().getUuid());
+            poolSettingsList.add(pool.getPoolSettings());
         }
 
-        logger.info("cleaning decisions not belonging to any pool settings");
+        logger.info("deleting any decisions not attached to existing pool settings");
         decisionsDao.deleteAllNotOfPools(poolSettingsIds);
 
-        logger.info("recovering node management for existing pool settings");
-        for (PoolConfigurationModel pool : pools) {
-            nodeManagementExecutor.start(pool.poolSettings);
+        logger.info("recovering node management for existing pool settings [{}]", poolSettingsIds);
+        for (PoolSettings poolSettings : poolSettingsList) {
+            nodeManagementExecutor.start(poolSettings);
         }
     }
 }

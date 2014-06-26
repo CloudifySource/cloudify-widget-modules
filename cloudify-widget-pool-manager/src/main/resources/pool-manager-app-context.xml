@@ -64,10 +64,10 @@
 
     <bean id="nodeManagementModuleProvider" class="cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider"/>
 
-    <bean id="createNodeManagementModule" class="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule"/>
-    <bean id="deleteNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteNodeManagementModule"/>
-    <bean id="bootstrapNodeManagementModule" class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule"/>
-    <bean id="deleteExpiredNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule"/>
+    <bean id="createNodeManagementModule" class="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule" scope="prototype"/>
+    <bean id="deleteNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteNodeManagementModule" scope="prototype"/>
+    <bean id="bootstrapNodeManagementModule" class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule" scope="prototype"/>
+    <bean id="deleteExpiredNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
 
     <bean id="defaultMachineTimeout" class="cloudify.widget.pool.manager.MachineTimeout">
         <property name="duration" value="1" />

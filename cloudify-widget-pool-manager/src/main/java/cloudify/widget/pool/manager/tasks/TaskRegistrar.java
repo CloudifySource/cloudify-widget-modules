@@ -106,6 +106,7 @@ public class TaskRegistrar {
 
                 return call;
             }catch(Exception e) {
+                logger.error(String.format("task [%s] failed", _decorated.getClass()), e);
                 unregisterTask();
                 throw e;
             }

@@ -61,6 +61,7 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
     public CreateNodeManagementModule execute() {
 
         Constraints constraints = getConstraints();
+        logger.info("- executing decision on pool [{}]", constraints.poolSettings.getUuid());
 
         List<DecisionModel> decisionModelsQueue = getOwnDecisionModelsQueue();
         if (decisionModelsQueue == null || decisionModelsQueue.isEmpty()) {

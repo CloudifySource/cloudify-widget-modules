@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * we must do this in HpProviderSettings:
  * </p>
  * <pre>
- * public void setConnectDetails(HpCloudComputeConnectDetails connectDetails) {
+ * public void setConnectDetails(HpConnectDetails connectDetails) {
  *     super.connectDetails = connectDetails;
  * }
  * </pre>
@@ -32,13 +32,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "name",
         visible = true) // we want the 'name' property to be in the output as well
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = HpProviderSettings.class, name = "hp"),
+        @JsonSubTypes.Type(value = HpFolsomProviderSettings.class, name = "hpFolsom"),
+        @JsonSubTypes.Type(value = HpGrizzlyProviderSettings.class, name = "hpGrizzly"),
         @JsonSubTypes.Type(value = Ec2ProviderSettings.class, name = "ec2"),
         @JsonSubTypes.Type(value = SoftlayerProviderSettings.class, name = "softlayer")})
 public abstract class ProviderSettings {
 
     public static enum ProviderName {
-        hp, softlayer, ec2;
+        hpFolsom, softlayer, ec2, hpGrizzly
     }
 
     private ProviderName name;

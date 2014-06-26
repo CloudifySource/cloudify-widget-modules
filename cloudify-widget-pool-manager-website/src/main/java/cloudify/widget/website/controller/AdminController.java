@@ -195,7 +195,6 @@ public class AdminController {
     @RequestMapping(value = "/admin/pools/{poolId}/errors/delete", method = RequestMethod.POST)
     @ResponseBody
     public void deletePoolErrors(@PathVariable("poolId") Long poolConfigurationId) {
-        logger.info("- - - - - - - - - - - delete pool errors!");
         PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
         poolManagerApi.deleteErrors(poolSettings);
     }

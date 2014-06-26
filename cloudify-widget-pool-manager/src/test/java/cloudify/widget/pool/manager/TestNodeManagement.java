@@ -13,10 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * User: eliranm
@@ -52,7 +49,7 @@ public class TestNodeManagement {
     @Test
     public void testDecisionMaker() throws IOException {
 
-        PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp);
+        PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hpFolsom);
         logger.info("- pool settings [{}]", poolSettings.getProvider().getName());
 
         for (int i = 0; i < 3; i++) {
@@ -74,7 +71,7 @@ public class TestNodeManagement {
     @Test
     public void testDecisionsDao() {
 
-        PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hp);
+        PoolSettings poolSettings = managerSettings.getPools().getByProviderName(ProviderSettings.ProviderName.hpFolsom);
 
         long nodeId = 1L;
 

@@ -53,7 +53,7 @@ public class MySqlOperationsTest {
         logger.info( "Account 2 created, uuid [{}], id [{}]", accountModel2.getUuid(), accountId2 );
 
         PoolConfigurationModel poolModel1 = createPoolConfigurationModel(accountId1, ProviderSettings.ProviderName.softlayer);
-        PoolConfigurationModel poolModel2 = createPoolConfigurationModel( accountId2, ProviderSettings.ProviderName.hp );
+        PoolConfigurationModel poolModel2 = createPoolConfigurationModel( accountId2, ProviderSettings.ProviderName.hpFolsom);
 
         Long poolId1 = poolDao.createPool(poolModel1);
         poolModel1.setId(poolId1);
@@ -97,8 +97,8 @@ public class MySqlOperationsTest {
         Assert.assertEquals("Retrieved account pools list size must be 1", 1, CollectionUtils.size(accountPools) );
 
 
-        ProviderSettings updatedProviderSettings = new HpProviderSettings();
-        updatedProviderSettings.setName( ProviderSettings.ProviderName.hp );
+        ProviderSettings updatedProviderSettings = new HpFolsomProviderSettings();
+        updatedProviderSettings.setName( ProviderSettings.ProviderName.hpFolsom);
 
         //was previously HP, change it to softlayer
         long testedPoolId = poolId2;

@@ -135,9 +135,14 @@ public class NodesDao {
         return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_ID + " = ?", nodeId);
     }
 
-    public int setExpired(long nodeId) {
+    public int updateStatus(long nodeId, NodeStatus nodeStatus) {
         return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_ID + " = ?",
-                NodeStatus.EXPIRED.name(), nodeId);
+                nodeStatus.name(), nodeId);
+    }
+
+    public int updateExpires(long nodeId, long expires) {
+        return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_EXPIRES + " = ? where " + COL_ID + " = ?",
+                expires, nodeId);
     }
 
     /**

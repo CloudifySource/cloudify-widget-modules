@@ -39,7 +39,7 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 2/4/14
  * Time: 3:41 PM
  */
-public class SoftlayerCloudServerApi implements CloudServerApi {
+public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudServer, SoftlayerCloudServerCreated, SoftlayerConnectDetails, SoftlayerMachineOptions, SoftlayerSshDetails> {
 
     private static Logger logger = LoggerFactory.getLogger(SoftlayerCloudServerApi.class);
 
@@ -52,19 +52,17 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
 
 
     public SoftlayerCloudServerApi(){
-
     }
 
 
-
     @Override
-    public void connect(IConnectDetails connectDetails) {
+    public void connect(SoftlayerConnectDetails connectDetails) {
        setConnectDetails( connectDetails);
         connect();
     }
 
     @Override
-    public Collection<CloudServer> listByMask(final String mask) {
+    public Collection<SoftlayerCloudServer> listByMask(final String mask) {
         logger.info("getting all machines matching mask [{}]", mask);
         Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
             @Override
@@ -73,7 +71,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
             }
         });
 
-        return transform(nodeMetadatas, new Function<NodeMetadata, CloudServer>() {
+        return transform(nodeMetadatas, new Function<NodeMetadata, SoftlayerCloudServer>() {
             @Override
             public SoftlayerCloudServer apply(@Nullable NodeMetadata o) {
                 return new SoftlayerCloudServer(computeService, o);
@@ -82,8 +80,8 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public CloudServer get(String serverId) {
-        CloudServer cloudServer = null;
+    public SoftlayerCloudServer get(String serverId) {
+        SoftlayerCloudServer cloudServer = null;
         NodeMetadata nodeMetadata = computeService.getNodeMetadata(serverId);
         if (nodeMetadata != null) {
             cloudServer = new SoftlayerCloudServer(computeService, nodeMetadata);
@@ -111,11 +109,8 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public void setConnectDetails(IConnectDetails connectDetails) {
-        if (!( connectDetails instanceof SoftlayerConnectDetails )){
-            throw new RuntimeException("expected SoftlayerConnectDetails implementation");
-        }
-        this.connectDetails = (SoftlayerConnectDetails) connectDetails;
+    public void setConnectDetails(SoftlayerConnectDetails connectDetails) {
+        this.connectDetails = connectDetails;
 
     }
 
@@ -168,9 +163,8 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
     }
 
     @Override
-    public Collection<? extends CloudServerCreated> create( MachineOptions machineOpts ) {
+    public Collection<SoftlayerCloudServerCreated> create( SoftlayerMachineOptions softlayerMachineOptions ) {
 
-        SoftlayerMachineOptions softlayerMachineOptions = ( SoftlayerMachineOptions )machineOpts;
         String name = softlayerMachineOptions.name();
         int machinesCount = softlayerMachineOptions.machinesCount();
         Template template = createTemplate(softlayerMachineOptions);
@@ -186,7 +180,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
             throw new RuntimeException( e );
         }
 
-        List<CloudServerCreated> newNodesList = new ArrayList<CloudServerCreated>( newNodes.size() );
+        List<SoftlayerCloudServerCreated> newNodesList = new ArrayList<SoftlayerCloudServerCreated>( newNodes.size() );
         for( NodeMetadata newNode : newNodes ){
             newNodesList.add( new SoftlayerCloudServerCreated( newNode ) );
         }
@@ -328,9 +322,9 @@ public class SoftlayerCloudServerApi implements CloudServerApi {
         this.useCommandLineSsh = useCommandLineSsh;
     }
 
-    public CloudExecResponse runScriptOnMachine(String script, ISshDetails sshDetails ){
+    @Override
+    public CloudExecResponse runScriptOnMachine(String script, SoftlayerSshDetails softlayerSshDetails ){
 
-        SoftlayerSshDetails softlayerSshDetails = (SoftlayerSshDetails)sshDetails;
         String serverIp = softlayerSshDetails.getPublicIp();
         if (logger.isDebugEnabled()) {
             logger.debug("running ssh script on server [{}], script [{}], use-command-line [{}]", serverIp, script, useCommandLineSsh);

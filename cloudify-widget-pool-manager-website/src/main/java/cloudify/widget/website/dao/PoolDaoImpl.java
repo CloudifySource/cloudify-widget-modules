@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,11 @@ public class PoolDaoImpl implements IPoolDao {
     public List<PoolConfigurationModel> readPools() {
         logger.debug( "select query is [{}]", selectAll );
         List<PoolConfigurationModel> pools =  jdbcTemplate.query( selectAll, poolRowMapper );
+
+        if ( pools.removeAll(Collections.singleton(null)) ) {
+            logger.warn("some pool settings are invalid as they were not serialized. please read the logs to know more. ");
+        }
+
         return pools;
     }
 
@@ -193,9 +199,7 @@ public class PoolDaoImpl implements IPoolDao {
         try {
             poolSettings = objectMapper.readValue( poolSettingsJson, PoolSettings.class );
         } catch (IOException e) {
-            if( logger.isErrorEnabled() ){
-                logger.error( "Unable to read JSON to PoolSettings instance", e );
-            }
+            logger.error( "Unable to read JSON to PoolSettings instance", e.getMessage() );
         }
         return poolSettings;
     }

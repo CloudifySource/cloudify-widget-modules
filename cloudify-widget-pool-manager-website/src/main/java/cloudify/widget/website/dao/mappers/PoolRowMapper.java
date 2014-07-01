@@ -28,29 +28,30 @@ public class PoolRowMapper implements RowMapper{
 
     @Override
     public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-        PoolConfigurationModel poolConfigurationModel = new PoolConfigurationModel();
-        poolConfigurationModel.setId( rs.getLong("id") );
-        poolConfigurationModel.setAccountId( rs.getLong( "account_id" ) );
-        String poolSettingsJson = rs.getString( "pool_setting" );
-        String uuid = rs.getString("uuid");
-        PoolSettings poolSettings = null;
-        if( !StringUtils.isEmpty( poolSettingsJson ) ) {
-            try {
-                poolSettings = objectMapper.readValue(poolSettingsJson, PoolSettings.class);
-                poolSettings.setUuid(uuid);
-            } catch (IOException e) {
-                if (logger.isErrorEnabled()) {
-                    logger.error("Unable to read Pool settings json, poolSettingsJson=" + poolSettingsJson, e);
+        try {
+            PoolConfigurationModel poolConfigurationModel = new PoolConfigurationModel();
+            poolConfigurationModel.setId(rs.getLong("id"));
+            poolConfigurationModel.setAccountId(rs.getLong("account_id"));
+            String poolSettingsJson = rs.getString("pool_setting");
+            String uuid = rs.getString("uuid");
+            PoolSettings poolSettings = null;
+            if (!StringUtils.isEmpty(poolSettingsJson)) {
+                try {
+                    poolSettings = objectMapper.readValue(poolSettingsJson, PoolSettings.class);
+                    poolSettings.setUuid(uuid);
+                } catch (IOException e) {
+                    logger.error("Unable to read Pool settings json, poolSettingsJson=[{}] error=[{}]" , poolSettingsJson, e.getMessage());
+                    throw new RuntimeException("Unable to read Pool settings json, poolSettingsJson=" + poolSettingsJson, e);
                 }
-
-                throw new RuntimeException("Unable to read Pool settings json, poolSettingsJson=" + poolSettingsJson, e);
             }
+
+            poolConfigurationModel.setPoolSettings(poolSettings);
+
+
+            return poolConfigurationModel;
+        }catch(Exception e){
+            logger.error("unable to deserialize pool settings",e.getMessage());
+            return null;
         }
-
-        poolConfigurationModel.setPoolSettings( poolSettings );
-
-
-        return poolConfigurationModel;
     }
 }

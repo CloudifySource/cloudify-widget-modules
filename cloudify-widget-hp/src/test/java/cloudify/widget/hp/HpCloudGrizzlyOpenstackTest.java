@@ -1,5 +1,6 @@
 package cloudify.widget.hp;
 
+import cloudify.widget.api.clouds.CloudServer;
 import cloudify.widget.common.CollectionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,11 +84,11 @@ public class HpCloudGrizzlyOpenstackTest {
 
         hpGrizzlyCloudServerApi.connect(connectDetails);
 
-        Collection<HpCloudServer> servers = hpGrizzlyCloudServerApi.listByMask(/*machineOptions.getMask()*/ "test-hp1403020006779");
+        Collection<CloudServerPojo> servers = hpGrizzlyCloudServerApi.listByMask(machineOptions.getMask());
 
         logger.info("servers size [{}]", servers.size());
 
-        for (HpCloudServer server : servers) {
+        for (CloudServer server : servers) {
             logger.info(server.toString());
         }
 

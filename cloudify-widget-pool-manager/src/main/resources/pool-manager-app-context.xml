@@ -70,7 +70,7 @@
     <bean id="deleteExpiredNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
 
     <bean id="defaultMachineTimeout" class="cloudify.widget.pool.manager.MachineTimeout">
-        <property name="duration" value="1" />
+        <property name="duration" value="1000" /> <!-- default expires is really long, because we are waiting for a user to use it -->
         <property name="timeUnit" value="HOURS" />
     </bean>
 

@@ -45,6 +45,7 @@ public class PoolRowMapper implements RowMapper{
                 }
             }
 
+            poolConfigurationModel.setPoolSettingsStr(poolSettingsJson);
             poolConfigurationModel.setPoolSettings(poolSettings);
 
 

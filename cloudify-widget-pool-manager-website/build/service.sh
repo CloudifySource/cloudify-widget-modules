@@ -12,21 +12,20 @@ source /etc/sysconfig/widget-pool-manager
 
 SCRIPT=$INSTALL_LOCATION/build/start.sh
 RUNAS=root
-
 PIDNAME=poolmanager
 PIDFILE=/var/run/$PIDNAME.pid
-LOGFILE=/var/log/poolmanager.log
+LOGFILE=/var/log/$PIDNAME.log
 
 start() {
     echo "pidname is [$PIDNAME]"
-  if [ -f $PIDFILE ] && kill -0 $(cat /var/run/$PIDNAME); then
+  if [ -f /var/run/$PIDNAME.pid ] && kill -0 $(cat /var/run/$PIDNAME.pid); then
     echo 'Service already running' >&2
     return 1
   fi
   echo 'Starting service...' >&2
-  local CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
+  local CMD="$SCRIPT &> \"$LOGFILE\" "
   echo "executing [$CMD]"
-  su -c "$CMD" $RUNAS > "$PIDFILE"
+  su -c "$CMD" $RUNAS
   echo 'Service started' >&2
 }
 

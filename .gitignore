@@ -1,4 +1,8 @@
 .idea
+tempDir
+artifacts
+build.id
+node_modules
 *.iml
 conf/dev/**
 **/conf/dev/**

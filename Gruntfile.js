@@ -9,26 +9,40 @@ module.exports = function (grunt) {
     var deployOpts;
     try { // optional file
         deployOpts = grunt.file.readJSON('dev/deploy.json');
-    }catch(e){
-        deployOpts = { 'privateKey' : 'Gruntfile.js'};
+    } catch (e) {
+        deployOpts = { 'privateKey': 'Gruntfile.js'};
     }
 
     grunt.initConfig({
         deployOpts: deployOpts,
         pkg: grunt.file.readJSON('package.json'),
         sftp: {
-            upload: {
+            uploadAll: {
                 files: {
-                    'artifacts' : 'artifacts/**'
+                    'artifacts': 'artifacts/**'
                 },
                 options: {
-                    'username' : '<%=deployOpts.username%>',
-                    'privateKey' : grunt.file.read(deployOpts.privateKey),
-                    'host' : '<%=deployOpts.host%>',
-                    'path' : '<%=deployOpts.path%>/<%=pkg.name%>/<%=pkg.version%>',
-                    'createDirectories' : true,
+                    'username': '<%=deployOpts.username%>',
+                    'privateKey': grunt.file.read(deployOpts.privateKey),
+                    'host': '<%=deployOpts.host%>',
+                    'path': '<%=deployOpts.path%>/<%=pkg.name%>/<%=pkg.version%>',
+                    'createDirectories': true,
                     'showProgress': true,
-                    'srcBasePath' : 'artifacts'
+                    'srcBasePath': 'artifacts'
+                }
+            },
+            uploadInstallScript: {
+                files: {
+                    'installScript': 'cloudify-widget-pool-manager-website/build/install.sh'
+                },
+                options: {
+                    'username': '<%=deployOpts.username%>',
+                    'privateKey': grunt.file.read(deployOpts.privateKey),
+                    'host': '<%=deployOpts.host%>',
+                    'path': '<%=deployOpts.path%>/<%=pkg.name%>/<%=pkg.version%>',
+                    'createDirectories': true,
+                    'showProgress': true,
+                    'srcBasePath': 'cloudify-widget-pool-manager-website/build'
                 }
             }
         },
@@ -36,7 +50,7 @@ module.exports = function (grunt) {
             artifacts: {
                 files: [
                     {
-                        dot:true,
+                        dot: true,
                         src: [
                             'artifacts',
                             'tempDir'
@@ -48,7 +62,7 @@ module.exports = function (grunt) {
         },
         // Put files not handled in other tasks here
         copy: {
-            artifacts : {
+            artifacts: {
                 files: [
                     {
                         dest: 'artifacts/',
@@ -58,74 +72,82 @@ module.exports = function (grunt) {
                     },
 
                     {
-                        'expand':true,
+                        'expand': true,
                         'dest': 'artifacts/',
-                        'cwd' : 'cloudify-widget-pool-manager-website/build',
-                        'src' : ['install.sh']
+                        'cwd': 'cloudify-widget-pool-manager-website/build',
+                        'src': ['install.sh']
                     }
                 ]
             },
-            preCompress:{
+            preCompress: {
                 files: [
                     {
-                        'expand' : true,
-                        'cwd' : 'cloudify-widget-pool-manager/src/main/resources/sql/',
-                        'dest' : 'tempDir/manager-schema/',
+                        'expand': true,
+                        'cwd': 'cloudify-widget-pool-manager/src/main/resources/sql/',
+                        'dest': 'tempDir/manager-schema/',
                         'src': [
                             '*.sql'
                         ]
                     },
                     {
-                        'expand':true,
-                        'cwd' : 'cloudify-widget-pool-manager-website/src/main/resources/schema/',
-                        'dest' : 'tempDir/website-schema/',
+                        'expand': true,
+                        'cwd': 'cloudify-widget-pool-manager-website/src/main/resources/schema/',
+                        'dest': 'tempDir/website-schema/',
                         'src': [
                             '*.sql'
                         ]
                     },
                     {
-                        'expand':true,
-                        'cwd' : 'cloudify-widget-pool-manager-website/',
-                        'dest' :'tempDir',
-                        'src':[
+                        'expand': true,
+                        'cwd': 'cloudify-widget-pool-manager-website/',
+                        'dest': 'tempDir',
+                        'src': [
                             'build/**/*'
                         ]
                     },
                     {
-                        'expand':true,
-                        'cwd' : 'cloudify-widget-pool-manager-website/target',
+                        'expand': true,
+                        'cwd': 'cloudify-widget-pool-manager-website/target',
                         'dest': 'tempDir',
                         'src': ['website-1.0.0.jar']
                     },
                     {
-                        'expand':true,
-                        'cwd' : 'cloudify-widget-pool-manager-website/target/dependency',
+                        'expand': true,
+                        'cwd': 'cloudify-widget-pool-manager-website/target/dependency',
                         'dest': 'tempDir/lib',
-                        'src' : ['**/*']
+                        'src': ['**/*']
                     },
                     {
 
-                        'expand':true,
+                        'expand': true,
                         'dot': true,
                         'dest': 'tempDir',
-                        'src' : ['build.id']
+                        'src': ['build.id']
+
+                    },{
+
+                        'cwd' : 'cloudify-widget-pool-manager-website/src/main/resources',
+                        'expand': true,
+                        'dot': true,
+                        'dest': 'tempDir/lib',
+                        'src': ['bootstrap_machine.sh']
 
                     }
                 ]
             }
         },
         'compress': {
-            main : {
+            main: {
                 options: {
-                    mode:'tar',
+                    mode: 'tar',
                     archive: 'artifacts/<%=pkg.name%>-<%=pkg.version%>.tar',
-                    pretty:true
+                    pretty: true
                 },
-                files:[
+                files: [
                     {
-                        expand:true,
-                        pretty:true,
-                        cwd:'tempDir',
+                        expand: true,
+                        pretty: true,
+                        cwd: 'tempDir',
 //                        dest: 'guy',
                         'src': ['**/*']
                     }
@@ -134,8 +156,8 @@ module.exports = function (grunt) {
 
             }
         },
-        'run':{
-            'mvnCleanInstall' : {
+        'run': {
+            'mvnCleanInstall': {
                 cmd: 'mvn',
                 args: [
                     'clean',
@@ -155,8 +177,8 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('writeBuildId',
-        function(){
-            grunt.file.write('build.id', require('os').hostname()  + '-' + new Date().getTime());
+        function () {
+            grunt.file.write('build.id', require('os').hostname() + '-' + new Date().getTime());
         }
     );
 

@@ -69,7 +69,7 @@ upgrade_main(){
     DB_PASSWORD=$DB_ADMIN_PASSWORD
 
 
-    echo "creating DB"
+    echo "creating manager DB"
     UPGRADE_TO=create
 
     check_exists MANAGER_DB
@@ -77,6 +77,7 @@ upgrade_main(){
     BASEDIR=$INSTALL_LOCATION/manager-schema
     migrate_db
 
+    echo "creating website DB"
     check_exists WEBSITE_DB
     DB=$WEBSITE_DB
     BASEDIR=$INSTALL_LOCATION/website-schema

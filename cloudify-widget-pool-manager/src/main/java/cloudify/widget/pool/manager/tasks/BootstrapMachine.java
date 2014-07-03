@@ -89,7 +89,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             script = FileUtils.readFileToString(scriptFile);
             logger.debug("script file read to string\n\n[{}]...", script.substring(0, 20));
         } catch (IOException e) {
-            String message = "failed to read bootstrap script file to string";
+            String message = "failed to read bootstrap script file to string from [" + scriptFile.getAbsolutePath() + "]";
             logger.error(message, e);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())

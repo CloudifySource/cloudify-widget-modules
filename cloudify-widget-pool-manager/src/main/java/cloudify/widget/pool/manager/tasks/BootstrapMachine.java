@@ -65,11 +65,13 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
 
     private File getScriptFile() {
         File scriptFile;
+        String bootstrapScriptResourcePath = taskConfig.getBootstrapScriptResourcePath();
+
         try {
-            scriptFile = ResourceUtils.getFile(taskConfig.getBootstrapScriptResourcePath());
+            scriptFile = ResourceUtils.getFile(bootstrapScriptResourcePath);
             logger.debug("bootstrap script file is [{}]", scriptFile);
         } catch (FileNotFoundException e) {
-            String message = "failed to get resource for bootstrap script";
+            String message = "failed to get resource for bootstrap script from [" + bootstrapScriptResourcePath + "]";
             logger.error(message, e);
             errorsDao.create(new ErrorModel()
                             .setPoolId(poolSettings.getUuid())

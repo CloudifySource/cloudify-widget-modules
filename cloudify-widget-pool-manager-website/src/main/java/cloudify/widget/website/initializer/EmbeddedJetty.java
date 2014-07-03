@@ -69,6 +69,8 @@ public class EmbeddedJetty {
             System.setProperty(WEBSITE_ME_CONTEXT, "conf/dev/me-context.xml");
         }
 
+        logger.info("me context is [{}]", System.getProperty(WEBSITE_ME_CONTEXT));
+
         XmlWebApplicationContext context = new XmlWebApplicationContext();
 //        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         String[] configLocations = configLocation == null ?

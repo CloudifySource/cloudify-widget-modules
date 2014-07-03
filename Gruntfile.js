@@ -17,7 +17,7 @@ module.exports = function (grunt) {
         deployOpts: deployOpts,
         pkg: grunt.file.readJSON('package.json'),
         sftp: {
-            test: {
+            upload: {
                 files: {
                     'artifacts' : 'artifacts/**'
                 },
@@ -56,13 +56,7 @@ module.exports = function (grunt) {
                             'build.id'
                         ]
                     },
-                    {
-                        'expand':true,
-                        'dest' : 'artifacts/',
-                        'cwd' : 'cloudify-widget-pool-manager-website/target/',
-                        'src' : 'website-1.0.0.jar'
 
-                    },
                     {
                         'expand':true,
                         'dest': 'artifacts/',
@@ -75,7 +69,7 @@ module.exports = function (grunt) {
                 files: [
                     {
                         'expand' : true,
-                        'cwd' : 'cloudify-widget-pool-manager-website/src/main/resources/schema/',
+                        'cwd' : 'cloudify-widget-pool-manager/src/main/resources/sql/',
                         'dest' : 'tempDir/manager-schema/',
                         'src': [
                             '*.sql'
@@ -83,7 +77,7 @@ module.exports = function (grunt) {
                     },
                     {
                         'expand':true,
-                        'cwd' : 'cloudify-widget-pool-manager/src/main/resources/sql/',
+                        'cwd' : 'cloudify-widget-pool-manager-website/src/main/resources/schema/',
                         'dest' : 'tempDir/website-schema/',
                         'src': [
                             '*.sql'
@@ -147,6 +141,15 @@ module.exports = function (grunt) {
                     'clean',
                     'install'
                 ]
+            },
+            'mvnCopyDependencies': {
+                cmd: 'mvn',
+                args: [
+                    '-f',
+                    'cloudify-widget-pool-manager-website/pom.xml',
+                    'dependency:copy-dependencies'
+                ]
+
             }
         }
     });
@@ -160,6 +163,7 @@ module.exports = function (grunt) {
     grunt.registerTask('deploy', [
         'clean',
         'run:mvnCleanInstall',
+        'run:mvnCopyDependencies',
         'writeBuildId',
         'copy:preCompress',
         'compress',

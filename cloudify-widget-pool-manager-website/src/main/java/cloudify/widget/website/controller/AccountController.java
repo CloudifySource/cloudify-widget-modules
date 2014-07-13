@@ -133,13 +133,17 @@ public class AccountController {
     @RequestMapping(value="/account/pools/{poolId}/occupy", method=RequestMethod.GET)
     @ResponseBody
     public NodeModel occupyPoolNode(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId, @RequestBody String expires) {
+
         long expiresLong = System.currentTimeMillis() + 20 * 60 * 1000;  // default to 20 minutes.
+
         try{
             expiresLong = Long.parseLong(expires);
         }catch(Exception e){
             logger.warn("using default expires because expires was NaN = [{}]", expires);
         }
+        logger.info("occupying pool node with expires : " + expiresLong );
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
+        logger.info("read pool successfully. moving on with occupying node");
         return poolManagerApi.occupy(poolSettings, expiresLong);
     }
 

@@ -190,6 +190,6 @@ module.exports = function (grunt) {
         'copy:preCompress',
         'compress',
         'copy:artifacts',
-        'sftp'
+        'sftp:uploadAll'
     ]);
 };

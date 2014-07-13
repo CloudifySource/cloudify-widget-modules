@@ -65,7 +65,7 @@ public class ErrorsDao {
     }
 
     public List<ErrorModel> readAllOfPool(String poolId) {
-        return jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_POOL_ID + " = ?",
+        return jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? limit 200",
                 new Object[]{poolId},
                 new BeanPropertyRowMapper<ErrorModel>(ErrorModel.class));
     }

@@ -9,6 +9,7 @@
     </appender>
 
 
+    <logger name="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule" level="DEBUG"/>
 
     <root level="info" additivity="false">
         <appender-ref ref="STDOUT"/>

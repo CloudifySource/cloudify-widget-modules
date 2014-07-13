@@ -1,8 +1,10 @@
 package cloudify.widget.pool.manager.node_management;
 
+import cloudify.widget.common.CollectionUtils;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.DecisionModel;
 import cloudify.widget.pool.manager.dto.NodeModel;
+import cloudify.widget.pool.manager.dto.NodeStatus;
 import cloudify.widget.pool.manager.tasks.TaskCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,28 +30,35 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
 
         Constraints constraints = getConstraints();
         List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());
+        List<NodeModel> bootstrappedModels = nodesDao.readAllOfPoolWithStatus(constraints.poolSettings.getUuid(), NodeStatus.BOOTSTRAPPED);
+        // check if there are decisions in the queue, and if executing them will satisfy the constraints
+        int numInstancesInQueue = CollectionUtils.size(getOwnDecisionModelsQueue());
+        int needed = Math.min(
+                constraints.minNodes - bootstrappedModels.size() - numInstancesInQueue, // how many do I need for a minimum pool size
+                constraints.maxNodes - nodeModels.size() ); // how many can I add
+
+        logger.debug("{ 'minNodes' : {} , 'maxNodes' :{}, 'allNodes' :{}, 'bootstrappedModels':{}, 'inQueue':{},'needed':{} }", constraints.minNodes,
+                constraints.maxNodes,
+                nodeModels.size(),
+                bootstrappedModels.size(),
+                numInstancesInQueue,
+                needed
+                );
 
         // we create more machines only if existing machines are less than the minimum
-        if (nodeModels.size() >= constraints.minNodes) {
+        if (nodeModels.size() >= constraints.maxNodes || bootstrappedModels.size() >= constraints.minNodes ) {
+            logger.debug("I have enough machines. I don't need more. ");
             return this;
         }
 
-        int numInstancesInQueue = 0;
-
-        // check if there are decisions in the queue, and if executing them will satisfy the constraints
-        List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
-        if (decisionModels != null && !decisionModels.isEmpty()) {
-            // how many machines we're intending to create
-            numInstancesInQueue += decisionModels.size();
-        }
-
-        if (numInstancesInQueue + nodeModels.size() >= constraints.minNodes) {
+        if (numInstancesInQueue + nodeModels.size() >= constraints.maxNodes || numInstancesInQueue + bootstrappedModels.size() >= constraints.minNodes ) {
+            logger.debug("I might not have enough machines now, but I am going too.. so I don't need more.");
             // no action needed, the queue will satisfy the constraints in the following iteration(s)
             return this;
         }
 
-        int numInstances = constraints.minNodes - nodeModels.size() - numInstancesInQueue;
-        for (int i = 0; i < numInstances; i++) {
+
+        for (int i = 0; i < needed; i++) {
             DecisionModel decisionModel = buildOwnDecisionModel(new CreateDecisionDetails());
             decisionsDao.create(decisionModel);
         }

@@ -4,6 +4,7 @@ import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.website.dao.mappers.PoolRowMapper;
 import cloudify.widget.website.models.AccountModel;
 import cloudify.widget.website.models.PoolConfigurationModel;
+import cloudify.widget.website.services.GsEncryptor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -36,20 +37,31 @@ public class PoolDaoImpl implements IPoolDao {
     private final static String selectSqlByPoolId = "select * from " + TABLE_NAME + " where id = ?";
     private final static String selectAll = "select * from " + TABLE_NAME;
     private final static String updateByIdAndAccountId = "update " + TABLE_NAME +
-                                                                " set pool_setting = ? where id = ? and account_id = ?";
+            " set pool_setting = ? where id = ? and account_id = ?";
 
     private static final Logger logger = LoggerFactory.getLogger(PoolDaoImpl.class);
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final PoolRowMapper poolRowMapper = new PoolRowMapper( objectMapper );
+    private static final PoolRowMapper poolRowMapper = new PoolRowMapper(objectMapper);
 
-    static{
+    private GsEncryptor encryptor;
+
+    static {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public GsEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(GsEncryptor encryptor) {
+        this.encryptor = encryptor;
+        poolRowMapper.setEncryptor(encryptor);      //todo: define objectMapper, poolRowMapper as beans and remove this line.
     }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        jdbcInsert = new SimpleJdbcInsert( jdbcTemplate ).
+        jdbcInsert = new SimpleJdbcInsert(jdbcTemplate).
                 withTableName(TABLE_NAME).
                 usingGeneratedKeyColumns("id");
     }
@@ -61,18 +73,18 @@ public class PoolDaoImpl implements IPoolDao {
         PoolSettings poolSettings = poolConfiguration.getPoolSettings();
         String poolSettingsJson = null;
         try {
-            poolSettingsJson = objectMapper.writeValueAsString( poolSettings );
+            poolSettingsJson = objectMapper.writeValueAsString(poolSettings);
         } catch (IOException e) {
-            if( logger.isErrorEnabled() ){
-                logger.error( "Unable to parse poolSetting to JSON", e );
+            if (logger.isErrorEnabled()) {
+                logger.error("Unable to parse poolSetting to JSON", e);
             }
         }
 
-        return createPool( accountId, poolSettingsJson );
+        return createPool(accountId, poolSettingsJson);
     }
 
     @Override
-    public Long createPool( Long accountId, String poolSettingsJson ) {
+    public Long createPool(Long accountId, String poolSettingsJson) {
 
         PoolSettings poolSettings = null;
         try {
@@ -89,6 +101,8 @@ public class PoolDaoImpl implements IPoolDao {
 
         Map<String, Object> parametersMap = new HashMap<String, Object>(2);
         parametersMap.put("account_id", accountId);
+        //todo: encrypt poolSettingsJson
+        poolSettingsJson = encryptor.encrypt(poolSettings.getUuid(), poolSettingsJson);
         parametersMap.put("pool_setting", poolSettingsJson);
         if (poolSettings != null) {
             parametersMap.put("uuid", poolSettings.getUuid());
@@ -100,30 +114,49 @@ public class PoolDaoImpl implements IPoolDao {
     }
 
     @Override
-    public boolean updatePool( PoolConfigurationModel poolSettings ) {
+    public boolean updatePool(PoolConfigurationModel poolSettings) {
         Long accountId = poolSettings.getAccountId();
         Long id = poolSettings.getId();
         PoolSettings settings = poolSettings.getPoolSettings();
         String poolSettingsJson = parsePoolSettingToJson(settings);
 
-        return updatePool( id, accountId, poolSettingsJson );
+        return updatePool(id, accountId, poolSettingsJson, settings.getUuid());
     }
 
     @Override
-    public boolean updatePool( Long id, Long accountId, String poolSettingsJson ) {
+    public boolean updatePool(Long id, Long accountId, String poolSettingsJson) throws Exception {
+        //todo: encrypt poolSettingsJson
+        try {
+            PoolSettings poolSettings = objectMapper.readValue(poolSettingsJson, PoolSettings.class);
+            if (!poolSettingsJson.contains("uuid")) {
+                logger.warn("uuid was not received in pool settings json.");
+                throw new Exception("uuid was not received in pool settings json.");
+            }
+            return updatePool(id, accountId, poolSettingsJson, poolSettings.getUuid());
+        } catch (IOException e) {
+            logger.error("failed to map pool settings from json string", e);
+            e.printStackTrace();
+        }
 
-        int numOfRows = jdbcTemplate.update( updateByIdAndAccountId, poolSettingsJson, id, accountId );
+        return false;
+    }
+
+    public boolean updatePool(Long id, Long accountId, String poolSettingsJson, String poolUuid) {
+        //todo: encrypt poolSettingsJson
+        poolSettingsJson = encryptor.encrypt(poolSettingsJson, poolUuid);
+
+        int numOfRows = jdbcTemplate.update(updateByIdAndAccountId, poolSettingsJson, id, accountId);
         return numOfRows > 0;
     }
 
     @Override
-    public boolean deletePool( Long id ) {
+    public boolean deletePool(Long id) {
         int count = jdbcTemplate.update(delQueryById, new Object[]{id});
         return count > 0;
     }
 
     @Override
-    public boolean deletePool( Long poolId, Long accountId ) {
+    public boolean deletePool(Long poolId, Long accountId) {
         int count = jdbcTemplate.update(delQueryByIdAndAccountId, new Object[]{poolId, accountId});
         return count > 0;
     }
@@ -139,18 +172,18 @@ public class PoolDaoImpl implements IPoolDao {
 */
 
     @Override
-    public PoolConfigurationModel readPoolByIdAndAccountId( Long poolId, Long accountId) {
-        logger.debug( "select query is [{}] accountId [{}] poolId [{}]", selectSqlByAccountId, accountId, poolId );
-        PoolConfigurationModel poolConfigurationModel =( PoolConfigurationModel )jdbcTemplate.queryForObject(
-                selectSqlByAccountId, new Object[]{accountId, poolId }, poolRowMapper );
+    public PoolConfigurationModel readPoolByIdAndAccountId(Long poolId, Long accountId) {
+        logger.debug("select query is [{}] accountId [{}] poolId [{}]", selectSqlByAccountId, accountId, poolId);
+        PoolConfigurationModel poolConfigurationModel = (PoolConfigurationModel) jdbcTemplate.queryForObject(
+                selectSqlByAccountId, new Object[]{accountId, poolId}, poolRowMapper);
         return poolConfigurationModel;
     }
 
     @Override
-    public PoolConfigurationModel readPoolById( Long poolId ) {
-        logger.debug( "select query is [{}] poolId [{}]", selectSqlByPoolId, poolId );
-        PoolConfigurationModel poolConfigurationModel =( PoolConfigurationModel )jdbcTemplate.queryForObject(
-                selectSqlByPoolId, new Object[]{ poolId }, poolRowMapper );
+    public PoolConfigurationModel readPoolById(Long poolId) {
+        logger.debug("select query is [{}] poolId [{}]", selectSqlByPoolId, poolId);
+        PoolConfigurationModel poolConfigurationModel = (PoolConfigurationModel) jdbcTemplate.queryForObject(
+                selectSqlByPoolId, new Object[]{poolId}, poolRowMapper);
         return poolConfigurationModel;
     }
 
@@ -162,46 +195,47 @@ public class PoolDaoImpl implements IPoolDao {
 
     @Override
     public List<PoolConfigurationModel> readPools(Long accountId) {
-        logger.debug( "select query is [{}] accountId [{}]", selectAllByAccountId, accountId );
-        List<PoolConfigurationModel> pools =  jdbcTemplate.query(
-                selectAllByAccountId, new Object[]{accountId}, poolRowMapper );
+        logger.debug("select query is [{}] accountId [{}]", selectAllByAccountId, accountId);
+        List<PoolConfigurationModel> pools = jdbcTemplate.query(
+                selectAllByAccountId, new Object[]{accountId}, poolRowMapper);
         return pools;
     }
 
     @Override
     public List<PoolConfigurationModel> readPools() {
-        logger.debug( "select query is [{}]", selectAll );
-        List<PoolConfigurationModel> pools =  jdbcTemplate.query( selectAll, poolRowMapper );
+        logger.debug("select query is [{}]", selectAll);
+        List<PoolConfigurationModel> pools = jdbcTemplate.query(selectAll, poolRowMapper);
 
-        if ( pools.removeAll(Collections.singleton(null)) ) {
+        if (pools.removeAll(Collections.singleton(null))) {
             logger.warn("some pool settings are invalid as they were not serialized. please read the logs to know more. ");
         }
 
         return pools;
     }
 
-    private static String parsePoolSettingToJson( PoolSettings poolSettings ){
+    private static String parsePoolSettingToJson(PoolSettings poolSettings) {
 
         String poolSettingsJson = null;
         try {
-            poolSettingsJson = objectMapper.writeValueAsString( poolSettings );
+            poolSettingsJson = objectMapper.writeValueAsString(poolSettings);
         } catch (IOException e) {
-            if( logger.isErrorEnabled() ){
-                logger.error( "Unable to parse poolSetting to JSON", e );
+            if (logger.isErrorEnabled()) {
+                logger.error("Unable to parse poolSetting to JSON", e);
             }
         }
         return poolSettingsJson;
     }
 
-    private static PoolSettings parseJsonToPoolSetting( String poolSettingsJson ){
+    private static PoolSettings parseJsonToPoolSetting(String poolSettingsJson) {
 
         PoolSettings poolSettings = null;
         try {
-            poolSettings = objectMapper.readValue( poolSettingsJson, PoolSettings.class );
+            poolSettings = objectMapper.readValue(poolSettingsJson, PoolSettings.class);
         } catch (IOException e) {
-            logger.error( "Unable to read JSON to PoolSettings instance", e.getMessage() );
+            logger.error("Unable to read JSON to PoolSettings instance", e.getMessage());
         }
         return poolSettings;
     }
+
 }
   

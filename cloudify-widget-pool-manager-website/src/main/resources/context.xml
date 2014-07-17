@@ -9,12 +9,13 @@
 
 
     <bean id="conf" class="cloudify.widget.website.config.AppConfig"/>
+    <bean id="encryptor" class="cloudify.widget.website.services.GsEncryptor"/>
 
     <import resource="${websiteMeContext}"/>
 
 
     <mvc:annotation-driven/>
-    <context:component-scan base-package="cloudify.widget.website.controller" />
+    <context:component-scan base-package="cloudify.widget.website.controller"/>
 
     <!--<bean id="nodesDataAccessManager" class="cloudify.widget.pool.manager.NodesDataAccessManager" />-->
     <!--<bean id="taskErrorsDataAccessManager" class="cloudify.widget.pool.manager.ErrorsDataAccessManager" />-->
@@ -29,10 +30,10 @@
             <bean class="cloudify.widget.website.interceptors.AccountAuthenticationInterceptor"/>
         </mvc:interceptor>
         <!--<mvc:interceptor>-->
-            <!--<mvc:mapping path="/**"/>-->
-            <!--<mvc:exclude-mapping path="/admin/**"/>-->
-            <!--<mvc:exclude-mapping path="/account/**"/>-->
-            <!--<bean class="cloudify.widget.website.interceptors.AuthenticationInterceptor"/>-->
+        <!--<mvc:mapping path="/**"/>-->
+        <!--<mvc:exclude-mapping path="/admin/**"/>-->
+        <!--<mvc:exclude-mapping path="/account/**"/>-->
+        <!--<bean class="cloudify.widget.website.interceptors.AuthenticationInterceptor"/>-->
         <!--</mvc:interceptor>-->
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
@@ -56,7 +57,7 @@
     </bean>
 
     <bean id="websiteJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <constructor-arg ref="websiteDataSource" />
+        <constructor-arg ref="websiteDataSource"/>
         <!--<property name="dataSource" ref="websiteDataSource"></property>-->
     </bean>
 
@@ -66,9 +67,10 @@
 
     <bean id="poolDao" class="cloudify.widget.website.dao.PoolDaoImpl">
         <property name="jdbcTemplate" ref="websiteJdbcTemplate"></property>
+        <property name="encryptor" ref="encryptor"></property>
     </bean>
 
-    <bean class="cloudify.widget.website.handlers.NodeManagementRecoveryHandler" />
+    <bean class="cloudify.widget.website.handlers.NodeManagementRecoveryHandler"/>
 
 
     <beans profile="manager-app,default,dev">

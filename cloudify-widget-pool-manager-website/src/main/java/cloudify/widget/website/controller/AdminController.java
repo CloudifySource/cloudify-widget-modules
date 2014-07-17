@@ -96,8 +96,8 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/accounts/{accountId}/delete", method = RequestMethod.POST)
     @ResponseBody
-    public void deleteAccount( @PathVariable("accountId") Long accountId ){
-        accountDao.deleteAccount( accountId );
+    public void deleteAccount(@PathVariable("accountId") Long accountId) {
+        accountDao.deleteAccount(accountId);
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools", method = RequestMethod.GET)
@@ -117,7 +117,13 @@ public class AdminController {
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}", method = RequestMethod.POST)
     @ResponseBody
     public boolean updateAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId, @RequestBody String newPoolSettingJson) {
-        boolean updated = poolDao.updatePool(poolConfigurationId, accountId, newPoolSettingJson);
+        boolean updated = false;
+        try {
+            updated = poolDao.updatePool(poolConfigurationId, accountId, newPoolSettingJson);
+        } catch (Exception e) {
+            logger.error("failed to update pool", e);
+            e.printStackTrace();
+        }
         nodeManagementExecutor.update(poolDao.readPoolById(poolConfigurationId).poolSettings);
         return updated;
     }
@@ -247,9 +253,6 @@ public class AdminController {
     }
 
 
-
-
-
     @RequestMapping(value = "/admin/pools/{poolId}/nodes", method = RequestMethod.GET)
     @ResponseBody
     public List<NodeModel> getMachines(@PathVariable("poolId") Long poolConfigurationId) {
@@ -282,7 +285,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/nodes/{nodeId}/bootstrap", method = RequestMethod.POST)
     @ResponseBody
     public void nodeBootstrap(@PathVariable("accountId") Long accountId,
-                                @PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
+                              @PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId).getPoolSettings();
         poolManagerApi.bootstrapNode(poolSettings, nodeId, null);
     }
@@ -313,9 +316,6 @@ public class AdminController {
     public AccountModel setAccountDescription(@PathVariable("accountId") Long accountId, @RequestBody String description) {
         return accountDao.setAccountDescription(accountId, description);
     }
-
-
-
 
 
     @ModelAttribute("account")

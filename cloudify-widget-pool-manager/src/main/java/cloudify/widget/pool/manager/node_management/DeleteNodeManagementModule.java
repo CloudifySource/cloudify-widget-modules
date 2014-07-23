@@ -110,7 +110,6 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
 
                     @Override
                     public void onFailure(Throwable t) {
-                        writeError(t);
                         teardownDecisionExecution(decisionModel);
                     }
                 });

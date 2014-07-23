@@ -1,10 +1,14 @@
 package cloudify.widget.pool.manager.node_management;
 
+import cloudify.widget.mailer.Mail;
+import cloudify.widget.mailer.Mailer;
 import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.NodesDao;
 import cloudify.widget.pool.manager.dto.DecisionModel;
+import cloudify.widget.pool.manager.dto.EmailSettings;
 import cloudify.widget.pool.manager.dto.ErrorModel;
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +30,6 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
 
     @Autowired
     protected NodesDao nodesDao;
-
-    @Autowired
-    private ErrorsDao errorsDao;
-
 
     private Constraints _constraints;
 
@@ -61,19 +61,5 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
     protected void teardownDecisionExecution(DecisionModel decisionModel) {
         decisionsDao.delete(decisionModel.id);
     }
-
-    protected void writeError(Throwable t) {
-        String message = t.getMessage();
-        HashMap<String, Object> infoMap = Maps.newHashMap();
-        infoMap.put("stackTrace", t.getStackTrace());
-        logger.error(message);
-        errorsDao.create(new ErrorModel()
-                        .setSource(getClass().getSimpleName())
-                        .setPoolId(getConstraints().poolSettings.getUuid())
-                        .setMessage(message)
-                        .setInfoFromMap(infoMap)
-        );
-    }
-
 
 }

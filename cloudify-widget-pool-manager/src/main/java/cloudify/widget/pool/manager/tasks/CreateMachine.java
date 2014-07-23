@@ -44,7 +44,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
 
     @Override
     public Collection<NodeModel> call() throws Exception {
-        try {
+//        try {
             logger.info("creating machine with pool settings [{}]", poolSettings);
 
             ProviderSettings providerSettings = poolSettings.getProvider();
@@ -70,13 +70,13 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
             }
 
             return nodeModelCreatedList;
-        }catch(Exception e){
-            errorsDao.create(new ErrorModel()
-                    .setPoolId(poolSettings.getUuid())
-                    .setSource(getTaskName().name())
-                    .setMessage(e.getMessage()));
-        }
-        return new LinkedList<NodeModel>();
+//        }catch(Exception e){
+//            errorsDao.create(new ErrorModel()
+//                    .setPoolId(poolSettings.getUuid())
+//                    .setSource(getTaskName().name())
+//                    .setMessage(e.getMessage()));
+//        }
+//        return new LinkedList<NodeModel>();
     }
 
 }

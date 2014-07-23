@@ -4,9 +4,11 @@ import cloudify.widget.api.clouds.CloudExecResponse;
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.ISshDetails;
 import cloudify.widget.pool.manager.CloudServerApiFactory;
-import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.NodesDao;
-import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.dto.BootstrapProperties;
+import cloudify.widget.pool.manager.dto.NodeModel;
+import cloudify.widget.pool.manager.dto.NodeStatus;
+import cloudify.widget.pool.manager.dto.PoolSettings;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +31,6 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
 
     @Autowired
     private NodesDao nodesDao;
-
-    @Autowired
-    private ErrorsDao errorsDao;
-
 
     @Override
     public Void call() throws Exception {
@@ -73,11 +71,6 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
         } catch (FileNotFoundException e) {
             String message = "failed to get resource for bootstrap script from [" + bootstrapScriptResourcePath + "]";
             logger.error(message, e);
-            errorsDao.create(new ErrorModel()
-                            .setPoolId(poolSettings.getUuid())
-                            .setSource(getTaskName().name())
-                            .setMessage(message)
-            );
             throw new RuntimeException(message);
         }
         return scriptFile;
@@ -91,11 +84,6 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
         } catch (IOException e) {
             String message = "failed to read bootstrap script file to string from [" + scriptFile.getAbsolutePath() + "]";
             logger.error(message, e);
-            errorsDao.create(new ErrorModel()
-                            .setPoolId(poolSettings.getUuid())
-                            .setSource(getTaskName().name())
-                            .setMessage(message)
-            );
             throw new RuntimeException(message);
         }
         return script;
@@ -128,12 +116,6 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             HashMap<String, Object> infoMap = new HashMap<String, Object>();
             infoMap.put("exitStatus", exitStatus);
             infoMap.put("output", output);
-            errorsDao.create(new ErrorModel()
-                            .setPoolId(poolSettings.getUuid())
-                            .setSource(getTaskName().name())
-                            .setMessage(message)
-                            .setInfoFromMap(infoMap)
-            );
             throw new RuntimeException(message);
         }
     }

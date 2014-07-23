@@ -1,10 +1,10 @@
 package cloudify.widget.pool.manager.tasks;
 
-import cloudify.widget.pool.manager.*;
-import cloudify.widget.pool.manager.dto.ErrorModel;
-import cloudify.widget.pool.manager.dto.NodeModel;
-import cloudify.widget.pool.manager.dto.PoolSettings;
-import cloudify.widget.pool.manager.dto.TaskModel;
+import cloudify.widget.mailer.Mail;
+import cloudify.widget.mailer.Mailer;
+import cloudify.widget.pool.manager.ErrorsDao;
+import cloudify.widget.pool.manager.ITasksDao;
+import cloudify.widget.pool.manager.dto.*;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +21,7 @@ import java.util.HashMap;
 public class TaskRegistrar {
 
     private static Logger logger = LoggerFactory.getLogger(TaskRegistrar.class);
+
     /**
      * Decorates tasks with data registration behavior.
      *
@@ -65,22 +66,22 @@ public class TaskRegistrar {
                     .setTaskName(_decorated.getTaskName())
                     .setPoolId(_poolSettings.getUuid());
             NodeModel nodeModel = getNodeModel();
-            if ( nodeModel != null ){
-                _taskModel.setNodeId( nodeModel.id );
+            if (nodeModel != null) {
+                _taskModel.setNodeId(nodeModel.id);
             }
             _tasksDao.create(_taskModel);
         }
 
-        private NodeModel getNodeModel(){
-            if ( _taskConfig instanceof NodeModelProvider ) {
-                return ( (NodeModelProvider) _taskConfig).getNodeModel();
+        private NodeModel getNodeModel() {
+            if (_taskConfig instanceof NodeModelProvider) {
+                return ((NodeModelProvider) _taskConfig).getNodeModel();
             }
             return null;
         }
 
-        private String getMachineId(){
+        private String getMachineId() {
             NodeModel nodeModel = getNodeModel();
-            if ( nodeModel != null ){
+            if (nodeModel != null) {
                 return nodeModel.machineId;
             }
             return null;
@@ -98,14 +99,14 @@ public class TaskRegistrar {
 
         @Override
         public R call() throws Exception {
-            logger.info("calling task with machine id [{}]", getMachineId() );
+            logger.info("calling task with machine id [{}]", getMachineId());
             registerTask();
             try {
                 R call = _decorated.call();
                 unregisterTask();
 
                 return call;
-            }catch(Exception e) {
+            } catch (Exception e) {
                 logger.error(String.format("task [%s] failed", _decorated.getClass()), e);
                 unregisterTask();
                 throw e;
@@ -140,6 +141,8 @@ public class TaskRegistrar {
         public abstract void setPoolSettings(PoolSettings poolSettings);
 
         public abstract void setTaskName(TaskName taskName);
+
+        public abstract void setMailer(Mailer mailer);
     }
 
     public static class TaskCallbackDecoratorImpl<R> extends TaskCallbackDecorator<R> {
@@ -152,6 +155,8 @@ public class TaskRegistrar {
 
         private TaskName _taskName;
 
+        private Mailer _mailer;
+
         public TaskCallbackDecoratorImpl(TaskCallback<R> decorated) {
             _decorated = decorated;
         }
@@ -160,13 +165,28 @@ public class TaskRegistrar {
         protected void registerError(Throwable thrown) {
             HashMap<String, Object> infoMap = Maps.newHashMap();
             infoMap.put("stackTrace", thrown.getStackTrace());
-            _errorsDao.create(new ErrorModel()
-                            .setSource(_taskName.name())
-                            .setMessage(thrown.getMessage())
-                            .setMessage(thrown.getMessage())
-                            .setInfoFromMap(infoMap)
-                            .setPoolId(_poolSettings.getUuid())
-            );
+            ErrorModel errorModel = new ErrorModel()
+                    .setSource(_taskName.name())
+                    .setMessage(thrown.getMessage())
+                    .setInfoFromMap(infoMap)
+                    .setPoolId(_poolSettings.getUuid());
+
+            _errorsDao.create(errorModel);
+
+            //send email.
+            sendEmail(errorModel);
+        }
+
+        private void sendEmail(ErrorModel errorModel) {
+            EmailSettings emailSettings = _poolSettings.getNodeManagement().getEmailSettings();
+
+            if (emailSettings.isTurnedOn()) {
+                Mail mail = new Mail.MailBuilder(_mailer.getMailerConfig().getFrom(), emailSettings.getRecipients(), errorModel.message)
+                        .message(errorModel.toEmailString())
+                        .build();
+                _mailer.send(mail);
+            }
+
         }
 
         @Override
@@ -192,6 +212,11 @@ public class TaskRegistrar {
         @Override
         public void setTaskName(TaskName taskName) {
             _taskName = taskName;
+        }
+
+        @Override
+        public void setMailer(Mailer mailer) {
+            _mailer = mailer;
         }
     }
 }

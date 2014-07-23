@@ -16,6 +16,8 @@ public class NodeManagementSettings {
 
     private List<NodeManagementModuleType> activeModules;
 
+    private EmailSettings emailSettings;
+
     public NodeManagementMode getMode() {
         return mode;
     }
@@ -32,4 +34,11 @@ public class NodeManagementSettings {
         this.activeModules = activeModules;
     }
 
+    public EmailSettings getEmailSettings() {
+        return emailSettings;
+    }
+
+    public void setEmailSettings(EmailSettings emailSettings) {
+        this.emailSettings = emailSettings;
+    }
 }

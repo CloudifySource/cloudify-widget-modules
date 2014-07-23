@@ -99,7 +99,6 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
                     @Override
                     public void onFailure(Throwable t) {
-                        writeError(t);
                         teardownDecisionExecution(decisionModel);
                     }
                 });

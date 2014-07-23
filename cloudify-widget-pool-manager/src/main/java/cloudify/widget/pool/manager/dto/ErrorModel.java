@@ -60,6 +60,17 @@ public class ErrorModel {
         return this;
     }
 
+    public String toEmailString() {
+        return "ErrorModel: {" +
+                "\nid=" + id +
+                ", \nsource='" + source + '\'' +
+                ", \npoolId='" + poolId + '\'' +
+                ", \nmessage='" + message + '\'' +
+                ", \ninfo='" + info + '\'' +
+                ", \ntimestamp=" + timestamp +
+                '}';
+    }
+
     @Override
     public String toString() {
         return "ErrorModel{" +

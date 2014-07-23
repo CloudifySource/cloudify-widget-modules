@@ -1,8 +1,6 @@
 package cloudify.widget.pool.manager.tasks;
 
-import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.dto.PoolSettings;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * User: eliranm
@@ -13,9 +11,6 @@ public abstract class AbstractPoolTask<T extends TaskConfig, V> implements  Task
 
     public T taskConfig;
     public PoolSettings poolSettings;
-    @Autowired
-    public ErrorsDao errorsDao;
-
 
     @Override
     public void setTaskConfig(T taskConfig) {
@@ -27,5 +22,4 @@ public abstract class AbstractPoolTask<T extends TaskConfig, V> implements  Task
         this.poolSettings = poolSettings;
     }
 
-    public void setErrorsDao(ErrorsDao errorsDao) { this.errorsDao = errorsDao; }
 }

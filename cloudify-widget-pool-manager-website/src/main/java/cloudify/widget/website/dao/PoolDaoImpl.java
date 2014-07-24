@@ -101,7 +101,7 @@ public class PoolDaoImpl implements IPoolDao {
 
         Map<String, Object> parametersMap = new HashMap<String, Object>(2);
         parametersMap.put("account_id", accountId);
-        //todo: encrypt poolSettingsJson
+        // encrypt poolSettingsJson
         poolSettingsJson = encryptor.encrypt(poolSettings.getUuid(), poolSettingsJson);
         parametersMap.put("pool_setting", poolSettingsJson);
         if (poolSettings != null) {
@@ -142,7 +142,7 @@ public class PoolDaoImpl implements IPoolDao {
     }
 
     public boolean updatePool(Long id, Long accountId, String poolSettingsJson, String poolUuid) {
-        //todo: encrypt poolSettingsJson
+        // encrypt poolSettingsJson
         poolSettingsJson = encryptor.encrypt(poolSettingsJson, poolUuid);
 
         int numOfRows = jdbcTemplate.update(updateByIdAndAccountId, poolSettingsJson, id, accountId);

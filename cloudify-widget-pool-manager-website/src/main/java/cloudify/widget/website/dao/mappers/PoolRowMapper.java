@@ -27,15 +27,6 @@ public class PoolRowMapper implements RowMapper {
     @Autowired
     private GsEncryptor encryptor;
 
-    public GsEncryptor getEncryptor() {
-        return encryptor;
-    }
-
-    public void setEncryptor(GsEncryptor encryptor) {
-        this.encryptor = encryptor;
-    }
-
-
     public PoolRowMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -70,4 +61,13 @@ public class PoolRowMapper implements RowMapper {
             return null;
         }
     }
+
+    public GsEncryptor getEncryptor() {
+        return encryptor;
+    }
+
+    public void setEncryptor(GsEncryptor encryptor) {
+        this.encryptor = encryptor;
+    }
+
 }

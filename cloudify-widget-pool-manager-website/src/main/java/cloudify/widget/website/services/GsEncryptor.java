@@ -1,5 +1,6 @@
 package cloudify.widget.website.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,10 @@ public class GsEncryptor {
     private static final Logger logger = LoggerFactory.getLogger(GsEncryptor.class);
 
     public String encrypt(String key, String strToEncrypt) {
+        if (isEncrypted(strToEncrypt)) {
+            return strToEncrypt;
+        }
+
         try {
             Cipher cipher = buildCipher("thisIsASecretKey", Cipher.ENCRYPT_MODE);
             final String encryptedString = Base64.encodeBase64String(cipher.doFinal(strToEncrypt.getBytes()));
@@ -33,6 +38,10 @@ public class GsEncryptor {
     }
 
     public String decrypt(String key, String strToDecrypt) {
+        if (!isEncrypted(strToDecrypt)) {
+            return strToDecrypt;
+        }
+
         try {
             Cipher cipher = buildCipher("thisIsASecretKey", Cipher.DECRYPT_MODE);
             final String decryptedString = new String(cipher.doFinal(Base64.decodeBase64(strToDecrypt)));
@@ -43,6 +52,19 @@ public class GsEncryptor {
 
         }
         return null;
+    }
+
+    private Boolean isEncrypted(String string) {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            objectMapper.readValue(string, Object.class);
+            // parse success - not encrypted.
+            return false;
+        } catch (Exception e) {
+            // parse failed - encrypted.
+            return true;
+        }
     }
 
     private Cipher buildCipher(String key, int mode) throws Exception {

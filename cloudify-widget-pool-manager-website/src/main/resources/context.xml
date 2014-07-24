@@ -62,12 +62,12 @@
     </bean>
 
     <bean id="accountDao" class="cloudify.widget.website.dao.AccountDaoImpl">
-        <property name="jdbcTemplate" ref="websiteJdbcTemplate"></property>
+        <property name="jdbcTemplate" ref="websiteJdbcTemplate"/>
     </bean>
 
     <bean id="poolDao" class="cloudify.widget.website.dao.PoolDaoImpl">
-        <property name="jdbcTemplate" ref="websiteJdbcTemplate"></property>
-        <property name="encryptor" ref="encryptor"></property>
+        <property name="jdbcTemplate" ref="websiteJdbcTemplate"/>
+        <property name="encryptor" ref="encryptor"/>
     </bean>
 
     <bean class="cloudify.widget.website.handlers.NodeManagementRecoveryHandler"/>

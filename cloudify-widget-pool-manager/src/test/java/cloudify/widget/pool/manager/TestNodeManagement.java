@@ -1,7 +1,9 @@
 package cloudify.widget.pool.manager;
 
+import cloudify.widget.common.DatabaseBuilder;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.pool.manager.node_management.*;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -25,6 +28,8 @@ import java.util.List;
 public class TestNodeManagement {
 
     private static Logger logger = LoggerFactory.getLogger(TestNodeManagement.class);
+    private static final String SCHEMA = "node_manager_test";
+    private static final String SQL_PATH = "sql";
 
     @Autowired
     private SettingsDataAccessManager settingsDataAccessManager;
@@ -38,13 +43,26 @@ public class TestNodeManagement {
     @Autowired
     private DecisionsDao decisionsDao;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private ManagerSettings managerSettings;
 
     @Before
-    public void setup() {
+    public void init() {
         managerSettings = settingsDataAccessManager.read();
         Assert.assertNotNull("manager settings should not be null", managerSettings);
+
+        // initializing test schema
+        DatabaseBuilder.buildDatabase(jdbcTemplate, SCHEMA, SQL_PATH);
+
     }
+
+    @After
+    public void destroy() {
+        DatabaseBuilder.destroyDatabase(jdbcTemplate, SCHEMA);
+    }
+
 
     @Test
     public void testDecisionMaker() throws IOException {

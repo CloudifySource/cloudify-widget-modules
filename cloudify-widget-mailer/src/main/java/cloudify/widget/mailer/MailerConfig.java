@@ -13,13 +13,7 @@ public class MailerConfig {
     private Authenticator authenticator;
     private String hostName;
     private boolean tlsEnabled;
-
-    public MailerConfig(int smtpPort, Authenticator authenticator, String hostName, boolean tlsEnabled) {
-        this.smtpPort = smtpPort;
-        this.authenticator = authenticator;
-        this.hostName = hostName;
-        this.tlsEnabled = tlsEnabled;
-    }
+    private String from;
 
     public int getSmtpPort() {
         return smtpPort;
@@ -51,6 +45,14 @@ public class MailerConfig {
 
     public void setTlsEnabled(boolean tlsEnabled) {
         this.tlsEnabled = tlsEnabled;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
     }
 
     @Override

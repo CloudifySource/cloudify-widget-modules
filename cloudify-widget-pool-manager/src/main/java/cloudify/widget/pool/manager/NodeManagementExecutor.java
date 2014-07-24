@@ -39,9 +39,6 @@ public class NodeManagementExecutor {
     @Autowired
     private DecisionsDao decisionsDao;
 
-    @Autowired
-    private ErrorsDao errorsDao;
-
     // TODO get rid of this - it has to be persisted somewhere
     // key: poolId, value: pool execution including scheduled futures returned from starting scheduled tasks for this pool's active modules, and the runner instance
     private Map<String, List<PoolExecution>> poolExecutions = new HashMap<String, List<PoolExecution>>();

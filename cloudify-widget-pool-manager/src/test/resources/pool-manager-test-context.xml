@@ -2,23 +2,25 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 
     <context:component-scan base-package="cloudify.widget.pool.manager" />
 
-    <import resource="pool-manager-app-context.xml" />
+    <util:properties location="classpath:/conf/dev/me.properties" id="managerProperties"/>
 
+    <import resource="pool-manager-app-context.xml" />
 
 
     <bean id="settingsLoader" class="cloudify.widget.pool.manager.SettingsFileLoader">
         <property name="settingsFilePath" value="conf/dev/manager-settings.json" />
+        <!--<property name="settingsFilePath" value="conf/dev/manager-settings.fail.json" />-->
     </bean>
 
     <bean id="settingsDataAccessManager" class="cloudify.widget.pool.manager.SettingsJsonDataAccessManager">
         <property name="settingsFileLoader" ref="settingsLoader" />
     </bean>
-
 
     <!-- mocking task executor so tests don't have to use thread-waits -->
     <!--<bean id="synchronousExecutorService" class="cloudify.widget.pool.manager.SynchronousExecutorService">-->
@@ -26,7 +28,8 @@
     <!--</bean>-->
 
     <!--<bean id="testTaskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init" destroy-method="destroy">-->
-        <!--<property name="executorService" ref="synchronousExecutorService" /> &lt;!&ndash; change to synchronous executor to avoid using waits in the test body &ndash;&gt;-->
+        <!--change to synchronous executor to avoid using waits in the test body -->
+        <!--<property name="executorService" ref="synchronousExecutorService" /> -->
     <!--</bean>-->
 
     <bean id="testTaskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init" destroy-method="destroy">

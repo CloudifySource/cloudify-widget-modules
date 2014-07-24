@@ -1,5 +1,6 @@
 package cloudify.widget.pool.manager;
 
+import cloudify.widget.mailer.Mailer;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.tasks.*;
 import cloudify.widget.pool.manager.tasks.Task;
@@ -11,6 +12,7 @@ import com.sun.jmx.snmp.tasks.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,10 @@ public class TaskExecutor {
 
     @Autowired
     private ErrorsDao errorsDao;
+
+    @Autowired
+    private Mailer mailer;
+
 
     public void init() {
     }
@@ -76,6 +82,7 @@ public class TaskExecutor {
             callbackDecorator.setErrorsDao(errorsDao);
             callbackDecorator.setPoolSettings(poolSettings);
             callbackDecorator.setTaskName(task.getTaskName());
+            callbackDecorator.setMailer(mailer);
             Futures.addCallback(listenableFuture, callbackDecorator);
         }
     }

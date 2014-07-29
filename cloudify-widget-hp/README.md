@@ -1,4 +1,4 @@
-```
+```json
 {
     "name": "--- hp grizzly ---", 
     "authKey": "---key---", 

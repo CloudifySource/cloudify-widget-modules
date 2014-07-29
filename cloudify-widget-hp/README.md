@@ -55,3 +55,11 @@
 Options
 ---
 
+**provider.name**
+
+The pool name
+
+**provider.connectDetails.project**
+
+Identity -> Projects -> Project ID for the relevant project
+

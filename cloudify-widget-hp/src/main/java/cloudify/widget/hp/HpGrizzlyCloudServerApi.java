@@ -1,12 +1,8 @@
 package cloudify.widget.hp;
 
-import cloudify.widget.api.clouds.CloudExecResponse;
-import cloudify.widget.api.clouds.CloudProvider;
-import cloudify.widget.api.clouds.CloudServerApi;
-import cloudify.widget.api.clouds.ISecurityGroupDetails;
-import cloudify.widget.api.clouds.ServerIp;
+import cloudify.widget.api.clouds.*;
 import cloudify.widget.common.CloudExecResponseImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cloudify.widget.common.GsObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -21,11 +17,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.ExecResponse;
-import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
-import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.openstack.nova.v2_0.config.NovaProperties;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
@@ -668,7 +661,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, 
                         .accept(MediaType.APPLICATION_JSON)
                         .get(String.class);
 
-        final ObjectMapper mapper = new ObjectMapper();
+        final GsObjectMapper mapper = new GsObjectMapper();
         final Map map = mapper.readValue(new StringReader(response), Map.class);
         @SuppressWarnings("unchecked")
         final List<Map> list = (List<Map>) map.get("floating_ips");
@@ -896,7 +889,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, 
             this.tokenSession = response.getHeaders().getFirst("X-Subject-Token");
 
             logger.info("parsing result");
-            ObjectMapper m = new ObjectMapper();
+            GsObjectMapper m = new GsObjectMapper();
             Map responseMap = m.readValue(resp, Map.class);
 
             List<Map> l = ((List) ( (Map)responseMap.get("token")).get("catalog"));

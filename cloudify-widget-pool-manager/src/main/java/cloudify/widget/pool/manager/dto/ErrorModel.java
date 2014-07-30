@@ -1,6 +1,6 @@
 package cloudify.widget.pool.manager.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cloudify.widget.common.GsObjectMapper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class ErrorModel {
      */
     public ErrorModel setInfoFromMap(Map<String, Object> info) {
         try {
-            this.info = new ObjectMapper().writeValueAsString(info);
+            this.info = new GsObjectMapper().writeValueAsString(info);
         } catch (IOException e) {
             e.printStackTrace();
         }

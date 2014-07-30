@@ -1,0 +1,45 @@
+{
+    "name": "--- Name ---",
+    "authKey": "---key---",
+    "maxNodes": 3,
+    "minNodes": 1,
+    "nodeManagement": {
+        "mode": "AUTO_APPROVAL",
+        "activeModules": [
+            "CREATE",
+            "BOOTSTRAP",
+            "DELETE",
+            "DELETE_EXPIRED"
+        ]
+    },
+    "bootstrapProperties": {
+        "publicIp": "",
+        "privateIp": "",
+        "cloudifyUrl": "__url__",
+        "preBootstrapScript": "",
+        "recipeUrl": "",
+        "recipeRelativePath": ""
+    },
+    "provider": {
+        "name": "hpGrizzly",
+        "connectDetails": {
+            "project": "__project__",
+            "key": "__key__",
+            "secretKey": "__secretKey__",
+            "apiVersion": "2",
+            "region" : "__region__",
+            "identityEndpoint": "__endpoint__",
+            "sshPrivateKey": "__sshKey__"
+        },
+        "machineOptions": {
+            "mask": "test-hp",
+            "machinesCount": 1,
+            "hardwareId": "__hardwareId__",
+            "imageId": "__imageId__",
+            "description" : "",
+            "securityGroup": "default",
+            "networkUuid": "__uuid__",
+            "keyPairName": "__keypair__"
+        }
+    }
+}

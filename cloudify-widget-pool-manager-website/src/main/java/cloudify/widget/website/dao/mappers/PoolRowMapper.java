@@ -1,10 +1,10 @@
 package cloudify.widget.website.dao.mappers;
 
+import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.common.StringUtils;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.website.models.PoolConfigurationModel;
 import cloudify.widget.website.services.GsEncryptor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +20,14 @@ import java.sql.SQLException;
  */
 public class PoolRowMapper implements RowMapper {
 
-    private final ObjectMapper objectMapper;
+    private final GsObjectMapper objectMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(PoolRowMapper.class);
 
     @Autowired
     private GsEncryptor encryptor;
 
-    public PoolRowMapper(ObjectMapper objectMapper) {
+    public PoolRowMapper(GsObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

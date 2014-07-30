@@ -1,12 +1,12 @@
 package cloudify.widget.website.dao;
 
+import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.website.dao.mappers.PoolRowMapper;
 import cloudify.widget.website.models.AccountModel;
 import cloudify.widget.website.models.PoolConfigurationModel;
 import cloudify.widget.website.services.GsEncryptor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -41,7 +41,7 @@ public class PoolDaoImpl implements IPoolDao {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolDaoImpl.class);
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final GsObjectMapper objectMapper = new GsObjectMapper();
     private static final PoolRowMapper poolRowMapper = new PoolRowMapper(objectMapper);
 
     private GsEncryptor encryptor;

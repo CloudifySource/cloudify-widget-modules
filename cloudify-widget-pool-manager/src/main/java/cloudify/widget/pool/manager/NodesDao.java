@@ -1,8 +1,8 @@
 package cloudify.widget.pool.manager;
 
 import cloudify.widget.api.clouds.ISshDetails;
+import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.pool.manager.dto.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Statement;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.slf4j.Logger;
@@ -186,7 +186,7 @@ public class NodesDao {
         protected Object getColumnValue(ResultSet rs, int index, PropertyDescriptor pd) throws SQLException {
             Class<?> propertyType = pd.getPropertyType();
             if (ISshDetails.class.isAssignableFrom(propertyType)) {
-                ObjectMapper objectMapper = new ObjectMapper();
+                GsObjectMapper objectMapper = new GsObjectMapper();
                 String sshDetailsString = rs.getString(index);
                 try {
                     NodeModelSshDetails nodeModelSshDetails = objectMapper.readValue(sshDetailsString, NodeModelSshDetails.class);

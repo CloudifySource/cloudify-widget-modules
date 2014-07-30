@@ -1,6 +1,6 @@
 package cloudify.widget.website.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cloudify.widget.common.GsObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class GsEncryptor {
     }
 
     private Boolean isEncrypted(String string) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        GsObjectMapper objectMapper = new GsObjectMapper();
 
         try {
             objectMapper.readValue(string, Object.class);

@@ -1,6 +1,6 @@
 package cloudify.widget.pool.manager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cloudify.widget.common.GsObjectMapper;
 
 import java.io.IOException;
 
@@ -15,7 +15,7 @@ public class Utils {
 
     public static String objectToJson( Object obj ){
         try {
-            return new ObjectMapper().writeValueAsString(obj);
+            return new GsObjectMapper().writeValueAsString(obj);
         } catch (IOException e) {
             throw new RuntimeException("unable to serialize obj to json " + obj , e);
         }

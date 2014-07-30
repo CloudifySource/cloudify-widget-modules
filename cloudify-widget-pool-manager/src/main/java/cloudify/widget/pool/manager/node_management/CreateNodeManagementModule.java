@@ -94,7 +94,6 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
 
                     @Override
                     public void onFailure(Throwable t) {
-                        writeError(t);
                         teardownDecisionExecution(decisionModel);
                     }
                 });

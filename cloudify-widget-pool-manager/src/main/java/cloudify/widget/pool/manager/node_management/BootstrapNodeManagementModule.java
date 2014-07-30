@@ -98,7 +98,6 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
 
                     @Override
                     public void onFailure(Throwable t) {
-                        writeError(t);
                         teardownDecisionExecution(decisionModel);
                     }
                 });

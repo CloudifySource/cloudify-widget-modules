@@ -14,12 +14,7 @@ public class Mailer {
 
     private static Logger logger = LoggerFactory.getLogger(Mailer.class);
 
-    private final MailerConfig mailerConfig;
-
-    public Mailer(MailerConfig mailerConfig) {
-        logger.trace("initializing mailer with configuration [{}]", mailerConfig);
-        this.mailerConfig = mailerConfig;
-    }
+    private MailerConfig mailerConfig;
 
     public void send(Mail mail) {
 
@@ -49,5 +44,13 @@ public class Mailer {
             logger.error("failed to send mail [{}] with configuration [{}]", mail, mailerConfig);
             throw new MailerException(String.format("failed to send mail from [%s] to [%s]", mail.from(), mail.to()), e);
         }
+    }
+
+    public MailerConfig getMailerConfig() {
+        return mailerConfig;
+    }
+
+    public void setMailerConfig(MailerConfig mailerConfig) {
+        this.mailerConfig = mailerConfig;
     }
 }

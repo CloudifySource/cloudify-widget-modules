@@ -15,24 +15,29 @@ public interface IPoolDao {
 
     /**
      * saves model and returns ID
+     *
      * @param poolSettings
      * @return
      */
-    public Long createPool( PoolConfigurationModel poolSettings );
-    public Long createPool( Long accountId, String poolSettingsJson );
+    public Long createPool(PoolConfigurationModel poolSettings);
 
-    public boolean updatePool( PoolConfigurationModel poolSettings );
-    public boolean updatePool( Long id, Long accountId, String poolSettingsJson );
+    public Long createPool(Long accountId, String poolSettingsJson);
 
-    public boolean deletePool( Long id );
-    public boolean deletePool( Long id, Long accountId );
+    public boolean updatePool(PoolConfigurationModel poolSettings);
 
-    public List<PoolConfigurationModel> readPools( AccountModel accountModel );
-    public List<PoolConfigurationModel> readPools( Long accountId );
+    public boolean updatePool(Long id, Long accountId, String poolSettingsJson) throws Exception;
+
+    public boolean deletePool(Long id);
+
+    public boolean deletePool(Long id, Long accountId);
+
+    public List<PoolConfigurationModel> readPools(AccountModel accountModel);
+
+    public List<PoolConfigurationModel> readPools(Long accountId);
 
     public List<PoolConfigurationModel> readPools();
 
-    public PoolConfigurationModel readPoolByIdAndAccountId( Long poolId, Long accountId );
+    public PoolConfigurationModel readPoolByIdAndAccountId(Long poolId, Long accountId);
 
-    public PoolConfigurationModel readPoolById( Long poolId );
+    public PoolConfigurationModel readPoolById(Long poolId);
 }

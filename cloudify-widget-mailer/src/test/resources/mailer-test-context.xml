@@ -7,18 +7,51 @@
 
     <context:property-placeholder location="conf/dev/me.conf"/>
 
+    <bean id="mailerConfig" class="cloudify.widget.mailer.MailerConfig">
+        <property name="authenticator">
+            <bean class="org.apache.commons.mail.DefaultAuthenticator">
+                <constructor-arg index="0" value="${mailer.config.username}"/>
+                <constructor-arg index="1" value="${mailer.config.password}"/>
+            </bean>
+        </property>
+        <property name="hostName" value="${mailer.config.hostname}"/>
+        <property name="smtpPort" value="${mailer.config.smtpPort:587}"/>
+        <property name="tlsEnabled" value="${mailer.config.tlsEnabled:true}"/>
+        <property name="from" value="${mailer.config.username}"/>
+    </bean>
+
+    <bean id="failingMailerConfig" class="cloudify.widget.mailer.MailerConfig">
+        <property name="authenticator">
+            <bean class="org.apache.commons.mail.DefaultAuthenticator">
+                <constructor-arg index="0" value="${mailer.config.username}"/>
+                <constructor-arg index="1" value="${mailer.config.password}"/>
+            </bean>
+        </property>
+        <property name="hostName" value="${mailer.config.failingHostname}"/>
+        <property name="smtpPort" value="${mailer.config.smtpPort:587}"/>
+        <property name="tlsEnabled" value="${mailer.config.tlsEnabled:true}"/>
+        <property name="from" value="${mailer.config.username}"/>
+    </bean>
+
+    <bean id="mailer" class="cloudify.widget.mailer.Mailer">
+        <property name="mailerConfig" ref="mailerConfig"/>
+    </bean>
+
+    <bean id="failingMailer" class="cloudify.widget.mailer.Mailer">
+        <property name="mailerConfig" ref="failingMailerConfig"/>
+    </bean>
 
     <bean id="gmailAuthenticator" class="org.apache.commons.mail.DefaultAuthenticator">
         <constructor-arg name="userName" value="${mailer.auth.userName}" />
         <constructor-arg name="password" value="${mailer.auth.password}" />
     </bean>
 
-    <bean id="mailerConfig" class="cloudify.widget.mailer.MailerConfig">
-        <constructor-arg name="smtpPort" value="${mailer.conf.smtpPort}" />
-        <constructor-arg name="hostName" value="${mailer.conf.hostName}" />
-        <constructor-arg name="tlsEnabled" value="${mailer.conf.tlsEnabled}" />
-        <constructor-arg name="authenticator" ref="gmailAuthenticator" />
-    </bean>
+    <!--<bean id="mailerConfig" class="cloudify.widget.mailer.MailerConfig">-->
+        <!--<property name="smtpPort" value="${mailer.conf.smtpPort}" />-->
+        <!--<property name="hostName" value="${mailer.conf.hostName}" />-->
+        <!--<property name="tlsEnabled" value="${mailer.conf.tlsEnabled}" />-->
+        <!--<property name="authenticator" ref="gmailAuthenticator" />-->
+    <!--</bean>-->
 
     <bean id="mailBuilder" class="cloudify.widget.mailer.Mail$MailBuilder">
         <constructor-arg name="from" value="${mailer.mail.from}" />

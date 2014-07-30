@@ -1,8 +1,8 @@
 package cloudify.widget.pool.manager;
 
+import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.pool.manager.dto.ManagerSettings;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ public class SettingsJsonDataAccessManager implements SettingsDataAccessManager 
     @Override
     public ManagerSettings read() {
 
-        ObjectMapper mapper = new ObjectMapper();
+        GsObjectMapper mapper = new GsObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ManagerSettings managerSettings = null;
         try {

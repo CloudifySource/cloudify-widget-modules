@@ -1,1 +1,2 @@
 mvn install:install-file -Dfile=..\lib\softlayer-cci-embedded-1.6.2-incubating.jar -DgroupId=org.apache.jclouds.provider -DartifactId=softlayer-cci-embedded -Dversion=1.6.2-incubating -Dpackaging=jar
+mvn install:install-file -Dfile=..\lib\softlayer-all-1.6.2-incubating.jar -DgroupId=org.apache.jclouds.provider -DartifactId=softlayer-all -Dversion=1.6.2-incubating -Dpackaging=jar

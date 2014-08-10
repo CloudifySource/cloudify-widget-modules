@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -25,40 +26,39 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
     @Autowired
     private PoolManagerApi poolManagerApi;
 
+    /**
+     * Checks if there is a need to create nodes within the minNodes limit
+     *
+     * @return
+     */
+    private Boolean shouldCreateMoreNodes() {
+        Constraints constraints = getConstraints();
+        LinkedList<NodeStatus> nodeStatuses = new LinkedList<NodeStatus>();
+        nodeStatuses.add(NodeStatus.CREATING);
+        nodeStatuses.add(NodeStatus.CREATED);
+        nodeStatuses.add(NodeStatus.BOOTSTRAPPING);
+        nodeStatuses.add(NodeStatus.BOOTSTRAPPED);
+        List<NodeModel> nodeModels = nodesDao.readAllOfPoolWithStatusRange(constraints.poolSettings.getUuid(), nodeStatuses);
+        int numInstancesInQueue = CollectionUtils.size(getOwnDecisionModelsQueue());    // nodes that are going to be bootstrapped soon.
+
+        return (nodeModels.size() + numInstancesInQueue < constraints.minNodes);
+    }
+
+    /**
+     * Check if there is room to create more nodes within the maxNodes limit
+     *
+     * @return
+     */
+    private Boolean canCreateMoreNodes() {
+        Constraints constraints = getConstraints();
+        List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());    // all nodes in all states.
+
+        return (nodeModels.size() < constraints.maxNodes);
+    }
+
     @Override
     public CreateNodeManagementModule decide() {
-
-        Constraints constraints = getConstraints();
-        List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());
-        List<NodeModel> bootstrappedModels = nodesDao.readAllOfPoolWithStatus(constraints.poolSettings.getUuid(), NodeStatus.BOOTSTRAPPED);
-        // check if there are decisions in the queue, and if executing them will satisfy the constraints
-        int numInstancesInQueue = CollectionUtils.size(getOwnDecisionModelsQueue());
-        int needed = Math.min(
-                constraints.minNodes - bootstrappedModels.size() - numInstancesInQueue, // how many do I need for a minimum pool size
-                constraints.maxNodes - nodeModels.size() ); // how many can I add
-
-        logger.debug("{ 'minNodes' : {} , 'maxNodes' :{}, 'allNodes' :{}, 'bootstrappedModels':{}, 'inQueue':{},'needed':{} }", constraints.minNodes,
-                constraints.maxNodes,
-                nodeModels.size(),
-                bootstrappedModels.size(),
-                numInstancesInQueue,
-                needed
-                );
-
-        // we create more machines only if existing machines are less than the minimum
-        if (nodeModels.size() >= constraints.maxNodes || bootstrappedModels.size() >= constraints.minNodes ) {
-            logger.debug("I have enough machines. I don't need more. ");
-            return this;
-        }
-
-        if (numInstancesInQueue + nodeModels.size() >= constraints.maxNodes || numInstancesInQueue + bootstrappedModels.size() >= constraints.minNodes ) {
-            logger.debug("I might not have enough machines now, but I am going too.. so I don't need more.");
-            // no action needed, the queue will satisfy the constraints in the following iteration(s)
-            return this;
-        }
-
-
-        for (int i = 0; i < needed; i++) {
+        if (shouldCreateMoreNodes() && canCreateMoreNodes()) {
             DecisionModel decisionModel = buildOwnDecisionModel(new CreateDecisionDetails());
             decisionsDao.create(decisionModel);
         }

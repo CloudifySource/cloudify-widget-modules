@@ -83,8 +83,15 @@ public class TestNodeManagement {
                 e.printStackTrace();
             }
         }
-    }
 
+        // expect 1 created un-bootstrapped node
+        List<DecisionModel> bootstrappedDecisions = decisionsDao.readAllOfPoolWithDecisionType(poolSettings.getUuid(), NodeManagementModuleType.BOOTSTRAP);
+        Assert.assertEquals(bootstrappedDecisions.size(), 0);
+
+        List<DecisionModel> allDecisions = decisionsDao.readAllOfPool(poolSettings.getUuid());
+        Assert.assertEquals(allDecisions.size(), 1);
+
+    }
 
     @Test
     public void testDecisionsDao() {

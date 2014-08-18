@@ -13,6 +13,7 @@ public class BootstrapProperties {
     private String preBootstrapScript; // optional
     private String recipeUrl; // optional
     private String recipeRelativePath; // optional
+    private String script;
 
     public String getPublicIp() {
         return publicIp;
@@ -102,5 +103,13 @@ public class BootstrapProperties {
                 ", recipeUrl='" + recipeUrl + '\'' +
                 ", recipeRelativePath='" + recipeRelativePath + '\'' +
                 '}';
+    }
+
+    public String getScript() {
+        return script;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
     }
 }

@@ -180,7 +180,7 @@ public class TaskRegistrar {
         private void sendEmail(ErrorModel errorModel) {
             EmailSettings emailSettings = _poolSettings.getNodeManagement().getEmailSettings();
 
-            if (emailSettings.isTurnedOn()) {
+            if (emailSettings != null && emailSettings.isTurnedOn()) {
                 Mail mail = new Mail.MailBuilder(_mailer.getMailerConfig().getFrom(), emailSettings.getRecipients(), errorModel.message)
                         .message(errorModel.toEmailString())
                         .build();

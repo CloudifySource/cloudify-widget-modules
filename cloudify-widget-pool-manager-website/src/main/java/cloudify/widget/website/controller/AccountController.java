@@ -1,5 +1,6 @@
 package cloudify.widget.website.controller;
 
+import cloudify.widget.pool.manager.BootstrapScriptLoader;
 import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.NodeModel;
@@ -39,6 +40,8 @@ public class AccountController {
     @Autowired
     private NodeManagementExecutor nodeManagementExecutor;
 
+    @Autowired
+    private BootstrapScriptLoader bootstrapScriptLoader;
 
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
@@ -48,6 +51,12 @@ public class AccountController {
     @ResponseBody
     public List<PoolConfigurationModel> getPools(@ModelAttribute("account") AccountModel accountModel) {
         return poolDao.readPools(accountModel);
+    }
+
+    @RequestMapping(value = "/account/pools/script", method = RequestMethod.GET)
+    @ResponseBody
+    public String getPoolScript() {
+        return bootstrapScriptLoader.readScriptFromFile();
     }
 
     @RequestMapping(value = "/account/pools/{poolId}", method = RequestMethod.GET)

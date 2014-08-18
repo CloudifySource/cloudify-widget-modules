@@ -101,6 +101,22 @@ public class NodesDao {
                 new NodeModelRowMapper());
     }
 
+    public List<NodeModel> readAllOfPoolWithStatusRange(String poolId, List<NodeStatus> nodeStatuses) {
+        if (nodeStatuses.isEmpty()) {
+            return null;
+        }
+
+        String inString = "('" + nodeStatuses.get(0).name();
+        for (int i = 1; i < nodeStatuses.size(); i++) {
+            inString += "','" + nodeStatuses.get(i).name();
+        }
+        inString += "')";
+
+        return jdbcTemplate.query("select * from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_NODE_STATUS + " in " + inString,
+                new Object[]{poolId},
+                new NodeModelRowMapper());
+    }
+
     public List<Long> readExpiredIdsOfPool(String poolId) {
         List<Long> result = jdbcTemplate.queryForList("select " + COL_ID + " from " + TABLE_NAME + " where " + COL_POOL_ID + " = ? and " + COL_EXPIRES + " < ?",
                 new Object[]{poolId, System.currentTimeMillis()},

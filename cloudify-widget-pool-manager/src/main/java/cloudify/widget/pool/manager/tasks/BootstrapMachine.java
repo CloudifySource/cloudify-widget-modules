@@ -3,6 +3,7 @@ package cloudify.widget.pool.manager.tasks;
 import cloudify.widget.api.clouds.CloudExecResponse;
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.ISshDetails;
+import cloudify.widget.pool.manager.BootstrapScriptLoader;
 import cloudify.widget.pool.manager.CloudServerApiFactory;
 import cloudify.widget.pool.manager.NodesDao;
 import cloudify.widget.pool.manager.dto.BootstrapProperties;
@@ -32,6 +33,9 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     @Autowired
     private NodesDao nodesDao;
 
+    @Autowired
+    private BootstrapScriptLoader bootstrapScriptLoader;
+
     @Override
     public Void call() throws Exception {
 
@@ -58,34 +62,12 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     }
 
     private String getBootstrapScript() {
-        return readScriptFromFile(getScriptFile());
-    }
+        String script = poolSettings.getBootstrapProperties().getScript();
 
-    private File getScriptFile() {
-        File scriptFile;
-        String bootstrapScriptResourcePath = taskConfig.getBootstrapScriptResourcePath();
-
-        try {
-            scriptFile = ResourceUtils.getFile(bootstrapScriptResourcePath);
-            logger.debug("bootstrap script file is [{}]", scriptFile);
-        } catch (FileNotFoundException e) {
-            String message = "failed to get resource for bootstrap script from [" + bootstrapScriptResourcePath + "]";
-            logger.error(message, e);
-            throw new RuntimeException(message);
+        if (script == null || script == "") {
+            script = bootstrapScriptLoader.readScriptFromFile();
         }
-        return scriptFile;
-    }
 
-    private String readScriptFromFile(File scriptFile) {
-        String script;
-        try {
-            script = FileUtils.readFileToString(scriptFile);
-            logger.debug("script file read to string\n\n[{}]...", script.substring(0, 20));
-        } catch (IOException e) {
-            String message = "failed to read bootstrap script file to string from [" + scriptFile.getAbsolutePath() + "]";
-            logger.error(message, e);
-            throw new RuntimeException(message);
-        }
         return script;
     }
 

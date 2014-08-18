@@ -75,8 +75,12 @@
         <property name="decisionsDao" ref="decisionsDao"/>
         <property name="statusManager" ref="statusManager"/>
         <property name="taskExecutor" ref="taskExecutor"/>
-        <property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>
+        <!--<property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>-->
         <property name="bootstrapSuccessText" value="successfully"/>
+    </bean>
+
+    <bean id="bootstrapScriptLoader" class="cloudify.widget.pool.manager.BootstrapScriptLoader">
+        <property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>
     </bean>
 
     <bean id="nodeManagementModuleProvider"

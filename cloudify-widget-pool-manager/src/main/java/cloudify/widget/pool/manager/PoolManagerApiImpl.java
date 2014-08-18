@@ -36,8 +36,6 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     private TaskExecutor taskExecutor;
 
-    private String bootstrapScriptResourcePath;
-
     private String bootstrapSuccessText;
 
     private ApplicationContext applicationContext;
@@ -90,11 +88,6 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     public void bootstrapNode(PoolSettings poolSettings, long nodeId, TaskCallback<NodeModel> taskCallback) {
         final NodeModel node = _getNodeModel(nodeId);
         taskExecutor.execute(getBootstrapMachineTask(), new BootstrapMachineConfig() {
-            @Override
-            public String getBootstrapScriptResourcePath() {
-                return bootstrapScriptResourcePath;
-            }
-
             @Override
             public String getBootstrapSuccessText() {
                 return bootstrapSuccessText;
@@ -245,10 +238,6 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
 
     public void setTaskExecutor(TaskExecutor taskExecutor) {
         this.taskExecutor = taskExecutor;
-    }
-
-    public void setBootstrapScriptResourcePath(String bootstrapScriptResourcePath) {
-        this.bootstrapScriptResourcePath = bootstrapScriptResourcePath;
     }
 
     public void setBootstrapSuccessText(String bootstrapSuccessText) {

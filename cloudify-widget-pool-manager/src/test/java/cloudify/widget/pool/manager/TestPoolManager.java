@@ -141,11 +141,6 @@ public class TestPoolManager {
 
         testTaskExecutor.execute(bootstrapMachineTask, new BootstrapMachineConfig() {
             @Override
-            public String getBootstrapScriptResourcePath() {
-                return bootstrapScriptResourcePath;
-            }
-
-            @Override
             public String getBootstrapSuccessText() {
                 return bootstrapSuccessText;
             }

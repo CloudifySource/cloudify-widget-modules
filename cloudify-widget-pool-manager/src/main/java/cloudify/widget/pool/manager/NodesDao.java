@@ -186,6 +186,7 @@ public class NodesDao {
             int updated = jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ? and " + COL_NODE_STATUS + " = ?",
                     NodeStatus.OCCUPIED.name(), expires, nodeModel.id, NodeStatus.BOOTSTRAPPED.name());
             if (updated == 1) {
+                nodeModel = read(nodeModel.id);
                 return nodeModel;
             }
         }

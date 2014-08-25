@@ -143,7 +143,7 @@ public class PoolDaoImpl implements IPoolDao {
 
     public boolean updatePool(Long id, Long accountId, String poolSettingsJson, String poolUuid) {
         // encrypt poolSettingsJson
-        poolSettingsJson = encryptor.encrypt(poolSettingsJson, poolUuid);
+        poolSettingsJson = encryptor.encrypt(poolUuid, poolSettingsJson);
 
         int numOfRows = jdbcTemplate.update(updateByIdAndAccountId, poolSettingsJson, id, accountId);
         return numOfRows > 0;

@@ -64,7 +64,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     private String getBootstrapScript() {
         String script = poolSettings.getBootstrapProperties().getScript();
 
-        if (script == null || script == "") {
+        if (script == null || script.replaceAll("\\s+","").equals("")) {
             script = bootstrapScriptLoader.readScriptFromFile();
         }
 

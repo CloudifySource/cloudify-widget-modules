@@ -31,8 +31,9 @@ CLOUDIFY_FOLDER=`cat $CLOUDIFY_HOMEDIR_CONF`
 
 echo "cloudify folder is $CLOUDIFY_FOLDER"
 
+DOWNLOAD_RECIPE_ROOT="/tmp/download_recipe"
 RECIPE_URL="https://github.com/CloudifySource/cloudify-recipes/archive/master.zip"
-RECIPE_RELATIVE_PATH="/cloudify-recipes-master/apps/xap9x-tiny/"
+RECIPE_RELATIVE_PATH="cloudify-recipes-master/apps/xap9x-tiny/"
 
 init(){
     echo "Open firewall ports"
@@ -153,9 +154,10 @@ bootstrap_localcloud(){
 
 
 download_recipe_wget(){
-    if [ ! -f recipe.zip ]; then
+     mkdir -p $DOWNLOAD_RECIPE_ROOT
+    if [ ! -f $DOWNLOAD_RECIPE_ROOT/recipe.zip ]; then
         echo "download recipe using wget method"
-        wget -q -O recipe.zip "$RECIPE_URL"
+        wget -q -O $DOWNLOAD_RECIPE_ROOT/recipe.zip "$RECIPE_URL"
 
     else
         echo "recipe file already exists, nothing to do"
@@ -169,10 +171,10 @@ download_recipe_wget(){
     source ~/.bashrc
     echo "RECIPE_RELATIVE_PATH is ($RECIPE_RELATIVE_PATH)"
 
-    if [ -f /tmp/download_recipe/recipe.zip ];then
+    if [ -f $DOWNLOAD_RECIPE_ROOT/recipe.zip ];then
         echo "found recipe.zip file, installing it"
 
-        cd /tmp/download_recipe
+        cd "$DOWNLOAD_RECIPE_ROOT"
         unzip -o recipe.zip
 
 

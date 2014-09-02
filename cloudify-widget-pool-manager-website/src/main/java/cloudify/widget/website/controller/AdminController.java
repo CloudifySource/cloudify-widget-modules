@@ -7,6 +7,7 @@ import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
 import cloudify.widget.website.dao.IResourceDao;
+import cloudify.widget.website.exceptions.PoolNotFoundException;
 import cloudify.widget.website.models.AccountModel;
 import cloudify.widget.website.models.PoolConfigurationModel;
 import org.slf4j.Logger;
@@ -134,34 +135,34 @@ public class AdminController {
             logger.error("failed to update pool", e);
             e.printStackTrace();
         }
-        nodeManagementExecutor.update(poolDao.readPoolById(poolConfigurationId).poolSettings);
+        nodeManagementExecutor.update(readPoolByIdWrapper(poolConfigurationId).poolSettings);
         return updated;
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/delete", method = RequestMethod.POST)
     @ResponseBody
     public boolean deleteAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
-        nodeManagementExecutor.stop(poolDao.readPoolById(poolConfigurationId).poolSettings);
+        nodeManagementExecutor.stop(readPoolByIdWrapper(poolConfigurationId).poolSettings);
         return poolDao.deletePool(poolConfigurationId, accountId);
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/clean", method = RequestMethod.POST)
     @ResponseBody
     public void cleanAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdAndAccountIdWrapper(poolConfigurationId, accountId).getPoolSettings();
         poolManagerApi.cleanPool(poolSettings);
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}", method = RequestMethod.GET)
     @ResponseBody
     public PoolConfigurationModel getAccountPool(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
-        return poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId);
+        return readPoolByIdAndAccountIdWrapper(poolConfigurationId, accountId);
     }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/status", method = RequestMethod.GET)
     @ResponseBody
     public PoolStatus getAccountPoolStatus(@PathVariable("accountId") Long accountId, @PathVariable("poolId") Long poolConfigurationId) {
-        PoolConfigurationModel poolConfiguration = poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId);
+        PoolConfigurationModel poolConfiguration = readPoolByIdAndAccountIdWrapper(poolConfigurationId, accountId);
         return _getPoolStatus(poolConfiguration);
     }
 
@@ -171,7 +172,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/pools/{poolId}/status", method = RequestMethod.GET)
     @ResponseBody
     public Map<Long, PoolStatus> getPoolStatus(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolConfigurationModel poolConfiguration = poolDao.readPoolById(poolConfigurationId);
+        PoolConfigurationModel poolConfiguration = readPoolByIdWrapper(poolConfigurationId);
         HashMap<Long, PoolStatus> resultMap = new HashMap<Long, PoolStatus>();
         resultMap.put(poolConfigurationId, _getPoolStatus(poolConfiguration));
         return resultMap;
@@ -204,35 +205,35 @@ public class AdminController {
     @RequestMapping(value = "/admin/pools/{poolId}/errors", method = RequestMethod.GET)
     @ResponseBody
     public List<ErrorModel> getPoolErrors(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         return poolManagerApi.listErrors(poolSettings);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/errors/delete", method = RequestMethod.POST)
     @ResponseBody
     public void deletePoolErrors(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.deleteErrors(poolSettings);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/tasks", method = RequestMethod.GET)
     @ResponseBody
     public List<TaskModel> getPoolTasks(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         return poolManagerApi.listRunningTasks(poolSettings);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/decisions", method = RequestMethod.GET)
     @ResponseBody
     public List<DecisionModel> getPoolDecisions(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         return poolManagerApi.listDecisions(poolSettings);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/decisions/{decisionId}/abort", method = RequestMethod.POST)
     @ResponseBody
     public void abortPoolDecision(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("decisionId") Long decisionId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.abortDecision(poolSettings, decisionId);
     }
 
@@ -240,7 +241,7 @@ public class AdminController {
     @ResponseBody
     public void updatePoolDecisionApproval(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("decisionId") Long decisionId, @PathVariable("approved") Boolean approved) {
         logger.debug("> update pool decision approval > poolConfigurationId [{}], decisionId [{}], approved [{}]", poolConfigurationId, decisionId, approved);
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.updateDecisionApproval(poolSettings, decisionId, approved);
     }
 
@@ -248,7 +249,7 @@ public class AdminController {
     @ResponseBody
     public void deletePoolTask(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("taskId") Long taskId) {
         // task IDs are currently unique across pools, no need to check for pool id
-//        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+//        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.removeRunningTask(/*poolSettings,*/ taskId);
     }
 
@@ -266,28 +267,28 @@ public class AdminController {
     @RequestMapping(value = "/admin/pools/{poolId}/nodes", method = RequestMethod.GET)
     @ResponseBody
     public List<NodeModel> getMachines(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         return poolManagerApi.listNodes(poolSettings);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes", method = RequestMethod.POST)
     @ResponseBody
     public void addMachine(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.createNode(poolSettings, null);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/bootstrap", method = RequestMethod.POST)
     @ResponseBody
     public void nodeBootstrap(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.bootstrapNode(poolSettings, nodeId, null);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)
     @ResponseBody
     public void nodeDelete(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         poolManagerApi.deleteNode(poolSettings, nodeId, null);
     }
 
@@ -296,7 +297,7 @@ public class AdminController {
     @ResponseBody
     public void nodeBootstrap(@PathVariable("accountId") Long accountId,
                               @PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
-        PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolConfigurationId, accountId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdAndAccountIdWrapper(poolConfigurationId, accountId).getPoolSettings();
         poolManagerApi.bootstrapNode(poolSettings, nodeId, null);
     }
 
@@ -310,7 +311,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/pools/{poolId}/cloud/nodes", method = RequestMethod.GET)
     @ResponseBody
     public List<NodeMappings> getCloudNodes(@PathVariable("poolId") Long poolConfigurationId) {
-        PoolSettings poolSettings = poolDao.readPoolById(poolConfigurationId).getPoolSettings();
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
         return poolManagerApi.listCloudNodes(poolSettings);
     }
 
@@ -341,7 +342,7 @@ public class AdminController {
         if (pathVariables.containsKey("accountId") && pathVariables.containsKey("poolId")) {
             long accountId = Long.parseLong((String) pathVariables.get("accountId"));
             long poolId = Long.parseLong((String) pathVariables.get("poolId"));
-            return poolDao.readPoolByIdAndAccountId(poolId, accountId).getPoolSettings();
+            return readPoolByIdAndAccountIdWrapper(poolId, accountId).getPoolSettings();
         } else {
             return null;
         }
@@ -357,5 +358,24 @@ public class AdminController {
             }
         }
         return retValue;
+    }
+
+    private PoolConfigurationModel readPoolByIdWrapper(Long poolId) {
+        try {
+            PoolConfigurationModel poolSettings = poolDao.readPoolById(poolId);
+            return poolSettings;
+        } catch (Exception e) {
+            throw new PoolNotFoundException();
+        }
+
+    }
+
+    private PoolConfigurationModel readPoolByIdAndAccountIdWrapper(Long poolId, Long accountId) {
+        try {
+            PoolConfigurationModel poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountId);
+            return poolSettings;
+        } catch (Exception e) {
+            throw new PoolNotFoundException();
+        }
     }
 }

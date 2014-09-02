@@ -22,8 +22,7 @@ import org.jclouds.compute.domain.*;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.logging.config.NullLoggingModule;
-import org.jclouds.softlayer.compute.functions.VirtualGuestToReducedNodeMetaDataLocal;
-import org.jclouds.softlayer.reference.SoftLayerConstants;
+import org.jclouds.softlayer.compute.functions.guest.VirtualGuestToReducedNodeMetaDataLocal;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
 import org.slf4j.Logger;
@@ -136,7 +135,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         modules.add(new AbstractModule() {
             @Override
             protected void configure() {
-                bind(org.jclouds.softlayer.compute.functions.VirtualGuestToNodeMetadata.class).to(VirtualGuestToReducedNodeMetaDataLocal.class);
+                bind(org.jclouds.softlayer.compute.functions.guest.VirtualGuestToNodeMetadata.class).to(VirtualGuestToReducedNodeMetaDataLocal.class);
             }
         });
 
@@ -144,7 +143,6 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         Properties overrides = new Properties();
 
         // it is strange that we add a machine detail on the context, but it was less work.
-        overrides.setProperty(SoftLayerConstants.PROPERTY_SOFTLAYER_VIRTUALGUEST_PORT_SPEED_FIRST_PRICE_ID, connectDetails.networkId );
         overrides.put("jclouds.timeouts.AccountClient.getActivePackages", String.valueOf(10 * 60 * 1000));
         overrides.put("jclouds.timeouts.AccountClient.getActivePackages", String.valueOf(10 * 60 * 1000));
         //if (connectDetails.isApiKey()) {

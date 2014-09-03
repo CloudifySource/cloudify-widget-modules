@@ -16,7 +16,7 @@
  *  ******************************************************************************
  */
 
-package org.jclouds.softlayer.compute.functions;
+package org.jclouds.softlayer.compute.functions.guest;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
@@ -28,7 +28,8 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.softlayer.domain.OperatingSystem;
 import org.jclouds.softlayer.domain.Password;
-import org.jclouds.softlayer.domain.VirtualGuest;
+import org.jclouds.softlayer.domain.SoftLayerNode;
+import org.jclouds.softlayer.domain.guest.VirtualGuest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,8 +70,15 @@ public class VirtualGuestToReducedNodeMetaDataLocal extends VirtualGuestToNodeMe
         this.nodeNamingConvention = checkNotNull(namingConvention, "namingConvention").createWithoutPrefix();
     }
 
-
     @Override
+    public NodeMetadata apply(SoftLayerNode from) {
+        if ( from instanceof VirtualGuest ){
+            return apply((VirtualGuest) from);
+        }
+        return null;
+    }
+
+
     public NodeMetadata apply(final VirtualGuest from) {
         // convert the result object to a jclouds NodeMetadata
         NodeMetadataBuilder builder = new NodeMetadataBuilder();

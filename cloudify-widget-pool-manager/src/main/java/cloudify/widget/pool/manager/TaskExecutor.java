@@ -3,16 +3,13 @@ package cloudify.widget.pool.manager;
 import cloudify.widget.mailer.Mailer;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.tasks.*;
-import cloudify.widget.pool.manager.tasks.Task;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.sun.jmx.snmp.tasks.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +37,7 @@ public class TaskExecutor {
 
     @Autowired
     private Mailer mailer;
+    private ExecutorService undecoratedExecutor;
 
 
     public void init() {
@@ -93,10 +91,17 @@ public class TaskExecutor {
     }
 
     public void setExecutorService(ExecutorService executorService) {
+        this.undecoratedExecutor = executorService;
         this.executorService = MoreExecutors.listeningDecorator(executorService);
     }
 
-/*
+    // sefi : could not use "getExecutorService" as it messed up spring injection.
+    // todo: https://cloudifysource.atlassian.net/browse/CW-181
+    public ExecutorService getExecutorServiceObj() {
+        return undecoratedExecutor;
+    }
+
+    /*
     public void setBackgroundExecutorService(ListeningExecutorService backgroundExecutorService) {
         this.backgroundExecutorService = backgroundExecutorService;
     }

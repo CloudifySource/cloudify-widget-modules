@@ -34,7 +34,7 @@
     </bean>
 
     <bean id="taskPool" class="cloudify.widget.pool.manager.FixedSizeExecutorServiceFactory">
-        <property name="numThreads" value="200"/>
+        <property name="corePoolSize" value="200"/>
     </bean>
 
     <bean id="taskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init"

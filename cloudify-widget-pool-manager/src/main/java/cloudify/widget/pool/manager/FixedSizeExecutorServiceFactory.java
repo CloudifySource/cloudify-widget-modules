@@ -10,26 +10,12 @@ import java.util.concurrent.Executors;
  * Date: 3/9/14
  * Time: 5:12 PM
  */
-public class FixedSizeExecutorServiceFactory implements FactoryBean<ExecutorService> {
-
-    private int nThreads = 200;
+public class FixedSizeExecutorServiceFactory extends BaseExecutorServiceFactory {
 
     @Override
     public ExecutorService getObject() throws Exception {
-        return Executors.newFixedThreadPool(nThreads);
+        executorService = Executors.newFixedThreadPool(corePoolSize);
+        return executorService;
     }
 
-    @Override
-    public Class<?> getObjectType() {
-        return ExecutorService.class;
-    }
-
-    @Override
-    public boolean isSingleton() {
-        return false;
-    }
-
-    public void setNumThreads(int nThreads) {
-        this.nThreads = nThreads;
-    }
 }

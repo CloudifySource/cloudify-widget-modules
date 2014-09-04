@@ -1,8 +1,6 @@
 package cloudify.widget.website.controller;
 
-import cloudify.widget.pool.manager.BootstrapScriptLoader;
-import cloudify.widget.pool.manager.NodeManagementExecutor;
-import cloudify.widget.pool.manager.PoolManagerApi;
+import cloudify.widget.pool.manager.*;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
@@ -20,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 @SuppressWarnings("UnusedDeclaration")
@@ -45,6 +45,9 @@ public class AdminController {
 
     @Autowired
     private BootstrapScriptLoader bootstrapScriptLoader;
+
+    @Autowired
+    private TaskExecutor taskExecutor;
 
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
@@ -200,6 +203,36 @@ public class AdminController {
         }
 
         return resultMap;
+    }
+
+    @RequestMapping(value = "/admin/pools/threadPools", method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, ThreadPoolStatus> getThreadPoolStatus() {
+        HashMap<String, ThreadPoolStatus> threadPoolStatuses = new HashMap<String, ThreadPoolStatus>();
+
+        threadPoolStatuses.put("taskPool", getThreadPoolStatusInstance("taskPool", taskExecutor.getExecutorServiceObj()));
+        threadPoolStatuses.put("nodeManagementPool", getThreadPoolStatusInstance("nodeManagementPool", nodeManagementExecutor.getExecutorServiceObj()));
+
+
+        return threadPoolStatuses;
+    }
+
+    private ThreadPoolStatus getThreadPoolStatusInstance(String name, ExecutorService executorService) {
+        ThreadPoolStatus threadPoolStatus = new ThreadPoolStatus();
+
+        if (executorService instanceof ThreadPoolExecutor) {
+            ThreadPoolExecutor threadPool = (ThreadPoolExecutor) executorService;
+
+            threadPoolStatus.setActiveThreads(threadPool.getActiveCount());
+            threadPoolStatus.setCompletedTaskCount(threadPool.getCompletedTaskCount());
+            threadPoolStatus.setTaskCount(threadPool.getTaskCount());
+            threadPoolStatus.setCorePoolSize(threadPool.getCorePoolSize());
+            threadPoolStatus.setLargestPoolSize(threadPool.getLargestPoolSize());
+            threadPoolStatus.setMaximumPoolSize(threadPool.getMaximumPoolSize());
+            threadPoolStatus.setCurrentPoolSize(threadPool.getPoolSize());
+        }
+
+        return threadPoolStatus;
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/errors", method = RequestMethod.GET)

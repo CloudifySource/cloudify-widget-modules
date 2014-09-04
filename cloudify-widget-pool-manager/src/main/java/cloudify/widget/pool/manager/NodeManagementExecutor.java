@@ -164,4 +164,8 @@ public class NodeManagementExecutor {
     public void setExecutorService(ScheduledExecutorService executorService) {
         this.executorService = executorService;
     }
+
+    public ScheduledExecutorService getExecutorServiceObj() {
+        return executorService;
+    }
 }

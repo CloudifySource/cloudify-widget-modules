@@ -54,6 +54,7 @@
         <property name="url" value="#{conf.jdbcUrl}"/>
         <property name="username" value="#{conf.jdbcUsername}"/>
         <property name="password" value="#{conf.jdbcPassword}"/>
+        <property name="removeAbandoned" value="true"/>
     </bean>
 
     <bean id="websiteJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
@@ -72,6 +73,10 @@
 
     <bean class="cloudify.widget.website.handlers.NodeManagementRecoveryHandler"/>
 
+    <bean class="cloudify.widget.website.services.DBStatusReporter">
+        <property name="websiteDataSource" ref="websiteDataSource"/>
+        <property name="poolManagerDataSource" ref="poolManagerDataSource"/>
+    </bean>
 
     <beans profile="manager-app,default,dev">
         <import resource="classpath:pool-manager-app-context.xml"/>

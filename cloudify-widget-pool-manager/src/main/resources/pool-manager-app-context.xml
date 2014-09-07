@@ -106,13 +106,13 @@
         <property name="applicationUrlPattern" value="https://%s:8443"/>
     </bean>
 
-
     <!-- default values -->
     <bean id="poolManagerDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${jdbc.driverClassName:com.mysql.jdbc.Driver}"/>
         <property name="url" value="${jdbc.url:jdbc:mysql://127.0.0.1:3306/managerpool}"/>
         <property name="username" value="${jdbc.username:root}"/>
         <property name="password" value="${jdbc.password:root}"/>
+        <property name="removeAbandoned" value="true"/>
     </bean>
 
     <bean id="poolManagerJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">

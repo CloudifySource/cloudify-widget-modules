@@ -8,6 +8,7 @@ import cloudify.widget.website.dao.IResourceDao;
 import cloudify.widget.website.exceptions.PoolNotFoundException;
 import cloudify.widget.website.models.AccountModel;
 import cloudify.widget.website.models.PoolConfigurationModel;
+import cloudify.widget.website.services.DBStatusReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public class AdminController {
 
     @Autowired
     private TaskExecutor taskExecutor;
+
+    @Autowired
+    private DBStatusReporter dbStatusReporter;
 
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
@@ -205,19 +209,24 @@ public class AdminController {
         return resultMap;
     }
 
+    @RequestMapping(value = "/admin/datasources", method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, Object> getDataSourcesStatus() {
+        return dbStatusReporter.getStatus();
+    }
+
     @RequestMapping(value = "/admin/pools/threadPools", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, ThreadPoolStatus> getThreadPoolStatus() {
         HashMap<String, ThreadPoolStatus> threadPoolStatuses = new HashMap<String, ThreadPoolStatus>();
 
-        threadPoolStatuses.put("taskPool", getThreadPoolStatusInstance("taskPool", taskExecutor.getExecutorServiceObj()));
-        threadPoolStatuses.put("nodeManagementPool", getThreadPoolStatusInstance("nodeManagementPool", nodeManagementExecutor.getExecutorServiceObj()));
-
+        threadPoolStatuses.put("taskPool", getThreadPoolStatusInstance(taskExecutor.getExecutorServiceObj()));
+        threadPoolStatuses.put("nodeManagementPool", getThreadPoolStatusInstance(nodeManagementExecutor.getExecutorServiceObj()));
 
         return threadPoolStatuses;
     }
 
-    private ThreadPoolStatus getThreadPoolStatusInstance(String name, ExecutorService executorService) {
+    private ThreadPoolStatus getThreadPoolStatusInstance(ExecutorService executorService) {
         ThreadPoolStatus threadPoolStatus = new ThreadPoolStatus();
 
         if (executorService instanceof ThreadPoolExecutor) {

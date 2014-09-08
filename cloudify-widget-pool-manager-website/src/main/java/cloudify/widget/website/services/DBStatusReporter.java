@@ -1,6 +1,9 @@
 package cloudify.widget.website.services;
 
+import cloudify.widget.common.GsObjectMapper;
 import org.apache.commons.dbcp.BasicDataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,57 +12,28 @@ import java.util.Map;
  * Created by sefi on 9/7/14.
  */
 public class DBStatusReporter {
+
+    @Autowired
     private BasicDataSource websiteDataSource;
+
+    @Autowired
     private BasicDataSource poolManagerDataSource;
 
 
-    public Map<String, DataSourceStatus> getStatus () {
-        HashMap<String, DataSourceStatus> dsStatuses = new HashMap<String, DataSourceStatus>();
+    public Map<String, Object> getStatus () {
+        HashMap<String, Object> dsStatuses = new HashMap<String, Object>();
 
         dsStatuses.put("websiteDS", getDataSourceStatusInstance(websiteDataSource));
-        dsStatuses.put("poolManagerDS", getDataSourceStatusInstance(poolManagerDataSource));
+        dsStatuses.put("poolManagetDS", getDataSourceStatusInstance(poolManagerDataSource));
 
         return dsStatuses;
     }
 
-    private DataSourceStatus getDataSourceStatusInstance(BasicDataSource basicDataSource) {
-        DataSourceStatus dsStatus = new DataSourceStatus();
+    private Object getDataSourceStatusInstance(BasicDataSource basicDataSource) {
+        GsObjectMapper objectMapper = new GsObjectMapper();
+        objectMapper.addMixInAnnotations(BasicDataSource.class, BasicDataSourceMixin.class);
+        return objectMapper.valueToTree(basicDataSource);
 
-        dsStatus.setDefaultAutoCommit(basicDataSource.getDefaultAutoCommit());
-        dsStatus.setDefaultReadOnly(basicDataSource.getDefaultReadOnly());
-        dsStatus.setInitialSize(basicDataSource.getInitialSize());
-        dsStatus.setMaxActive(basicDataSource.getMaxActive());
-        dsStatus.setMaxIdle(basicDataSource.getMaxIdle());
-        dsStatus.setMaxOpenPreparedStatements(basicDataSource.getMaxOpenPreparedStatements());
-        dsStatus.setMaxWait(basicDataSource.getMaxWait());
-        dsStatus.setMinEvictableIdleTimeMillis(basicDataSource.getMinEvictableIdleTimeMillis());
-        dsStatus.setMinIdle(basicDataSource.getMinIdle());
-        dsStatus.setNumIdle(basicDataSource.getNumIdle());
-        dsStatus.setNumActive(basicDataSource.getNumActive());
-        dsStatus.setNumTestsPerEvictionRun(basicDataSource.getNumTestsPerEvictionRun());
-        dsStatus.setPassword(basicDataSource.getPassword());
-        dsStatus.setRemoveAbandoned(basicDataSource.getRemoveAbandoned());
-        dsStatus.setRemoveAbandonedTimeout(basicDataSource.getRemoveAbandonedTimeout());
-        dsStatus.setTestOnBorrow(basicDataSource.getTestOnBorrow());
-        dsStatus.setTestOnReturn(basicDataSource.getTestOnReturn());
-        dsStatus.setTestWhileIdle(basicDataSource.getTestWhileIdle());
-        dsStatus.setTimeBetweenEvictionRunsMillis(basicDataSource.getTimeBetweenEvictionRunsMillis());
-        dsStatus.setUrl(basicDataSource.getUrl());
-        dsStatus.setUsername(basicDataSource.getUsername());
-        dsStatus.setValidationQuery(basicDataSource.getValidationQuery());
-        dsStatus.setValidationQueryTimeout(basicDataSource.getValidationQueryTimeout());
-        dsStatus.setClosed(basicDataSource.isClosed());
-        dsStatus.setPoolPreparedStatements(basicDataSource.isPoolPreparedStatements());
-
-        return dsStatus;
     }
 
-
-    public void setWebsiteDataSource(BasicDataSource websiteDataSource) {
-        this.websiteDataSource = websiteDataSource;
-    }
-
-    public void setPoolManagerDataSource(BasicDataSource poolManagerDataSource) {
-        this.poolManagerDataSource = poolManagerDataSource;
-    }
 }

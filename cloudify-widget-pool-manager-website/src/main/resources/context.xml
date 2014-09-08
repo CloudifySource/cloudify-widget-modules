@@ -73,10 +73,7 @@
 
     <bean class="cloudify.widget.website.handlers.NodeManagementRecoveryHandler"/>
 
-    <bean class="cloudify.widget.website.services.DBStatusReporter">
-        <property name="websiteDataSource" ref="websiteDataSource"/>
-        <property name="poolManagerDataSource" ref="poolManagerDataSource"/>
-    </bean>
+    <bean class="cloudify.widget.website.services.DBStatusReporter"/>
 
     <beans profile="manager-app,default,dev">
         <import resource="classpath:pool-manager-app-context.xml"/>

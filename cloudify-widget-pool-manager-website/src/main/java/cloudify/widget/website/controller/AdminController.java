@@ -9,7 +9,6 @@ import cloudify.widget.website.exceptions.PoolNotFoundException;
 import cloudify.widget.website.models.AccountModel;
 import cloudify.widget.website.models.PoolConfigurationModel;
 import cloudify.widget.website.services.DBStatusReporter;
-import cloudify.widget.website.services.DataSourceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -212,7 +211,7 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/datasources", method = RequestMethod.GET)
     @ResponseBody
-    public Map<String, DataSourceStatus> getDataSourcesStatus() {
+    public Map<String, Object> getDataSourcesStatus() {
         return dbStatusReporter.getStatus();
     }
 

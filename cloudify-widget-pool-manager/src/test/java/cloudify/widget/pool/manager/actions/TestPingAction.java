@@ -48,6 +48,7 @@ public class TestPingAction {
     }
 
     @Test
+    //todo: this test takes a few minutes so it should be an integration test.
     public void testWrongPort() {
         pingSettings.setUrl("http://$HOST:8099");
 
@@ -63,6 +64,13 @@ public class TestPingAction {
 
         Boolean pingResult = pingAction.ping("www.google.com", pingSettings);
         Assert.isTrue(!pingResult);
+    }
+
+    @Test
+    public void testHttps() {
+        pingSettings.setUrl("https://$HOST:8443/");
+        Boolean pingResult = pingAction.ping("ssl.gigaspaces.com", pingSettings);
+        Assert.isTrue(pingResult);
     }
 
 }

@@ -135,6 +135,8 @@
 
     <bean id="cloudNodesDao" class="cloudify.widget.pool.manager.NodeMappingsDao"/>
 
+    <bean id="pingAction" class="cloudify.widget.pool.manager.actions.PingAction"></bean>
+
     <beans profile="dev,default">
         <util:properties location="classpath:/conf/dev/me.properties" id="managerProperties"/>
     </beans>
@@ -159,7 +161,6 @@
         </bean>
 
     </beans>
-
 
     <beans profile="ibmprod">
     </beans>

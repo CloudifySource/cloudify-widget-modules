@@ -7,31 +7,54 @@ import java.util.List;
  */
 public class PingSettings {
 
-    private String port;                                    // The port to be pinged for the given IP
-    private List<String> statusCodesWhiteList;             // List of legal status codes that represent a successful ping
-    private int retryCount  = 5;                            // Number of times to retry each ping before it is considered down
+    private String url;
+    private List<String> whiteList;
+    private int retryCount  = 5;
+    private int pingTimeout = 5000;
 
-    public String getPort() {
-        return port;
+    /**
+     * The url to be pinged for the given IP. The hostname should be '$HOST' so it can be replaced with specific IP.
+     * It should be in the format: http://$HOST:8080.
+     * Both http & https are supported
+     */
+    public String getUrl() {
+        return url;
     }
 
-    public void setPort(String port) {
-        this.port = port;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    public List<String> getStatusCodesWhiteList() {
-        return statusCodesWhiteList;
+    /**
+     * List of legal status codes that represent a successful ping
+     */
+    public List<String> getWhiteList() {
+        return whiteList;
     }
 
-    public void setStatusCodesWhiteList(List<String> statusCodesWhiteList) {
-        this.statusCodesWhiteList = statusCodesWhiteList;
+    public void setWhiteList(List<String> whiteList) {
+        this.whiteList = whiteList;
     }
 
+    /**
+     * Number of times to retry each ping before it is considered down
+     */
     public int getRetryCount() {
         return retryCount;
     }
 
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
+    }
+
+    /**
+     * Ping timeout. If ping exceeds this timeout, it fails.
+     */
+    public int getPingTimeout() {
+        return pingTimeout;
+    }
+
+    public void setPingTimeout(int pingTimeout) {
+        this.pingTimeout = pingTimeout;
     }
 }

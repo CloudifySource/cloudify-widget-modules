@@ -21,6 +21,31 @@ public class PingAction {
     private static final Logger logger = LoggerFactory.getLogger(PingAction.class);
 
     /**
+     * Same as {@link #ping(String, cloudify.widget.pool.manager.dto.PingSettings)}, but for a list of PingSettings.
+     *
+     * @param host
+     *          The hostname / IP
+     * @param pingSettingsList
+     *          The list of pingSettings
+     * @return
+     */
+    public Boolean pingAll(String host, List<PingSettings> pingSettingsList) {
+        Boolean pingAllResult = true;
+
+        for (int i = 0; i < pingSettingsList.size(); i++) {
+            PingSettings pingSettings = pingSettingsList.get(i);
+            Boolean pingResult = ping(host, pingSettings);
+
+            if (!pingResult) {
+                pingAllResult = false;
+                break;
+            }
+        }
+
+        return pingAllResult;
+    }
+
+    /**
      * <p>Given a hostname/IP and PingSettings it tries to ping and return the result.<br>
      * It supports a number of retries with timeout as defined in the pingSettings and compares the
      * responseCode against the defined whiteList.</p>

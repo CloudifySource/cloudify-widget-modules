@@ -77,6 +77,7 @@
         <property name="taskExecutor" ref="taskExecutor"/>
         <!--<property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>-->
         <property name="bootstrapSuccessText" value="successfully"/>
+        <property name="pingAction" ref="pingAction"/>
     </bean>
 
     <bean id="bootstrapScriptLoader" class="cloudify.widget.pool.manager.BootstrapScriptLoader">

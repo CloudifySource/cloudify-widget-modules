@@ -1,6 +1,5 @@
 package cloudify.widget.pool.manager.actions;
 
-import cloudify.widget.common.DatabaseBuilder;
 import cloudify.widget.pool.manager.dto.PingSettings;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -38,8 +36,6 @@ public class TestPingAction {
         whiteList.add("200");
         pingSettings.setWhiteList(whiteList);
     }
-
-
 
     @Test
     public void testSuccess() {
@@ -74,4 +70,45 @@ public class TestPingAction {
         Assert.isTrue(pingResult);
     }
 
+    @Test
+    public void testSuccessList() {
+        ArrayList<PingSettings> pingSettingsArrayList = new ArrayList<PingSettings>();
+
+        ArrayList<String> whiteList = new ArrayList<String>();
+        whiteList.add("200");
+
+        PingSettings ps1 = new PingSettings();
+        ps1.setUrl("http://$HOST:80");
+        ps1.setWhiteList(whiteList);
+        pingSettingsArrayList.add(ps1);
+
+        PingSettings ps2 = new PingSettings();
+        ps2.setUrl("http://$HOST:80");
+        ps2.setWhiteList(whiteList);
+        pingSettingsArrayList.add(ps2);
+
+        Boolean pingResult = pingAction.pingAll("www.google.com", pingSettingsArrayList);
+        Assert.isTrue(pingResult);
+    }
+
+    @Test
+    public void testFailList() {
+        ArrayList<PingSettings> pingSettingsArrayList = new ArrayList<PingSettings>();
+
+        ArrayList<String> whiteList = new ArrayList<String>();
+        whiteList.add("200");
+
+        PingSettings ps1 = new PingSettings();
+        ps1.setUrl("http://$HOST:80");
+        ps1.setWhiteList(whiteList);
+        pingSettingsArrayList.add(ps1);
+
+        PingSettings ps2 = new PingSettings();
+        ps2.setUrl("http://$HOST:8099");
+        ps2.setWhiteList(whiteList);
+        pingSettingsArrayList.add(ps2);
+
+        Boolean pingResult = pingAction.pingAll("www.google.com", pingSettingsArrayList);
+        Assert.isTrue(!pingResult);
+    }
 }

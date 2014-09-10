@@ -327,6 +327,18 @@ public class AdminController {
         poolManagerApi.bootstrapNode(poolSettings, nodeId, null);
     }
 
+    @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/ping", method = RequestMethod.POST)
+    @ResponseBody
+    public String nodePing(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
+
+        if (poolSettings.getNodeManagement().getPingSettings() == null) {
+            return "Ping settings undefined!";
+        }
+
+        return poolManagerApi.pingNode(poolSettings, nodeId, null).toString();
+    }
+
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)
     @ResponseBody
     public void nodeDelete(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {

@@ -21,9 +21,9 @@ public class PingAction {
     private static final Logger logger = LoggerFactory.getLogger(PingAction.class);
 
     /**
-     * Given a hostname/IP and {@link cloudify.widget.pool.manager.dto.PingSettings} it tries to ping and return the result.
+     * <p>Given a hostname/IP and PingSettings it tries to ping and return the result.<br>
      * It supports a number of retries with timeout as defined in the pingSettings and compares the
-     * responseCode against the defined whiteList.
+     * responseCode against the defined whiteList.</p>
      *
      * @param host
      *          The hostname / IP
@@ -56,14 +56,14 @@ public class PingAction {
     }
 
     /**
-     * Check the response code against the white list. Only if the code is in the white list it is considered
-     * a successful ping.
+     * <p>Check the response code against the white list. Only if the code is in the white list it is considered
+     * a successful ping.</p>
      *
-     * So, getting a 200 response code that is not in the white list will result in a failed ping, while
-     * getting a 500 response code that is in the list will result in a successful ping.
+     * <p>So, getting a 200 response code that is not in the white list will result in a failed ping, while
+     * getting a 500 response code that is in the list will result in a successful ping.</p>
      *
-     * A response code of -1 means that the request failed to gp through and no response code was received
-     * @see #getResponseCode(String, int) for more info.
+     * <p>A response code of -1 means that the request failed to gp through and no response code was received.<br>
+     * See {@link #getResponseCode(String, int)} for more info.</p>
      *
      * @param responseCode
      *          The response code to match

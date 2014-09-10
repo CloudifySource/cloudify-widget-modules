@@ -21,13 +21,16 @@ public class PingAction {
     private static final Logger logger = LoggerFactory.getLogger(PingAction.class);
 
     /**
-     * Given a hostname/IP and ${PingSettings} it tries to ping and return the result.
+     * Given a hostname/IP and {@link cloudify.widget.pool.manager.dto.PingSettings} it tries to ping and return the result.
      * It supports a number of retries with timeout as defined in the pingSettings and compares the
      * responseCode against the defined whiteList.
      *
-     * @param host         the hostname / IP
+     * @param host
+     *          The hostname / IP
      * @param pingSettings
+     *          The pingSettings
      * @return
+     *          True if ping was successful, false otherwise
      */
     public Boolean ping(String host, PingSettings pingSettings) {
         String url = pingSettings.getUrl().replace("$HOST", host);
@@ -52,6 +55,23 @@ public class PingAction {
         return pingResult;
     }
 
+    /**
+     * Check the response code against the white list. Only if the code is in the white list it is considered
+     * a successful ping.
+     *
+     * So, getting a 200 response code that is not in the white list will result in a failed ping, while
+     * getting a 500 response code that is in the list will result in a successful ping.
+     *
+     * A response code of -1 means that the request failed to gp through and no response code was received
+     * @see #getResponseCode(String, int) for more info.
+     *
+     * @param responseCode
+     *          The response code to match
+     * @param whiteList
+     *          The list of codes to match against
+     * @return
+     *          True if matched, false otherwise.
+     */
     private Boolean isWhiteListed(int responseCode, List<String> whiteList) {
         Boolean found = false;
 
@@ -72,6 +92,16 @@ public class PingAction {
         return found;
     }
 
+    /**
+     * This does the actual ping. Supports HTTP as well as HTTPS.
+     *
+     * @param url
+     *          The URL to ping
+     * @param timeout
+     *          The ping request timeout
+     * @return
+     *          the response code, or -1 if an error occurred.
+     */
     private int getResponseCode(String url, int timeout) {
         try {
             if (url.startsWith("https")) {
@@ -96,6 +126,7 @@ public class PingAction {
     }
 
     private void initHttpsConnection() throws NoSuchAlgorithmException, KeyManagementException {
+        logger.debug("Setting up the HTTPS connection to ignore invalid certificates");
         // Create a trust manager that does not validate certificate chains
         TrustManager[] trustAllCerts = new TrustManager[] { new MyX509TrustManager() };
         // Install the all-trusting trust manager

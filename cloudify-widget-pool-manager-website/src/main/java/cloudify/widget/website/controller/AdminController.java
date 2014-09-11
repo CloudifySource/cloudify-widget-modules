@@ -329,14 +329,15 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/ping", method = RequestMethod.POST)
     @ResponseBody
+    //todo: should return an object with ,ore details status of fail
     public String nodePing(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
         PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
 
         if (poolSettings.getNodeManagement().getPingSettings() == null) {
-            return "Ping settings undefined!";
+            return " settings undefined!";
         }
 
-        return poolManagerApi.pingNode(poolSettings, nodeId, null).toString();
+        return poolManagerApi.pingNode(poolSettings, nodeId, null) ? " Success" : " Fail";
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)

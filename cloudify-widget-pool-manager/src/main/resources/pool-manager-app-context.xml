@@ -64,7 +64,6 @@
     <bean id="bootstrapMachineTask" class="cloudify.widget.pool.manager.tasks.BootstrapMachine" scope="prototype">
     </bean>
 
-
     <bean id="statusManager" class="cloudify.widget.pool.manager.StatusManager"/>
 
     <bean id="poolManagerApi" class="cloudify.widget.pool.manager.PoolManagerApiImpl">
@@ -95,6 +94,8 @@
           class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule" scope="prototype"/>
     <bean id="deleteExpiredNodeManagementModule"
           class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
+    <bean id="pingNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.PingNodeManagementModule" scope="prototype"/>
 
     <bean id="defaultMachineTimeout" class="cloudify.widget.pool.manager.MachineTimeout">
         <property name="duration" value="1000"/>

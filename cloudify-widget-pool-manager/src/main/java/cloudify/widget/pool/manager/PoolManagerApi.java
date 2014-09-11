@@ -44,7 +44,7 @@ public interface PoolManagerApi {
      */
     void bootstrapNode(PoolSettings poolSettings, long nodeId, TaskCallback<NodeModel> taskCallback);
 
-    Boolean pingNode(PoolSettings poolSettings, long nodeId, TaskCallback<NodeModel> taskCallback);
+    PingResult pingNode(PoolSettings poolSettings, long nodeId);
 
     void expireNode(PoolSettings poolSettings, long nodeId);
 

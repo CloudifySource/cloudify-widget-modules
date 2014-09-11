@@ -104,9 +104,22 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
     @Override
-    public Boolean pingNode(PoolSettings poolSettings, long nodeId, TaskCallback<NodeModel> taskCallback) {
+    public PingResult pingNode(PoolSettings poolSettings, long nodeId) {
         final NodeModel node = _getNodeModel(nodeId);
-        return pingAction.pingAll(node.machineSshDetails.getPublicIp(), poolSettings.getNodeManagement().getPingSettings());
+        PingResult pingResult = new PingResult();
+
+        if (poolSettings.getNodeManagement().getPingSettings() == null) {
+            pingResult.setPingStatus(PingStatus.PING_SETTINGS_UNDEFINED);
+
+        } else {
+            Boolean ping = pingAction.pingAll(node.machineSshDetails.getPublicIp(), poolSettings.getNodeManagement().getPingSettings());
+            pingResult.setPingStatus(ping ? PingStatus.PING_SUCCESS : PingStatus.PING_FAIL);
+
+        }
+
+        nodesDao.updatePing(node.id, pingResult);
+
+        return pingResult;
     }
 
     @Override

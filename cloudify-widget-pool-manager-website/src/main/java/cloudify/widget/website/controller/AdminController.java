@@ -330,14 +330,9 @@ public class AdminController {
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/ping", method = RequestMethod.POST)
     @ResponseBody
     //todo: should return an object with ,ore details status of fail
-    public String nodePing(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
+    public PingResult nodePing(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
         PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
-
-        if (poolSettings.getNodeManagement().getPingSettings() == null) {
-            return " settings undefined!";
-        }
-
-        return poolManagerApi.pingNode(poolSettings, nodeId, null) ? " Success" : " Fail";
+        return poolManagerApi.pingNode(poolSettings, nodeId);
     }
 
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)

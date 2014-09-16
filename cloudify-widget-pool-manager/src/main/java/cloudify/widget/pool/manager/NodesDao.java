@@ -224,11 +224,12 @@ public class NodesDao {
                 try {
                     PingResult pingResult = objectMapper.readValue(pingResultString, PingResult.class);
                     return pingResult;
-                } catch (IOException e) {
-                    // null means not pinged yet, so it's OK.
-                    if (pingResultString != null) {
-                        logger.error("unable to deserialize PingResult [" + pingResultString + "]", e);
-                    }
+                } catch (Exception e) {
+                    logger.error("unable to deserialize PingResult [" + pingResultString + "]");
+                    // return pinged failed result
+                    PingResult pingResult = new PingResult();
+                    pingResult.setPingStatus(PingStatus.PING_FAIL);
+                    return pingResult;
                 }
             }
             return super.getColumnValue(rs, index, pd);

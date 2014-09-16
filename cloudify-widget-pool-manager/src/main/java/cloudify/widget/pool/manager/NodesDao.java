@@ -33,6 +33,7 @@ public class NodesDao {
     public static final String COL_ID = "id";
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_NODE_STATUS = "node_status";
+    public static final String COL_PING_STATUS = "ping_status";
     public static final String COL_MACHINE_ID = "machine_id";
     public static final String COL_MACHINE_SSH_DETAILS = "machine_ssh_details";
     public static final String COL_EXPIRES = "expires";
@@ -58,7 +59,7 @@ public class NodesDao {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
                         PreparedStatement ps = con.prepareStatement(
-                                "insert into " + TABLE_NAME + " (" + COL_POOL_ID + "," + COL_NODE_STATUS + "," + COL_MACHINE_ID + "," + COL_MACHINE_SSH_DETAILS + "," + COL_EXPIRES + ") values (?, ?, ?, ?, ?)",
+                                "insert into " + TABLE_NAME + " (" + COL_POOL_ID + "," + COL_NODE_STATUS + "," + COL_MACHINE_ID + "," + COL_MACHINE_SSH_DETAILS + "," + COL_EXPIRES + "," + COL_PING_STATUS + ") values (?, ?, ?, ?, ?, ?)",
                                 Statement.RETURN_GENERATED_KEYS // specify to populate the generated key holder
                         );
                         ps.setString(1, nodeModel.poolId);
@@ -66,6 +67,7 @@ public class NodesDao {
                         ps.setString(3, nodeModel.machineId);
                         ps.setString(4, Utils.objectToJson(NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)));
                         ps.setLong(5, nodeModel.expires);
+                        ps.setString(6, Utils.objectToJson(nodeModel.pingStatus));
                         return ps;
                     }
                 },
@@ -143,8 +145,8 @@ public class NodesDao {
 
     public int update(NodeModel nodeModel) {
         return jdbcTemplate.update(
-                "update " + TABLE_NAME + " set " + COL_POOL_ID + " = ?," + COL_NODE_STATUS + " = ?," + COL_MACHINE_ID + " = ?," + COL_MACHINE_SSH_DETAILS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ?",
-                nodeModel.poolId, nodeModel.nodeStatus.name(), nodeModel.machineId, Utils.objectToJson(NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)), nodeModel.expires, nodeModel.id);
+                "update " + TABLE_NAME + " set " + COL_POOL_ID + " = ?," + COL_NODE_STATUS + " = ?," + COL_MACHINE_ID + " = ?," + COL_MACHINE_SSH_DETAILS + " = ?," + COL_PING_STATUS + " = ?," + COL_EXPIRES + " = ? where " + COL_ID + " = ?",
+                nodeModel.poolId, nodeModel.nodeStatus.name(), nodeModel.machineId, Utils.objectToJson(NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)), Utils.objectToJson(nodeModel.pingStatus), nodeModel.expires, nodeModel.id);
     }
 
     public int delete(long nodeId) {
@@ -154,6 +156,11 @@ public class NodesDao {
     public int updateStatus(long nodeId, NodeStatus nodeStatus) {
         return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_NODE_STATUS + " = ? where " + COL_ID + " = ?",
                 nodeStatus.name(), nodeId);
+    }
+
+    public int updatePing(long nodeId, PingResult pingResult) {
+        return jdbcTemplate.update("update " + TABLE_NAME + " set " + COL_PING_STATUS + " = ? where " + COL_ID + " = ?",
+                Utils.objectToJson(pingResult), nodeId);
     }
 
     public int updateExpires(long nodeId, long expires) {
@@ -202,14 +209,26 @@ public class NodesDao {
         @Override
         protected Object getColumnValue(ResultSet rs, int index, PropertyDescriptor pd) throws SQLException {
             Class<?> propertyType = pd.getPropertyType();
+            GsObjectMapper objectMapper = new GsObjectMapper();
             if (ISshDetails.class.isAssignableFrom(propertyType)) {
-                GsObjectMapper objectMapper = new GsObjectMapper();
                 String sshDetailsString = rs.getString(index);
                 try {
                     NodeModelSshDetails nodeModelSshDetails = objectMapper.readValue(sshDetailsString, NodeModelSshDetails.class);
                     return NodeModelSshDetails.toSshDetails(nodeModelSshDetails);
                 } catch (IOException e) {
                     logger.error("unable to deserialize ssh details [" + sshDetailsString + "]", e);
+                }
+            }
+            if (PingResult.class.isAssignableFrom(propertyType)) {
+                String pingResultString = rs.getString(index);
+                try {
+                    PingResult pingResult = objectMapper.readValue(pingResultString, PingResult.class);
+                    return pingResult;
+                } catch (IOException e) {
+                    // null means not pinged yet, so it's OK.
+                    if (pingResultString != null) {
+                        logger.error("unable to deserialize PingResult [" + pingResultString + "]", e);
+                    }
                 }
             }
             return super.getColumnValue(rs, index, pd);

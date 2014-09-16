@@ -1,0 +1,1 @@
+alter table nodes add column ping_status text;

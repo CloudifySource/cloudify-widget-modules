@@ -22,6 +22,8 @@
         <property name="settingsFileLoader" ref="settingsLoader" />
     </bean>
 
+    <bean id="pingAction" class="cloudify.widget.pool.manager.actions.PingAction"></bean>
+
     <!-- mocking task executor so tests don't have to use thread-waits -->
     <!--<bean id="synchronousExecutorService" class="cloudify.widget.pool.manager.SynchronousExecutorService">-->
         <!--<constructor-arg value="10" />-->

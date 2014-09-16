@@ -64,7 +64,6 @@
     <bean id="bootstrapMachineTask" class="cloudify.widget.pool.manager.tasks.BootstrapMachine" scope="prototype">
     </bean>
 
-
     <bean id="statusManager" class="cloudify.widget.pool.manager.StatusManager"/>
 
     <bean id="poolManagerApi" class="cloudify.widget.pool.manager.PoolManagerApiImpl">
@@ -77,6 +76,7 @@
         <property name="taskExecutor" ref="taskExecutor"/>
         <!--<property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>-->
         <property name="bootstrapSuccessText" value="successfully"/>
+        <property name="pingAction" ref="pingAction"/>
     </bean>
 
     <bean id="bootstrapScriptLoader" class="cloudify.widget.pool.manager.BootstrapScriptLoader">
@@ -94,6 +94,8 @@
           class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule" scope="prototype"/>
     <bean id="deleteExpiredNodeManagementModule"
           class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
+    <bean id="pingNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.PingNodeManagementModule" scope="prototype"/>
 
     <bean id="defaultMachineTimeout" class="cloudify.widget.pool.manager.MachineTimeout">
         <property name="duration" value="1000"/>
@@ -135,6 +137,8 @@
 
     <bean id="cloudNodesDao" class="cloudify.widget.pool.manager.NodeMappingsDao"/>
 
+    <bean id="pingAction" class="cloudify.widget.pool.manager.actions.PingAction"></bean>
+
     <beans profile="dev,default">
         <util:properties location="classpath:/conf/dev/me.properties" id="managerProperties"/>
     </beans>
@@ -159,7 +163,6 @@
         </bean>
 
     </beans>
-
 
     <beans profile="ibmprod">
     </beans>

@@ -1,5 +1,6 @@
 package cloudify.widget.pool.manager;
 
+import cloudify.widget.pool.manager.actions.PingAction;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.pool.manager.node_management.DecisionsDao;
 import cloudify.widget.pool.manager.node_management.NodeManagementMode;
@@ -39,6 +40,8 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     private String bootstrapSuccessText;
 
     private ApplicationContext applicationContext;
+
+    private PingAction pingAction;
 
 
     @Override
@@ -98,6 +101,25 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
                 return node;
             }
         }, poolSettings, taskCallback);
+    }
+
+    @Override
+    public PingResult pingNode(PoolSettings poolSettings, long nodeId) {
+        final NodeModel node = _getNodeModel(nodeId);
+        PingResult pingResult = new PingResult();
+
+        if (poolSettings.getNodeManagement().getPingSettings() == null) {
+            pingResult.setPingStatus(PingStatus.PING_SETTINGS_UNDEFINED);
+
+        } else {
+            Boolean ping = pingAction.pingAll(node.machineSshDetails.getPublicIp(), poolSettings.getNodeManagement().getPingSettings());
+            pingResult.setPingStatus(ping ? PingStatus.PING_SUCCESS : PingStatus.PING_FAIL);
+
+        }
+
+        nodesDao.updatePing(node.id, pingResult);
+
+        return pingResult;
     }
 
     @Override
@@ -250,4 +272,7 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     }
 
 
+    public void setPingAction(PingAction pingAction) {
+        this.pingAction = pingAction;
+    }
 }

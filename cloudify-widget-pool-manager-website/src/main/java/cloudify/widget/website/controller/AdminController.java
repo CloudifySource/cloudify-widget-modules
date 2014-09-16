@@ -327,6 +327,14 @@ public class AdminController {
         poolManagerApi.bootstrapNode(poolSettings, nodeId, null);
     }
 
+    @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/ping", method = RequestMethod.POST)
+    @ResponseBody
+    //todo: should return an object with ,ore details status of fail
+    public PingResult nodePing(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
+        return poolManagerApi.pingNode(poolSettings, nodeId);
+    }
+
     @RequestMapping(value = "/admin/pools/{poolId}/nodes/{nodeId}/delete", method = RequestMethod.POST)
     @ResponseBody
     public void nodeDelete(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("nodeId") Long nodeId) {

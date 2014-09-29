@@ -77,11 +77,11 @@ public class AccountController {
 
     @RequestMapping(value = "/account/pools", method = RequestMethod.POST)
     @ResponseBody
-    public Long createPool(@ModelAttribute("account") AccountModel accountModel, @RequestBody String poolSettingJson) {
+    public PoolConfigurationModel createPool(@ModelAttribute("account") AccountModel accountModel, @RequestBody String poolSettingJson) {
         try {
             Long poolId = poolDao.createPool(accountModel.getId(), poolSettingJson);
             nodeManagementExecutor.start(poolDao.readPoolById(poolId).poolSettings);
-            return poolId;
+            return poolDao.readPoolById(poolId);
         } catch (Exception e) {
             logger.error("unable to createPool", e);
             return null;

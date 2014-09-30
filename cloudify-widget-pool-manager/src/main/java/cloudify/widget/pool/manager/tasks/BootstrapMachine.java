@@ -48,6 +48,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             throw new RuntimeException(message);
         }
 
+        updateNodeModelStatus(NodeStatus.BOOTSTRAPPING);
         String script = getBootstrapScript();
 
         script = injectBootstrapProperties(script);
@@ -83,7 +84,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     }
 
     private void runBootstrapScriptOnMachine(String script, CloudServerApi cloudServerApi, ISshDetails sshDetails) {
-        updateNodeModelStatus(NodeStatus.BOOTSTRAPPING);
+
         CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine(script, sshDetails);
         int exitStatus = cloudExecResponse.getExitStatus();
         String output = cloudExecResponse.getOutput();

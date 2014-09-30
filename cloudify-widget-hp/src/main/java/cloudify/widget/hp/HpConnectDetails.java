@@ -18,6 +18,7 @@ public class HpConnectDetails implements IConnectDetails {
     private String apiVersion = DEFAULT_API_VERSION;
     private String identityEndpoint;
     private String sshPrivateKey;
+    private String region; // a - is US west, b - is US East
 
 
     public HpConnectDetails() {}
@@ -73,6 +74,15 @@ public class HpConnectDetails implements IConnectDetails {
         this.identityEndpoint = identityEndpoint;
     }
 
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -81,11 +91,14 @@ public class HpConnectDetails implements IConnectDetails {
         HpConnectDetails that = (HpConnectDetails) o;
 
         if (apiVersion != null ? !apiVersion.equals(that.apiVersion) : that.apiVersion != null) return false;
+        if (identityEndpoint != null ? !identityEndpoint.equals(that.identityEndpoint) : that.identityEndpoint != null)
+            return false;
         if (key != null ? !key.equals(that.key) : that.key != null) return false;
-        if (identityEndpoint != null ? !identityEndpoint.equals(that.identityEndpoint) : that.identityEndpoint != null) return false;
-        if (sshPrivateKey != null ? !sshPrivateKey.equals(that.sshPrivateKey) : that.sshPrivateKey != null) return false;
         if (project != null ? !project.equals(that.project) : that.project != null) return false;
+        if (region != null ? !region.equals(that.region) : that.region != null) return false;
         if (secretKey != null ? !secretKey.equals(that.secretKey) : that.secretKey != null) return false;
+        if (sshPrivateKey != null ? !sshPrivateKey.equals(that.sshPrivateKey) : that.sshPrivateKey != null)
+            return false;
 
         return true;
     }
@@ -98,6 +111,7 @@ public class HpConnectDetails implements IConnectDetails {
         result = 31 * result + (apiVersion != null ? apiVersion.hashCode() : 0);
         result = 31 * result + (identityEndpoint != null ? identityEndpoint.hashCode() : 0);
         result = 31 * result + (sshPrivateKey != null ? sshPrivateKey.hashCode() : 0);
+        result = 31 * result + (region != null ? region.hashCode() : 0);
         return result;
     }
 
@@ -106,10 +120,9 @@ public class HpConnectDetails implements IConnectDetails {
         return "HpConnectDetails{" +
                 "project='" + project + '\'' +
                 ", key='" + key + '\'' +
-                ", secretKey='***'" +
-                ", sshPrivateKey='***'" +
                 ", apiVersion='" + apiVersion + '\'' +
                 ", identityEndpoint='" + identityEndpoint + '\'' +
+                ", region='" + region + '\'' +
                 '}';
     }
 

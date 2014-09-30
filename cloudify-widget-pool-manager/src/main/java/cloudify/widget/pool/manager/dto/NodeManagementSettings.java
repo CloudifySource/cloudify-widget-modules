@@ -16,6 +16,10 @@ public class NodeManagementSettings {
 
     private List<NodeManagementModuleType> activeModules;
 
+    private EmailSettings emailSettings;
+
+    private List<PingSettings> pingSettings;
+
     public NodeManagementMode getMode() {
         return mode;
     }
@@ -32,4 +36,19 @@ public class NodeManagementSettings {
         this.activeModules = activeModules;
     }
 
+    public EmailSettings getEmailSettings() {
+        return emailSettings;
+    }
+
+    public void setEmailSettings(EmailSettings emailSettings) {
+        this.emailSettings = emailSettings;
+    }
+
+    public List<PingSettings> getPingSettings() {
+        return pingSettings;
+    }
+
+    public void setPingSettings(List<PingSettings> pingSettings) {
+        this.pingSettings = pingSettings;
+    }
 }

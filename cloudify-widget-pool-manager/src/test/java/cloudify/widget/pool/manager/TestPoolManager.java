@@ -1,7 +1,7 @@
 package cloudify.widget.pool.manager;
 
 import cloudify.widget.common.CollectionUtils;
-import cloudify.widget.common.FileUtils;
+import cloudify.widget.common.DatabaseBuilder;
 import cloudify.widget.ec2.Ec2SshDetails;
 import cloudify.widget.pool.manager.dto.*;
 import cloudify.widget.pool.manager.tasks.*;
@@ -16,11 +16,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.util.Assert;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -36,6 +36,7 @@ public class TestPoolManager {
     private static Logger logger = LoggerFactory.getLogger(TestPoolManager.class);
 
     private static final String SCHEMA = "pool_manager_test";
+    private static final String SQL_PATH = "sql";
 
     @Autowired
     private PoolManagerApi poolManagerApi;
@@ -45,9 +46,6 @@ public class TestPoolManager {
 
     @Autowired
     private SettingsDataAccessManager settingsDataAccessManager;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private TaskExecutor testTaskExecutor;
@@ -70,27 +68,20 @@ public class TestPoolManager {
     @Autowired
     private Task bootstrapMachineTask;
 
-
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Before
     public void init() {
 
         // initializing test schema
-        jdbcTemplate.update("create schema " + SCHEMA);
-        jdbcTemplate.update("use " + SCHEMA);
-        buildDatabase();
+        DatabaseBuilder.buildDatabase(jdbcTemplate, SCHEMA, SQL_PATH);
 
     }
 
     @After
     public void destroy() {
-        jdbcTemplate.update("drop schema " + SCHEMA);
-    }
-
-
-    @Test
-    public void test() {
-        Assert.notNull(jdbcTemplate);
+        DatabaseBuilder.destroyDatabase(jdbcTemplate, SCHEMA);
     }
 
 
@@ -150,11 +141,6 @@ public class TestPoolManager {
 
         testTaskExecutor.execute(bootstrapMachineTask, new BootstrapMachineConfig() {
             @Override
-            public String getBootstrapScriptResourcePath() {
-                return bootstrapScriptResourcePath;
-            }
-
-            @Override
             public String getBootstrapSuccessText() {
                 return bootstrapSuccessText;
             }
@@ -183,17 +169,6 @@ public class TestPoolManager {
 
     @Test
     public void testPoolStatus() {
-
-/*
-        // populating database with some mock nodes, for status collection
-        jdbcTemplate.update("insert into nodes (pool_id,node_status,machine_id) values ('ec2', 'CREATED', 'a')");
-        jdbcTemplate.update("insert into nodes (pool_id,node_status,machine_id) values ('ec2', 'CREATED', 'b')");
-        jdbcTemplate.update("insert into nodes (pool_id,node_status,machine_id) values ('ec2', 'BOOTSTRAPPED', 'c')");
-        jdbcTemplate.update("insert into nodes (pool_id,node_status,machine_id) values ('hp', 'CREATED', '1')");
-        jdbcTemplate.update("insert into nodes (pool_id,node_status,machine_id) values ('hp', 'BOOTSTRAPPED', '2')");
-        jdbcTemplate.update("insert into nodes (pool_id,node_status,machine_id) values ('hp', 'OCCUPIED', '2')");
-*/
-
 
         ManagerSettings managerSettings = settingsDataAccessManager.read();
 
@@ -329,60 +304,6 @@ public class TestPoolManager {
         // add scenarios:
         // 1. more node models than cloud servers
         // 2. more cloud servers than node models
-    }
-
-
-    private void buildDatabase() {
-        // going through all files under the 'sql' folder, and executing all of them.
-        Iterator<File> sqlFileIterator = org.apache.commons.io.FileUtils.iterateFiles(
-                FileUtils.getFileInClasspath("sql"), new String[]{"sql"}, false);
-
-        List<File> orderedSqlFiles = new ArrayList<File>();
-        while (sqlFileIterator.hasNext()) {
-            File file = sqlFileIterator.next();
-            orderedSqlFiles.add(file);
-        }
-        // sort the sql executions, relying on numbered file names
-        Collections.sort(orderedSqlFiles, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                String o1NoExtension = _stripExtension(o1.getName());
-                String o2NoExtension = _stripExtension(o2.getName());
-                return Integer.parseInt(o1NoExtension) - Integer.parseInt(o2NoExtension);
-            }
-            private String _stripExtension(String name) {
-                return name.substring(0, name.indexOf('.'));
-            }
-        });
-
-        for (File sqlFile : orderedSqlFiles) {
-            logger.info("executing statements in file [{}]", sqlFile.getName());
-            List<String> statements = readSqlStatementsFromFile(sqlFile);
-            logger.info("found statements [{}]", statements);
-            for (String stmt : statements) {
-                jdbcTemplate.update(stmt);
-            }
-        }
-    }
-
-    private String readSqlStatementFromFile(File file) {
-
-        String script = null;
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(file));
-            LineNumberReader fileReader = new LineNumberReader(in);
-            script = JdbcTestUtils.readScript(fileReader);
-        } catch (IOException e) {
-            logger.error("failed to read sql script from file", e);
-        }
-        return script;
-    }
-
-    private List<String> readSqlStatementsFromFile(File file) {
-        String script = readSqlStatementFromFile(file);
-        List<String> statements = new ArrayList<String>();
-        JdbcTestUtils.splitSqlScript(script, ';', statements);
-        return statements;
     }
 
 }

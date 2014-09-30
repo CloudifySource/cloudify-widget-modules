@@ -26,7 +26,16 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
     @Override
     public DeleteExpiredNodeManagementModule decide() {
         Constraints constraints = getConstraints();
+        // get all nodes that should be expired
         List<Long> expiredNodeIds = nodesDao.readExpiredIdsOfPool(constraints.poolSettings.getUuid());
+
+        // mark them with a status
+        for (long expiredNodeId : expiredNodeIds) {
+            nodesDao.updateStatus(expiredNodeId, NodeStatus.EXPIRED);
+        }
+
+        // now get all nodes with expired state ( list might be bigger than the ones we just marked)
+        expiredNodeIds = nodesDao.readIdsOfPoolWithStatus(constraints.poolSettings.getUuid(), NodeStatus.EXPIRED);
 
         // we have nothing to do if no expired nodes found
         if (expiredNodeIds.isEmpty()) {
@@ -53,11 +62,6 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         // we only want the nodes that won't be handled in the queue
         expiredNodeIds.removeAll(expiredNodeIdsInQueue);
-
-        // mark expired nodes with a status
-        for (long expiredNodeId : expiredNodeIds) {
-            nodesDao.updateStatus(expiredNodeId, NodeStatus.EXPIRED);
-        }
 
         logger.info("expiredNodeIds [{}]", expiredNodeIds);
 
@@ -99,7 +103,6 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
                     @Override
                     public void onFailure(Throwable t) {
-                        writeError(t);
                         teardownDecisionExecution(decisionModel);
                     }
                 });
@@ -115,5 +118,9 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
     @Override
     public NodeManagementModuleType getType() {
         return NodeManagementModuleType.DELETE_EXPIRED;
+    }
+
+    public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
+        this.poolManagerApi = poolManagerApi;
     }
 }

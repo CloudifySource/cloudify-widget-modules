@@ -5,33 +5,51 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <context:component-scan base-package="cloudify.widget.softlayer" />
+    <context:component-scan base-package="cloudify.widget.softlayer"/>
 
-    <context:property-placeholder  properties-ref="managerProperties"/>
+    <context:property-placeholder properties-ref="managerProperties"/>
 
 
-<!--
-    <bean id="backgroundTaskPool" class="cloudify.widget.pool.manager.BackgroundExecutorServiceFactory">
-        <property name="poolSize" value="20" />
+    <!--
+        <bean id="backgroundTaskPool" class="cloudify.widget.pool.manager.BackgroundExecutorServiceFactory">
+            <property name="poolSize" value="20" />
+        </bean>
+    -->
+
+    <bean id="mailerConfig" class="cloudify.widget.mailer.MailerConfig">
+        <property name="authenticator">
+            <bean class="org.apache.commons.mail.DefaultAuthenticator">
+                <constructor-arg index="0" value="${mailer.config.username:__mailerConfigUsername}"/>
+                <constructor-arg index="1" value="${mailer.config.password:__mailerConfigPassword}"/>
+            </bean>
+        </property>
+        <property name="hostName" value="${mailer.config.hostname:__mailerConfigHostname}"/>
+        <property name="smtpPort" value="${mailer.config.smtpPort:587}"/>
+        <property name="tlsEnabled" value="${mailer.config.tlsEnabled:true}"/>
+        <property name="from" value="${mailer.config.username}"/>
     </bean>
--->
+
+    <bean id="mailer" class="cloudify.widget.mailer.Mailer">
+        <property name="mailerConfig" ref="mailerConfig"/>
+    </bean>
 
     <bean id="taskPool" class="cloudify.widget.pool.manager.FixedSizeExecutorServiceFactory">
-        <property name="numThreads" value="200" />
+        <property name="corePoolSize" value="200"/>
     </bean>
 
-    <bean id="taskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init" destroy-method="destroy">
-        <property name="executorService" ref="taskPool" />
+    <bean id="taskExecutor" class="cloudify.widget.pool.manager.TaskExecutor" init-method="init"
+          destroy-method="destroy">
+        <property name="executorService" ref="taskPool"/>
         <!--<property name="backgroundExecutorService" ref="backgroundTaskPool" />-->
     </bean>
 
     <bean id="nodeManagementPool" class="cloudify.widget.pool.manager.ScheduledExecutorServiceFactory">
-        <property name="corePoolSize" value="200" />
+        <property name="corePoolSize" value="200"/>
     </bean>
 
     <bean id="nodeManagementExecutor" class="cloudify.widget.pool.manager.NodeManagementExecutor">
-        <property name="executorService" ref="nodeManagementPool" />
-        <property name="decisionExecutionIntervalInSeconds" value="60" />
+        <property name="executorService" ref="nodeManagementPool"/>
+        <property name="decisionExecutionIntervalInSeconds" value="60"/>
     </bean>
 
     <!--<bean id="taskDecorator" class="cloudify.widget.pool.manager.tasks.TaskRegistrar$DecoratorImpl" scope="prototype">-->
@@ -46,49 +64,61 @@
     <bean id="bootstrapMachineTask" class="cloudify.widget.pool.manager.tasks.BootstrapMachine" scope="prototype">
     </bean>
 
-
-
-    <bean id="statusManager" class="cloudify.widget.pool.manager.StatusManager"></bean>
+    <bean id="statusManager" class="cloudify.widget.pool.manager.StatusManager"/>
 
     <bean id="poolManagerApi" class="cloudify.widget.pool.manager.PoolManagerApiImpl">
-        <property name="nodesDao" ref="nodesDao" />
-        <property name="errorsDao" ref="errorsDao" />
-        <property name="tasksDao" ref="tasksDao" />
-        <property name="nodeMappingsDao" ref="cloudNodesDao" />
-        <property name="decisionsDao" ref="decisionsDao" />
-        <property name="statusManager" ref="statusManager" />
-        <property name="taskExecutor" ref="taskExecutor" />
-        <property name="bootstrapScriptResourcePath" value="classpath:bootstrap_machine.sh" />
-        <property name="bootstrapSuccessText" value="successfully" />
+        <property name="nodesDao" ref="nodesDao"/>
+        <property name="errorsDao" ref="errorsDao"/>
+        <property name="tasksDao" ref="tasksDao"/>
+        <property name="nodeMappingsDao" ref="cloudNodesDao"/>
+        <property name="decisionsDao" ref="decisionsDao"/>
+        <property name="statusManager" ref="statusManager"/>
+        <property name="taskExecutor" ref="taskExecutor"/>
+        <!--<property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>-->
+        <property name="bootstrapSuccessText" value="successfully"/>
+        <property name="pingAction" ref="pingAction"/>
     </bean>
 
-    <bean id="nodeManagementModuleProvider" class="cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider"/>
+    <bean id="bootstrapScriptLoader" class="cloudify.widget.pool.manager.BootstrapScriptLoader">
+        <property name="bootstrapScriptResourcePath" value="${bootstrap.script.path:classpath:bootstrap_machine.sh}"/>
+    </bean>
 
-    <bean id="createNodeManagementModule" class="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule" scope="prototype"/>
-    <bean id="deleteNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteNodeManagementModule" scope="prototype"/>
-    <bean id="bootstrapNodeManagementModule" class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule" scope="prototype"/>
-    <bean id="deleteExpiredNodeManagementModule" class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
+    <bean id="nodeManagementModuleProvider"
+          class="cloudify.widget.pool.manager.node_management.NodeManagementModuleProvider"/>
+
+    <bean id="createNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule" scope="prototype"/>
+    <bean id="deleteNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.DeleteNodeManagementModule" scope="prototype"/>
+    <bean id="bootstrapNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.BootstrapNodeManagementModule" scope="prototype"/>
+    <bean id="deleteExpiredNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
+    <bean id="pingNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.PingNodeManagementModule" scope="prototype"/>
 
     <bean id="defaultMachineTimeout" class="cloudify.widget.pool.manager.MachineTimeout">
-        <property name="duration" value="1" />
-        <property name="timeUnit" value="HOURS" />
+        <property name="duration" value="1000"/>
+        <!-- default expires is really long, because we are waiting for a user to use it -->
+        <property name="timeUnit" value="HOURS"/>
     </bean>
 
 
     <bean id="bootstrapMonitor" class="cloudify.widget.pool.manager.BootstrapMonitor">
-            <property name="applicationUrlPattern" value="https://%s:8443"/>
+        <property name="applicationUrlPattern" value="https://%s:8443"/>
     </bean>
 
-
+    <!-- default values -->
     <bean id="poolManagerDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-        <property name="driverClassName" value="${jdbc.driverClassName}"/>
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
+        <property name="driverClassName" value="${jdbc.driverClassName:com.mysql.jdbc.Driver}"/>
+        <property name="url" value="${jdbc.url:jdbc:mysql://127.0.0.1:3306/managerpool}"/>
+        <property name="username" value="${jdbc.username:root}"/>
+        <property name="password" value="${jdbc.password:root}"/>
+        <property name="removeAbandoned" value="true"/>
     </bean>
 
     <bean id="poolManagerJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <constructor-arg ref="poolManagerDataSource" />
+        <constructor-arg ref="poolManagerDataSource"/>
     </bean>
 
     <bean id="nodesDao" class="cloudify.widget.pool.manager.NodesDao">
@@ -106,6 +136,8 @@
     <bean id="tasksDao" class="cloudify.widget.pool.manager.InMemoryTasksDao"/>
 
     <bean id="cloudNodesDao" class="cloudify.widget.pool.manager.NodeMappingsDao"/>
+
+    <bean id="pingAction" class="cloudify.widget.pool.manager.actions.PingAction"></bean>
 
     <beans profile="dev,default">
         <util:properties location="classpath:/conf/dev/me.properties" id="managerProperties"/>
@@ -131,7 +163,6 @@
         </bean>
 
     </beans>
-
 
     <beans profile="ibmprod">
     </beans>

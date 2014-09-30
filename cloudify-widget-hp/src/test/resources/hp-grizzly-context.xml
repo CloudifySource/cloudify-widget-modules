@@ -15,9 +15,10 @@
         <property name="apiVersion" value="${hpcloud_compute_apiVersion}"/>
         <property name="identityEndpoint" value="${hpcloud_compute_identityEndpoint}" />
         <property name="sshPrivateKey" value="${hpcloud_compute_ssh_private_key}"/>
+        <property name="region" value="region-a.geo-1"/><!-- US west -->
     </bean>
 
-    <bean id="cloudServer" class="cloudify.widget.hp.HpFolsomCloudServerApi"/>
+    <!--<bean id="cloudServer" class="cloudify.widget.hp.HpFolsomCloudServerApi"/>-->
 
     <bean id="hpGrizzlyCloudServerApi" class="cloudify.widget.hp.HpGrizzlyCloudServerApi"/>
 
@@ -35,8 +36,8 @@
     <!-- details for account "gspm-tenant1" -->
     <bean id="machineOptions" class="cloudify.widget.hp.HpMachineOptions">
         <property name="mask" value="test-hp-grizzly"/>
-        <property name="hardwareId" value="region-a.geo-1/102"/> <!-- standard.medium -->
-        <property name="imageId" value="region-a.geo-1/202e7659-f7c6-444a-8b32-872fe2ed080c"/> <!-- centos 6.3 -->
+        <property name="hardwareId" value="102"/> <!-- standard.medium -->
+        <property name="imageId" value="202e7659-f7c6-444a-8b32-872fe2ed080c"/> <!-- centos 6.3 -->
         <property name="machinesCount" value="1"/>
         <property name="securityGroup" value="default"/>
         <property name="networkUuid" value="f32a435c-62fc-49c6-879e-16527a996393"/>
@@ -44,10 +45,15 @@
     </bean>
 
     <bean id="sshUserName" class="java.lang.String">
-        <constructor-arg value="debian"/>
+        <constructor-arg value="root"/>
     </bean>
 
     <bean id="waitMachineIsRunningTimeout" class="cloudify.widget.common.WaitTimeout"/>
     <bean id="waitMachineIsNotRunning" class="cloudify.widget.common.WaitTimeout"/>
+
+    <!--<beans profile="withOverrides">-->
+        <!--<import resource="conf/dev/overrides.xml"/>-->
+    <!--</beans>-->
+
 
 </beans>

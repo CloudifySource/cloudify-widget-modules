@@ -1,5 +1,6 @@
 package cloudify.widget.website.controller;
 
+import cloudify.widget.pool.manager.BootstrapScriptLoader;
 import cloudify.widget.pool.manager.NodeManagementExecutor;
 import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.NodeModel;
@@ -39,118 +40,139 @@ public class AccountController {
     @Autowired
     private NodeManagementExecutor nodeManagementExecutor;
 
+    @Autowired
+    private BootstrapScriptLoader bootstrapScriptLoader;
 
     public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
         this.poolManagerApi = poolManagerApi;
     }
 
-    @RequestMapping(value="/account/pools", method=RequestMethod.GET)
+    @RequestMapping(value = "/account/pools", method = RequestMethod.GET)
     @ResponseBody
-    public List<PoolConfigurationModel> getPools( @ModelAttribute("account") AccountModel accountModel){
-        return poolDao.readPools( accountModel );
+    public List<PoolConfigurationModel> getPools(@ModelAttribute("account") AccountModel accountModel) {
+        return poolDao.readPools(accountModel);
     }
 
-    @RequestMapping(value="/account/pools/{poolId}", method=RequestMethod.GET)
+    @RequestMapping(value = "/account/pools/script", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<PoolConfigurationModel> getPoolConfiguration( @ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId ) {
+    public String getPoolScript() {
+        return bootstrapScriptLoader.readScriptFromFile();
+    }
 
-        PoolConfigurationModel poolConfigurationModel = poolDao.readPoolByIdAndAccountId( poolId, accountModel.getId());
+    @RequestMapping(value = "/account/pools/{poolId}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<PoolConfigurationModel> getPoolConfiguration(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId) {
+
+        PoolConfigurationModel poolConfigurationModel = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId());
         ResponseEntity<PoolConfigurationModel> retValue;
 
-        if( poolConfigurationModel == null ) {
-            retValue = new ResponseEntity<PoolConfigurationModel>( HttpStatus.NOT_FOUND );
-        }
-        else{
-            retValue = new ResponseEntity<PoolConfigurationModel>( poolConfigurationModel, HttpStatus.OK );
+        if (poolConfigurationModel == null) {
+            retValue = new ResponseEntity<PoolConfigurationModel>(HttpStatus.NOT_FOUND);
+        } else {
+            retValue = new ResponseEntity<PoolConfigurationModel>(poolConfigurationModel, HttpStatus.OK);
         }
 
         return retValue;
     }
 
-    @RequestMapping(value="/account/pools", method=RequestMethod.POST)
+    @RequestMapping(value = "/account/pools", method = RequestMethod.POST)
     @ResponseBody
-    public Long createPool(@ModelAttribute("account") AccountModel accountModel, @RequestBody String poolSettingJson){
-        try{
+    public PoolConfigurationModel createPool(@ModelAttribute("account") AccountModel accountModel, @RequestBody String poolSettingJson) {
+        try {
             Long poolId = poolDao.createPool(accountModel.getId(), poolSettingJson);
             nodeManagementExecutor.start(poolDao.readPoolById(poolId).poolSettings);
-            return poolId;
-        }catch(Exception e){
+            return poolDao.readPoolById(poolId);
+        } catch (Exception e) {
             logger.error("unable to createPool", e);
             return null;
 //            return new ResponseEntity<String>( HttpStatus.INTERNAL_SERVER_ERROR );
         }
     }
 
-    @RequestMapping(value="/account/pools/{poolId}", method=RequestMethod.POST)
+    @RequestMapping(value = "/account/pools/{poolId}", method = RequestMethod.POST)
     @ResponseBody
-    public boolean updatePoolConfiguration( @ModelAttribute("account") AccountModel accountModel,
-                                            @PathVariable("poolId") Long poolId, @RequestBody String poolSettingJson ) {
+    public boolean updatePoolConfiguration(@ModelAttribute("account") AccountModel accountModel,
+                                           @PathVariable("poolId") Long poolId, @RequestBody String poolSettingJson) {
 
-        boolean updated = poolDao.updatePool(poolId, accountModel.getId(), poolSettingJson);
+        boolean updated = false;
+        try {
+            updated = poolDao.updatePool(poolId, accountModel.getId(), poolSettingJson);
+        } catch (Exception e) {
+            logger.error("failed to update pool", e);
+            e.printStackTrace();
+        }
         nodeManagementExecutor.update(poolDao.readPoolById(poolId).poolSettings);
         return updated;
     }
 
-    @RequestMapping(value="/account/pools/{poolId}/delete", method=RequestMethod.POST)
+    @RequestMapping(value = "/account/pools/{poolId}/delete", method = RequestMethod.POST)
     @ResponseBody
-    public boolean deletePoolConfiguration( @ModelAttribute("account") AccountModel accountModel,
-                                            @PathVariable("poolId") Long poolId ) {
+    public boolean deletePoolConfiguration(@ModelAttribute("account") AccountModel accountModel,
+                                           @PathVariable("poolId") Long poolId) {
 
         nodeManagementExecutor.stop(poolDao.readPoolById(poolId).poolSettings);
         return poolDao.deletePool(poolId, accountModel.getId());
     }
 
-    @RequestMapping(value="/account/pools/{poolId}/clean", method=RequestMethod.POST)
+    @RequestMapping(value = "/account/pools/{poolId}/clean", method = RequestMethod.POST)
     @ResponseBody
-    public void cleanPool( @ModelAttribute("account") AccountModel accountModel,
-                                            @PathVariable("poolId") Long poolId ) {
+    public void cleanPool(@ModelAttribute("account") AccountModel accountModel,
+                          @PathVariable("poolId") Long poolId) {
 
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
         poolManagerApi.cleanPool(poolSettings);
     }
 
-    @RequestMapping(value="/account/pools/{poolId}/status", method=RequestMethod.GET)
+    @RequestMapping(value = "/account/pools/{poolId}/status", method = RequestMethod.GET)
     @ResponseBody
-    public PoolStatus getPoolStatus( @ModelAttribute("account") AccountModel accountModel,
-                                 @PathVariable("poolId") Long poolId ){
-        try{
+    public PoolStatus getPoolStatus(@ModelAttribute("account") AccountModel accountModel,
+                                    @PathVariable("poolId") Long poolId) {
+        try {
             PoolStatus retValue = null;
             PoolConfigurationModel poolConfiguration = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId());
-            if( poolConfiguration != null ){
+            if (poolConfiguration != null) {
                 PoolSettings poolSettings = poolConfiguration.getPoolSettings();
-                if( poolSettings != null ){
-                    retValue = poolManagerApi.getStatus( poolSettings );
+                if (poolSettings != null) {
+                    retValue = poolManagerApi.getStatus(poolSettings);
                 }
             }
 
             return retValue;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
 
-    @RequestMapping(value="/account/pools/{poolId}/occupy", method=RequestMethod.GET)
+    @RequestMapping(value = "/account/pools/{poolId}/occupy", method = RequestMethod.GET)
     @ResponseBody
     public NodeModel occupyPoolNode(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId, @RequestBody String expires) {
-        long expiresLong = Long.parseLong(expires);
+
+        long expiresLong = System.currentTimeMillis() + 20 * 60 * 1000;  // default to 20 minutes.
+
+        try {
+            expiresLong = Long.parseLong(expires);
+        } catch (Exception e) {
+            logger.warn("using default expires because expires was NaN = [{}]", expires);
+        }
+        logger.info("occupying pool node with expires : " + expiresLong);
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
+        logger.info("read pool successfully. moving on with occupying node");
         return poolManagerApi.occupy(poolSettings, expiresLong);
     }
 
-    @RequestMapping(value="/account/pools/{poolId}/nodes/{nodeId}/expire", method=RequestMethod.POST)
+    @RequestMapping(value = "/account/pools/{poolId}/nodes/{nodeId}/expire", method = RequestMethod.POST)
     @ResponseBody
     public void expirePoolNode(@ModelAttribute("account") AccountModel accountModel, @PathVariable("poolId") Long poolId, @PathVariable Long nodeId) {
         PoolSettings poolSettings = poolDao.readPoolByIdAndAccountId(poolId, accountModel.getId()).getPoolSettings();
         poolManagerApi.expireNode(poolSettings, nodeId);
     }
 
-    @RequestMapping(value="/account/pools/status", method=RequestMethod.GET)
+    @RequestMapping(value = "/account/pools/status", method = RequestMethod.GET)
     @ResponseBody
-    public String getPoolsStatus( @ModelAttribute("account") AccountModel accountModel){
-        try{
+    public String getPoolsStatus(@ModelAttribute("account") AccountModel accountModel) {
+        try {
             return "TBD pools status";
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("unable to retrieve pool status", e);
             return null;
         }
@@ -158,8 +180,7 @@ public class AccountController {
 
     // who's loading the "account" attribute on the request?
     @ModelAttribute("account")
-    public AccountModel getUser(HttpServletRequest request)
-    {
+    public AccountModel getUser(HttpServletRequest request) {
         return (AccountModel) request.getAttribute("account");
     }
 

@@ -7,6 +7,7 @@ import cloudify.widget.pool.manager.MachineTimeout;
 import cloudify.widget.pool.manager.NodesDao;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.NodeStatus;
+import cloudify.widget.pool.manager.dto.PingResult;
 import cloudify.widget.pool.manager.dto.ProviderSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,8 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
     private NodesDao nodesDao;
 
 
+
+
     @Override
     public TaskName getTaskName() {
         return TaskName.CREATE_MACHINE;
@@ -39,31 +42,40 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
 
     @Override
     public Collection<NodeModel> call() throws Exception {
-        logger.info("creating machine with pool settings [{}]", poolSettings);
+//        try {
+            logger.info("creating machine with pool settings [{}]", poolSettings);
 
-        ProviderSettings providerSettings = poolSettings.getProvider();
+            ProviderSettings providerSettings = poolSettings.getProvider();
 
-        CloudServerApi cloudServerApi = CloudServerApiFactory.create(providerSettings.getName());
+            CloudServerApi cloudServerApi = CloudServerApiFactory.create(providerSettings.getName());
 
-        logger.info("connecting to provider [{}]", providerSettings.getName());
-        cloudServerApi.connect(providerSettings.getConnectDetails());
+            logger.info("connecting to provider [{}]", providerSettings.getName());
+            cloudServerApi.connect(providerSettings.getConnectDetails());
 
-        Collection<NodeModel> nodeModelCreatedList = new ArrayList<NodeModel>();
+            Collection<NodeModel> nodeModelCreatedList = new ArrayList<NodeModel>();
 
-        Collection<? extends CloudServerCreated> cloudServerCreatedList = cloudServerApi.create(providerSettings.getMachineOptions());
-        for (CloudServerCreated created : cloudServerCreatedList) {
-            NodeModel nodeModel = new NodeModel()
-                    .setMachineId(created.getId())
-                    .setPoolId(poolSettings.getUuid())
-                    .setNodeStatus(NodeStatus.CREATED)
-                    .setMachineSshDetails(created.getSshDetails())
-                    .setExpires(System.currentTimeMillis() + (defaultMachineTimeout.inMillis()));
-            logger.info("machine created, adding node to database. node model is [{}]", nodeModel);
-            nodesDao.create(nodeModel);
-            nodeModelCreatedList.add(nodeModel);
-        }
+            Collection<? extends CloudServerCreated> cloudServerCreatedList = cloudServerApi.create(providerSettings.getMachineOptions());
+            for (CloudServerCreated created : cloudServerCreatedList) {
+                NodeModel nodeModel = new NodeModel()
+                        .setMachineId(created.getId())
+                        .setPoolId(poolSettings.getUuid())
+                        .setNodeStatus(NodeStatus.CREATED)
+                        .setPingStatus(new PingResult())
+                        .setMachineSshDetails(created.getSshDetails())
+                        .setExpires(System.currentTimeMillis() + (defaultMachineTimeout.inMillis()));
+                logger.info("machine created, adding node to database. node model is [{}]", nodeModel);
+                nodesDao.create(nodeModel);
+                nodeModelCreatedList.add(nodeModel);
+            }
 
-        return nodeModelCreatedList;
+            return nodeModelCreatedList;
+//        }catch(Exception e){
+//            errorsDao.create(new ErrorModel()
+//                    .setPoolId(poolSettings.getUuid())
+//                    .setSource(getTaskName().name())
+//                    .setMessage(e.getMessage()));
+//        }
+//        return new LinkedList<NodeModel>();
     }
 
 }

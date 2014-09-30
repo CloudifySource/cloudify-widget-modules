@@ -3,10 +3,13 @@ package cloudify.widget.pool.manager.tasks;
 import cloudify.widget.api.clouds.CloudExecResponse;
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.ISshDetails;
+import cloudify.widget.pool.manager.BootstrapScriptLoader;
 import cloudify.widget.pool.manager.CloudServerApiFactory;
-import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.NodesDao;
-import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.dto.BootstrapProperties;
+import cloudify.widget.pool.manager.dto.NodeModel;
+import cloudify.widget.pool.manager.dto.NodeStatus;
+import cloudify.widget.pool.manager.dto.PoolSettings;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +34,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     private NodesDao nodesDao;
 
     @Autowired
-    private ErrorsDao errorsDao;
-
+    private BootstrapScriptLoader bootstrapScriptLoader;
 
     @Override
     public Void call() throws Exception {
@@ -60,42 +62,12 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
     }
 
     private String getBootstrapScript() {
-        return readScriptFromFile(getScriptFile());
-    }
+        String script = poolSettings.getBootstrapProperties().getScript();
 
-    private File getScriptFile() {
-        File scriptFile;
-        try {
-            scriptFile = ResourceUtils.getFile(taskConfig.getBootstrapScriptResourcePath());
-            logger.debug("bootstrap script file is [{}]", scriptFile);
-        } catch (FileNotFoundException e) {
-            String message = "failed to get resource for bootstrap script";
-            logger.error(message, e);
-            errorsDao.create(new ErrorModel()
-                            .setPoolId(poolSettings.getUuid())
-                            .setSource(getTaskName().name())
-                            .setMessage(message)
-            );
-            throw new RuntimeException(message);
+        if (script == null || script.replaceAll("\\s+","").equals("")) {
+            script = bootstrapScriptLoader.readScriptFromFile();
         }
-        return scriptFile;
-    }
 
-    private String readScriptFromFile(File scriptFile) {
-        String script;
-        try {
-            script = FileUtils.readFileToString(scriptFile);
-            logger.debug("script file read to string\n\n[{}]...", script.substring(0, 20));
-        } catch (IOException e) {
-            String message = "failed to read bootstrap script file to string";
-            logger.error(message, e);
-            errorsDao.create(new ErrorModel()
-                            .setPoolId(poolSettings.getUuid())
-                            .setSource(getTaskName().name())
-                            .setMessage(message)
-            );
-            throw new RuntimeException(message);
-        }
         return script;
     }
 
@@ -126,12 +98,6 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             HashMap<String, Object> infoMap = new HashMap<String, Object>();
             infoMap.put("exitStatus", exitStatus);
             infoMap.put("output", output);
-            errorsDao.create(new ErrorModel()
-                            .setPoolId(poolSettings.getUuid())
-                            .setSource(getTaskName().name())
-                            .setMessage(message)
-                            .setInfoFromMap(infoMap)
-            );
             throw new RuntimeException(message);
         }
     }

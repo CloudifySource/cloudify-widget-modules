@@ -54,13 +54,22 @@ public class HpCloudOperationsTest {
     @Test
     public void testHpCloudComputeDriver() {
 
+
         logger.info("Start test, before connect");
 
         cloudServerApi.connect( connectDetails );
 
+        logger.info("count instances before");
+        int count = cloudServerApi.listByMask(machineOptions.getMask()).size();
+        logger.info("before count is " + count);
+
+
         logger.info("Start test create hp cloud machine");
 
+
+        CloudServerCreated createdServer = null;
         Collection<? extends CloudServerCreated> cloudServerCreatedCollection = cloudServerApi.create( machineOptions );
+        createdServer = CollectionUtils.first(cloudServerCreatedCollection);
         logger.info("hpCloudCloudServerApi created");
         logger.info( "machine(s) created, count=" + cloudServerCreatedCollection.size() );
         Assert.assertEquals("should create number of machines specified", machineOptions.getMachinesCount(), CollectionUtils.size(cloudServerCreatedCollection));
@@ -68,7 +77,7 @@ public class HpCloudOperationsTest {
         logger.info("Start test create HP cloud machine, completed");
 
         Collection<CloudServer> machinesWithTag = cloudServerApi.listByMask(machineOptions.getMask());
-        Assert.assertEquals( "should list machines that were created", machineOptions.getMachinesCount(), CollectionUtils.size(machinesWithTag));
+        Assert.assertEquals( "should list machines that were created", count + machineOptions.getMachinesCount(), CollectionUtils.size(machinesWithTag));
         logger.info("machines returned, size is [{}]", machinesWithTag.size());
         for (CloudServer cloudServer : machinesWithTag) {
             logger.info("cloud server found with id [{}], name [{}]", cloudServer.getId(), cloudServer.getName());
@@ -78,37 +87,33 @@ public class HpCloudOperationsTest {
 
         logger.info("Running script");
         /** run script on machine **/
-        for (final CloudServer machine : machinesWithTag) {
-            String publicIp = machine.getServerIp().publicIp;
-            Assert.assertNotNull( "Public Ip cannot be null, machine Id is [ " + machine.getId() + "]",  publicIp );
+        CloudServer createdCloudServer = cloudServerApi.get(createdServer.getId());
 
-            logger.info("looking for the SshDetails in the CloudServerCreated matching the CloudServer");
-            CloudServerCreated created = CollectionUtils.firstBy(cloudServerCreatedCollection, new CollectionUtils.Predicate<CloudServerCreated>() {
-                @Override
-                public boolean evaluate(CloudServerCreated object) {
-                    return object.getId().equals(machine.getId());
-                }
-            });
-            HpFolsomSshDetails sshDetails = (HpFolsomSshDetails) created.getSshDetails();
+        String publicIp = createdCloudServer.getServerIp().publicIp;
+        Assert.assertNotNull("Public Ip cannot be null, machine Id is [ " + createdCloudServer.getId() + "]", publicIp);
 
-            //if sshUserName defined we need to overwrite it in received sshDetails
+        logger.info("looking for the SshDetails in the CloudServerCreated matching the CloudServer");
 
-            if( sshUserName != null ){
-                HpFolsomSshDetails hpCloudSshDetails = sshDetails;
-                sshDetails = new HpFolsomSshDetails( hpCloudSshDetails.getPort(), sshUserName,
-                        hpCloudSshDetails.getPrivateKey(), hpCloudSshDetails.getPublicIp() );
-            }
+        HpGrizzlySshDetails sshDetails = (HpGrizzlySshDetails) createdServer.getSshDetails();
 
-            CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine("echo " + echoString, sshDetails);
-            logger.info("run Script on machine, completed, response [{}]" , cloudExecResponse );
-            assertTrue( "Script must have [" + echoString + "]" , cloudExecResponse.getOutput().contains( echoString ) );
+        //if sshUserName defined we need to overwrite it in received sshDetails
+
+        if (sshUserName != null) {
+            HpGrizzlySshDetails hpCloudSshDetails = sshDetails;
+            sshDetails = new HpGrizzlySshDetails(hpCloudSshDetails.getPort(), sshUserName,
+                    hpCloudSshDetails.getPrivateKey(), hpCloudSshDetails.getPublicIp());
         }
+
+        CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine("echo " + echoString, sshDetails);
+        logger.info("run Script on machine, completed, response [{}]", cloudExecResponse);
+        assertTrue("Script must have [" + echoString + "]", cloudExecResponse.getOutput().contains(echoString));
+
 
         logger.info("rebuild machines...");
-        for (CloudServer machine : machinesWithTag) {
-            logger.info("rebuild machine, id [{}] ",machine.getId());
-            cloudServerApi.rebuild(machine.getId());
-        }
+//        for (CloudServer machine : machinesWithTag) {
+//            logger.info("rebuild machine, id [{}] ",machine.getId());
+//            cloudServerApi.rebuild(machine.getId());
+//        }
 
         logger.info("deleting all machines");
 
@@ -123,15 +128,29 @@ public class HpCloudOperationsTest {
             logger.info("deleting machine with id [{}]...", machine.getId());
             cloudServerApi.delete(machine.getId());
 
-            logger.info("waiting for machine to stop");
-            MachineIsNotRunningCondition notRunningCondition = new MachineIsNotRunningCondition();
-            notRunningCondition.setMachine(machine);
 
-            waitMachineIsNotRunning.setCondition( notRunningCondition );
-            waitMachineIsNotRunning.waitFor();
+            boolean gotException = false;
+            try{
+                CloudServer cloudServer = cloudServerApi.get(machine.getId());
+                logger.info(" after deleting, this is the node [{}]", cloudServer);
+            }catch(Exception e){
+                gotException = true;
+            }
+
+            if ( !gotException ){
+                Assert.fail("machine is still found...");
+            }
+//            logger.info("waiting for machine to stop");
+//            MachineIsNotRunningCondition notRunningCondition = new MachineIsNotRunningCondition();
+//            notRunningCondition.setMachine(machine);
+//            notRunningCondition.setCloudServerApi(cloudServerApi);
+//
+//            waitMachineIsNotRunning.setCondition( notRunningCondition );
+//            waitMachineIsNotRunning.waitFor();
 
             //in the case of HP cloud any exception is not thrown in the case of passed wrong id to destroyNode method
         }
 
     }
+
 }

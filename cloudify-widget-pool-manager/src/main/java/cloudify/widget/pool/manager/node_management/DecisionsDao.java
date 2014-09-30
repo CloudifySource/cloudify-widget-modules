@@ -1,8 +1,8 @@
 package cloudify.widget.pool.manager.node_management;
 
+import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.pool.manager.Utils;
 import cloudify.widget.pool.manager.dto.DecisionModel;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +135,7 @@ public class DecisionsDao {
         protected Object getColumnValue(ResultSet rs, int index, PropertyDescriptor pd) throws SQLException {
             Class<?> propertyType = pd.getPropertyType();
             if (DecisionDetails.class.isAssignableFrom(propertyType)) {
-                ObjectMapper objectMapper = new ObjectMapper();
+                GsObjectMapper objectMapper = new GsObjectMapper();
                 String decisionDetailsString = rs.getString(index);
                 try {
                     return objectMapper.readValue(decisionDetailsString, DecisionDetails.class);

@@ -9,4 +9,5 @@ package cloudify.widget.api.clouds;
  * marker interface for SSH details
  */
 public interface ISshDetails {
+    String getPublicIp();
 }

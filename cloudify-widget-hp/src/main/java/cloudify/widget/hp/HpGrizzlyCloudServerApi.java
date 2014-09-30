@@ -1,17 +1,15 @@
 package cloudify.widget.hp;
 
-import cloudify.widget.api.clouds.CloudExecResponse;
-import cloudify.widget.api.clouds.CloudProvider;
-import cloudify.widget.api.clouds.CloudServerApi;
-import cloudify.widget.api.clouds.ISecurityGroupDetails;
+import cloudify.widget.api.clouds.*;
 import cloudify.widget.common.CloudExecResponseImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cloudify.widget.common.GsObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Module;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
@@ -19,11 +17,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.ExecResponse;
-import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
-import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.openstack.nova.v2_0.config.NovaProperties;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
@@ -46,6 +41,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 
 
@@ -54,7 +50,7 @@ import static com.google.common.collect.Collections2.transform;
  * Date: 6/10/14
  * Time: 7:24 PM
  */
-public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, HpGrizzlyCloudServerCreated, HpConnectDetails, HpMachineOptions, HpGrizzlySshDetails> {
+public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, HpGrizzlyCloudServerCreated, HpConnectDetails, HpMachineOptions, HpGrizzlySshDetails> {
 
 
     private static Logger logger = LoggerFactory.getLogger(HpGrizzlyCloudServerApi.class);
@@ -91,29 +87,65 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
 
 
     @Override
-    public Collection<HpCloudServer> listByMask(final String mask) {
+    public Collection<CloudServerPojo> listByMask(final String mask) {
 
-        Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
+        // ~!~
+//        listServerIds()
+//        Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
+//            @Override
+//            public boolean apply(@Nullable ComputeMetadata computeMetadata) {
+//                NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
+//
+//                return nodeMetadata.getStatus() == NodeMetadata.Status.RUNNING &&
+//                        (mask == null || nodeMetadata.getName().contains(mask));
+//            }
+//        });
+//
+//        return transform(nodeMetadatas, new Function<NodeMetadata, HpCloudServer>() {
+//            @Override
+//            public HpCloudServer apply(@Nullable NodeMetadata o) {
+//                return new HpCloudServer(computeService, o);
+//            }
+//        });
+
+        Collection<OpenstackNode> openstackNodes = listServers(this.tokenSession);
+
+        openstackNodes = filter( openstackNodes, new Predicate<OpenstackNode>() {
             @Override
-            public boolean apply(@Nullable ComputeMetadata computeMetadata) {
-                NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
-
-                return nodeMetadata.getStatus() == NodeMetadata.Status.RUNNING &&
-                        (mask == null || nodeMetadata.getName().contains(mask));
+            public boolean apply(OpenstackNode openstackNode) {
+                return openstackNode.getName().startsWith(mask);
             }
         });
 
-        return transform(nodeMetadatas, new Function<NodeMetadata, HpCloudServer>() {
+        return transform( openstackNodes, new Function<OpenstackNode, CloudServerPojo>() {
             @Override
-            public HpCloudServer apply(@Nullable NodeMetadata o) {
-                return new HpCloudServer(computeService, o);
+            public CloudServerPojo apply(OpenstackNode openstackNode) {
+                return fromOpenstackNode( openstackNode);
             }
         });
     }
 
     @Override
-    public HpCloudServer get(String serverId) {
-        return null;
+    public CloudServerPojo get(String serverId) {
+        return fromOpenstackNode(getNode(serverId, this.tokenSession));
+    }
+
+    private CloudServerPojo fromOpenstackNode( OpenstackNode node ){
+        CloudServerPojo result = new CloudServerPojo();
+
+        result.setId( node.getId() );
+        result.setName( node.getName() );
+
+        ServerIp ip = new ServerIp();
+        ip.publicIp = node.getPublicIp();
+        ip.privateIp = node.getPrivateIp();
+        result.setIp(ip);
+
+        result.setRunning( MACHINE_STATUS_ACTIVE.equalsIgnoreCase(node.getStatus()) );
+        result.setStopped( !MACHINE_STATUS_ACTIVE.equalsIgnoreCase(node.getStatus()) );
+        result.setStatus( node.getStatus() );
+
+        return result;
     }
 
     @Override
@@ -142,7 +174,8 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
             HpGrizzlyCloudServerCreated serverCreated = new HpGrizzlyCloudServerCreated(machineId, sshDetails);
             cloudServerCreateds.add(serverCreated);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+//            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
 
         return cloudServerCreateds;
@@ -195,11 +228,12 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
         logger.info("building new context for provider [{}]", cloudProvider);
 
         Properties overrides = new Properties();
-        overrides.setProperty("jclouds.keystone.credential-type", "apiAccessKeyCredentials");
+//        overrides.setProperty("jclouds.keystone.credential-type", "apiAccessKeyCredentials");
         overrides.setProperty(NovaProperties.AUTO_ALLOCATE_FLOATING_IPS, Boolean.FALSE.toString());
 
         ContextBuilder contextBuilder = ContextBuilder.newBuilder(cloudProvider)
                 .apiVersion(apiVersion)
+                .endpoint(this.identityEndpoint)
                 .credentials(identity, secretKey)
                 .overrides(overrides)
                 .modules(ImmutableSet.<Module>of(new SshjSshClientModule()));
@@ -235,9 +269,11 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
         boolean connectionSucceeded = false;
         int attemptsCount = 0;
         try{
-            while( !connectionSucceeded && attemptsCount < 10 ){
+
+            while( !connectionSucceeded && attemptsCount < 20 ){
                 try{
-                    Thread.sleep( 1*1000 );
+                    logger.info("retry " + attemptsCount);
+                    Thread.sleep( 40*1000 );
                     sshConnection.connect();
                     connectionSucceeded = true;
                 }
@@ -271,7 +307,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
     public String list(String token, String path) {
         return service.path(path)
                     .header("X-Auth-Token", token)
-                    .accept(MediaType.APPLICATION_XML)
+                    .accept(MediaType.APPLICATION_JSON)
                     .get(String.class);
     }
 
@@ -412,15 +448,18 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
 
         // detach public ip and delete the servers
         for (final String serverId : serverIds) {
-
+            logger.info("deleting [{}]", serverId);
             OpenstackNode node = getNode(serverId, token);
-
+            logger.info("deleting, found node [{}]", serverId);
             if (node.getPublicIp() != null) {
+                logger.info("detaching public ip" , node.getPublicIp());
                 detachFloatingIP(serverId, node.getPublicIp(), token);
+                logger.info("deleting public ip", node.getPublicIp());
                 deleteFloatingIP(node.getPublicIp(), token);
             }
 
             try {
+                logger.info("sending delete request [{}]", serverId);
                 service.path("servers/" + serverId)
                         .header("X-Auth-Token", token)
                         .header("x-auth-project-id", connectDetails.getProject())
@@ -428,21 +467,24 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
                         .delete();
 
             } catch (final UniformInterfaceException e) {
-                final String responseEntity = e.getResponse().getEntity(String.class);
-                throw new IllegalArgumentException(e + " Response entity: " + responseEntity);
+                if ( e.getResponse().getStatus() != HTTP_NOT_FOUND ) {
+                    final String responseEntity = e.getResponse().getEntity(String.class);
+                    throw new IllegalArgumentException(e + " Response entity: " + responseEntity);
+                }
             }
 
         }
-
+        logger.info("requests dispatched, checking machines are down");
         int successCounter = 0;
 
         // wait for all servers to die
         for (final String serverId : serverIds) {
             while (System.currentTimeMillis() < endTime) {
                 try {
-                    this.getNode(serverId, token);
-
+                    OpenstackNode node = this.getNode(serverId, token);
+                    logger.info("found node [{}] with status [{}]", serverId, node.getStatus() );
                 } catch (final UniformInterfaceException e) {
+                    logger.info("machine stopped");
                     if (e.getResponse().getStatus() == HTTP_NOT_FOUND) {
                         ++successCounter;
                         break;
@@ -619,7 +661,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
                         .accept(MediaType.APPLICATION_JSON)
                         .get(String.class);
 
-        final ObjectMapper mapper = new ObjectMapper();
+        final GsObjectMapper mapper = new GsObjectMapper();
         final Map map = mapper.readValue(new StringReader(response), Map.class);
         @SuppressWarnings("unchecked")
         final List<Map> list = (List<Map>) map.get("floating_ips");
@@ -758,6 +800,36 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
 
     /**
      * *******
+     *
+     *
+     *
+     * Sends a request to get all tokens
+     *
+     *
+     * body should be :
+     *
+     * {
+     *           "auth": {
+     *               "identity": {
+     *                   "methods": ["password"],
+     *                   "password": {
+     *                   "user": {
+     *                       "name": "__username__",
+     *                       "password": "__password__"
+     *                   }
+     *               }
+     *           },
+     *           "scope": {
+     *               "project": {
+     *                   "id": "__project__"
+     *               }
+     *           }
+     *       }
+     *    }
+     *
+     *
+     *
+     *
      * Creates an openstack keystone authentication token.
      *
      * @return the authentication token.
@@ -775,41 +847,82 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<HpCloudServer, Hp
         identityEndpoint = connectDetails.getIdentityEndpoint();
 
         // we only use api-access-key as credential type (password credential type is also available)
-        String json =
-                "{\"auth\":{\"apiAccessKeyCredentials\":{\"accessKey\":\"" + connectDetails.getKey()
-                        + "\",\"secretKey\":\"" + connectDetails.getSecretKey() + "\"},\"tenantName\":\""
-                        + connectDetails.getProject() + "\"}}";
+        String json =  "{  \n" +
+                "\"auth\": {  \n" +
+                "  \"identity\": {  \n" +
+                "    \"methods\": [\"password\"],  \n" +
+                "    \"password\": {  \n" +
+                "      \"user\": {  \n" +
+                "      \"name\": \"__username__\",  \n" +
+                "      \"password\": \"__password__\"  \n" +
+                "      }  \n" +
+                "    }  \n" +
+                "},  \n" +
+                "\"scope\": {  \n" +
+                "    \"project\": {  \n" +
+                "        \"id\": \"__project__\"  \n" +
+                "      }  \n" +
+                "    }  \n" +
+                "  }  \n" +
+                "}";
+
+        json = json.replace("__username__", connectDetails.getKey());
+        json = json.replace("__password__", connectDetails.getSecretKey());
+        json = json.replace("__project__", connectDetails.getProject());
 
         final WebResource identityService = client.resource(this.identityEndpoint);
 
-        final String resp =
-                identityService.path("tokens")
-                        .header("Content-Type", "application/json")
-                        .accept(MediaType.APPLICATION_XML)
-                        .post(String.class, json);
+        // get the response
+        ClientResponse response=identityService.path("tokens")
+                .header("Content-Type", "application/json")
+                .accept(MediaType.APPLICATION_JSON)
+                .post(ClientResponse.class, json);
+
+        // get the body
+
+        final String resp =  response.getEntity(String.class);
+
 
         try {
+            logger.info("reading token");
 
-            DocumentBuilder db = createDocumentBuilder();
-            final Document xmlDoc = db.parse(new InputSource(new StringReader(resp)));
+            this.tokenSession = response.getHeaders().getFirst("X-Subject-Token");
 
-            String token = xpath.evaluate("//access/token/@id", xmlDoc);
-            this.endpoint = xpath.evaluate("//access/serviceCatalog/service[@type='compute']/endpoint/@publicURL", xmlDoc);
+            logger.info("parsing result");
+            GsObjectMapper m = new GsObjectMapper();
+            Map responseMap = m.readValue(resp, Map.class);
+
+            List<Map> l = ((List) ( (Map)responseMap.get("token")).get("catalog"));
+            List<Map> computeEndpoints = null;
+            for (Map catalogItem : l) {
+                if ( "compute".equalsIgnoreCase((String) catalogItem.get("type"))){
+                    computeEndpoints = (List<Map>) catalogItem.get("endpoints");
+                }
+            }
+
+            if ( computeEndpoints == null ){
+                throw new RuntimeException("unable to find compute endpoint");
+            }
+
+            String computeEndpointUrl = null;
+            for (Map computeEndpoint : computeEndpoints) {
+                if ( connectDetails.getRegion().equalsIgnoreCase((String)computeEndpoint.get("region")) ){
+                    computeEndpointUrl = (String)computeEndpoint.get("url");
+                }
+            }
+
+            if ( computeEndpointUrl == null ){
+                throw new RuntimeException("did not find compute endpoint url");
+            }
+
+            this.endpoint = computeEndpointUrl;
+            logger.info("found endpoint [{}]", this.endpoint);
             this.service = client.resource(this.endpoint);
 
-            this.tokenSession = token;
+            return this.tokenSession;
 
-            return token;
-
-        } catch (SAXException e) {
-            throw new RuntimeException("Failed to parse XML Response from server. Response was: " + resp
-                    + ", Error was: " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse XML Response from server. Response was: " + resp
-                    + ", Error was: " + e.getMessage(), e);
-        } catch (XPathExpressionException e) {
-            throw new RuntimeException("Failed to parse XML Response from server. Response was: " + resp
-                    + ", Error was: " + e.getMessage(), e);
+        } catch(Exception e){
+            throw new RuntimeException("unable to get endpoint and token [ " + connectDetails + "]", e);
         }
     }
 

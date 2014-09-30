@@ -1,8 +1,6 @@
 package cloudify.widget.pool.manager.dto;
 
 import cloudify.widget.api.clouds.ISshDetails;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * User: eliranm
@@ -18,7 +16,13 @@ public class NodeModel {
     public NodeStatus nodeStatus;
     public String machineId;
     public ISshDetails machineSshDetails;
+    public PingResult pingStatus;
     public long expires;
+
+    public NodeModel setPingStatus(PingResult pingStatus) {
+        this.pingStatus = pingStatus;
+        return this;
+    }
 
     public NodeModel setId(long id) {
         this.id = id;
@@ -64,6 +68,7 @@ public class NodeModel {
                 ", nodeStatus=" + nodeStatus +
                 ", machineId='" + machineId + '\'' +
                 ", machineSshDetails='" + machineSshDetails + '\'' +
+                ", pingResult='" + pingStatus + '\'' +
                 ", expires='" + expires + '\'' +
                 '}';
     }

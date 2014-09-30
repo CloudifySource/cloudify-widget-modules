@@ -22,4 +22,6 @@ public interface IAccountDao {
 
 
     public AccountModel readById( Long accountId );
+
+    public AccountModel setAccountDescription( Long id, String description );
 }

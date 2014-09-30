@@ -45,10 +45,11 @@ public class AccountAuthenticationInterceptor extends HandlerInterceptorAdapter 
         }
         AccountModel accountModel = accountDao.readAccountByUuid(accountUuid);
         if (accountModel == null) {
+            logger.info("account not found");
             response.sendError(401, "{'message' : 'Account with uuid [" + accountUuid + "] not found'}");
             return false;
         }
-
+        logger.info("setting account on request");
         request.setAttribute("account", accountModel);
 
         return super.preHandle(request, response, handler);

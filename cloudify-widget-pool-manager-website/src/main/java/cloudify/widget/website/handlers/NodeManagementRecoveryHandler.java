@@ -48,7 +48,11 @@ public class NodeManagementRecoveryHandler implements ApplicationListener<Contex
 
         logger.info("recovering node management for existing pool settings [{}]", poolSettingsIds);
         for (PoolSettings poolSettings : poolSettingsList) {
-            nodeManagementExecutor.start(poolSettings);
+            try {
+                nodeManagementExecutor.start(poolSettings);
+            }catch(Exception e){
+                logger.error("unable to start node management executor. need to verify that the pool settings json is valid for poolSettingsUuid[{}]", poolSettings.getUuid());
+            }
         }
     }
 }

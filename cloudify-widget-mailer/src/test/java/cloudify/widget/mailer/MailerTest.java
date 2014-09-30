@@ -23,10 +23,13 @@ public class MailerTest {
     private static Logger logger = LoggerFactory.getLogger(MailerTest.class);
 
     @Autowired
-    private MailerConfig mailerConfig;
+    private Mail.MailBuilder mailBuilder;
 
     @Autowired
-    private Mail.MailBuilder mailBuilder;
+    private Mailer mailer;
+
+    @Autowired
+    private Mailer failingMailer;
 
 
     @Test
@@ -35,9 +38,6 @@ public class MailerTest {
         logger.info("building mail, adding message body");
         Mail mail = mailBuilder.message("test message!").build();
         logger.info("created mail [{}]", mail);
-
-        logger.info("creating new mailer from config [{}]", mailerConfig);
-        Mailer mailer = new Mailer(mailerConfig);
 
         logger.info("sending mail with correct configuration...");
         Exception exception = null;
@@ -51,11 +51,9 @@ public class MailerTest {
         }
 
         logger.info("sending mail with wrong configuration...");
-        mailerConfig.setHostName("blah-blah");
         exception = null;
-        mailer = new Mailer(mailerConfig);
         try {
-            mailer.send(mail);
+            failingMailer.send(mail);
         } catch (RuntimeException e) {
             exception = e;
         } finally {

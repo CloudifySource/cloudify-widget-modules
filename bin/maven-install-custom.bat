@@ -1,1 +1,4 @@
-mvn install:install-file -Dfile=..\lib\softlayer-cci-embedded-1.6.2-incubating.jar -DgroupId=org.apache.jclouds.provider -DartifactId=softlayer-cci-embedded -Dversion=1.6.2-incubating -Dpackaging=jar
+call mvn install:install-file -Dfile=..\lib\softlayer-cci-embedded-1.6.2-incubating.jar -DgroupId=org.apache.jclouds.provider -DartifactId=softlayer-cci-embedded -Dversion=1.6.2-incubating -Dpackaging=jar
+call mvn install:install-file -Dfile=..\lib\softlayer-all-1.6.2-incubating.jar -DgroupId=org.apache.jclouds.provider -DartifactId=softlayer-all -Dversion=1.6.2-incubating -Dpackaging=jar
+call mvn install:install-file -Dfile=..\lib\automaton.jar -DgroupId=automaton -DartifactId=automaton -Dversion=1.0.0 -Dpackaging=jar
+call mvn install:install-file -Dfile=..\lib\xeger-1.0-SNAPSHOT.jar -DgroupId=xeger -DartifactId=xeger -Dversion=1.0.0 -Dpackaging=jar

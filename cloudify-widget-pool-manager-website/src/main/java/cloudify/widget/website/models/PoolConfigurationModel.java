@@ -14,6 +14,8 @@ public class PoolConfigurationModel {
 
     public PoolSettings poolSettings; //in db is of TEXT type
 
+    public String poolSettingsStr;
+
     public Long accountId;
 
     public Long getId() {
@@ -30,6 +32,14 @@ public class PoolConfigurationModel {
 
     public void setPoolSettings(PoolSettings poolSettings) {
         this.poolSettings = poolSettings;
+    }
+
+    public String getPoolSettingsStr() {
+        return poolSettingsStr;
+    }
+
+    public void setPoolSettingsStr(String poolSettingsStr) {
+        this.poolSettingsStr = poolSettingsStr;
     }
 
     public Long getAccountId() {

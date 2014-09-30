@@ -12,7 +12,6 @@ public abstract class AbstractPoolTask<T extends TaskConfig, V> implements  Task
     public T taskConfig;
     public PoolSettings poolSettings;
 
-
     @Override
     public void setTaskConfig(T taskConfig) {
         this.taskConfig = taskConfig;
@@ -22,4 +21,5 @@ public abstract class AbstractPoolTask<T extends TaskConfig, V> implements  Task
     public void setPoolSettings(PoolSettings poolSettings) {
         this.poolSettings = poolSettings;
     }
+
 }

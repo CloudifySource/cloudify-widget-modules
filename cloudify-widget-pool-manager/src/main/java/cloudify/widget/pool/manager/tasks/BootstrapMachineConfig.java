@@ -7,7 +7,5 @@ package cloudify.widget.pool.manager.tasks;
  */
 public interface BootstrapMachineConfig extends TaskConfig, NodeModelProvider {
 
-    String getBootstrapScriptResourcePath();
-
     String getBootstrapSuccessText();
 }

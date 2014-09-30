@@ -1,8 +1,8 @@
 package cloudify.widget.website.interceptors;
 
+import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.website.exceptions.BaseException;
 import cloudify.widget.website.exceptions.InternalServerError;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 public class ExceptionInterceptor extends HandlerInterceptorAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(ExceptionInterceptor.class);
-    private ObjectMapper mapper = new ObjectMapper();
+    private GsObjectMapper mapper = new GsObjectMapper();
 
     public void sendError(  HttpServletResponse response, BaseException baseException ) throws Exception{
         HashMap<String,Object> responseContent = new HashMap<String, Object>();

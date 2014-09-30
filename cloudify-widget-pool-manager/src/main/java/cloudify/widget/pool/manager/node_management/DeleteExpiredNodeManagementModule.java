@@ -119,4 +119,8 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
     public NodeManagementModuleType getType() {
         return NodeManagementModuleType.DELETE_EXPIRED;
     }
+
+    public void setPoolManagerApi(PoolManagerApi poolManagerApi) {
+        this.poolManagerApi = poolManagerApi;
+    }
 }

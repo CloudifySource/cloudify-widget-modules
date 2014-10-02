@@ -57,6 +57,13 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
         return decisionsDao.readAllOfPoolWithDecisionType(getConstraints().poolSettings.getUuid(), getType());
     }
 
+    public void setNodesDao(NodesDao nodesDao) {
+        this.nodesDao = nodesDao;
+    }
+
+    public void setDecisionsDao(DecisionsDao decisionsDao) {
+        this.decisionsDao = decisionsDao;
+    }
 
     protected void teardownDecisionExecution(DecisionModel decisionModel) {
         decisionsDao.delete(decisionModel.id);

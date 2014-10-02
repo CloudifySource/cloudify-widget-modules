@@ -25,6 +25,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
     @Override
     public DeleteExpiredNodeManagementModule decide() {
+        // todo: spilt into two separate decisions - one that marks nodes as expired due to time passed and another that deletes expired nodes.
         Constraints constraints = getConstraints();
         // get all nodes that should be expired
         List<Long> expiredNodeIds = nodesDao.readExpiredIdsOfPool(constraints.poolSettings.getUuid());

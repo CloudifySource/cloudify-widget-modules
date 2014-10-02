@@ -1,5 +1,6 @@
 package cloudify.widget.pool.manager.actions;
 
+import cloudify.widget.pool.manager.dto.PingResponse;
 import cloudify.widget.pool.manager.dto.PingSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,17 +31,14 @@ public class PingAction {
      *          The list of pingSettings
      * @return
      */
-    public Boolean pingAll(String host, List<PingSettings> pingSettingsList) {
-        Boolean pingAllResult = true;
+    public List<PingResponse> pingAll(String host, List<PingSettings> pingSettingsList) {
+        List<PingResponse> pingAllResult = new ArrayList<PingResponse>();
 
         for (int i = 0; i < pingSettingsList.size(); i++) {
             PingSettings pingSettings = pingSettingsList.get(i);
-            Boolean pingResult = ping(host, pingSettings);
-
-            if (!pingResult) {
-                pingAllResult = false;
-                break;
-            }
+            PingResponse pingResponse = ping(host, pingSettings);
+            pingResponse.setPingSettings(pingSettings);
+            pingAllResult.add(pingResponse);
         }
 
         return pingAllResult;
@@ -55,29 +54,29 @@ public class PingAction {
      * @param pingSettings
      *          The pingSettings
      * @return
-     *          True if ping was successful, false otherwise
+     *          PingResponse
      */
-    public Boolean ping(String host, PingSettings pingSettings) {
+    public PingResponse ping(String host, PingSettings pingSettings) {
         String url = pingSettings.getUrl().replace("$HOST", host);
-        Boolean pingResult = false;
         logger.debug("starting ping for " + url);
+        PingResponse pingResponse = new PingResponse();
 
         for (int i = 0; i < pingSettings.getRetryCount(); i++) {
             // get ping result
-            int responseCode = getResponseCode(url, pingSettings.getPingTimeout());
-            pingResult = isWhiteListed(responseCode, pingSettings.getWhiteList());
+            pingResponse = getResponseCode(url, pingSettings.getPingTimeout());
+            isWhiteListed(pingResponse, pingSettings.getWhiteList());
 
-            if (pingResult) {
+            if (pingResponse.isWhiteListed()) {
                 logger.debug("Ping successful!");
                 break;
             }
         }
 
-        if (!pingResult) {
+        if (!pingResponse.isWhiteListed()) {
             logger.debug("Ping failed!");
         }
 
-        return pingResult;
+        return pingResponse;
     }
 
     /**
@@ -87,34 +86,35 @@ public class PingAction {
      * <p>So, getting a 200 response code that is not in the white list will result in a failed ping, while
      * getting a 500 response code that is in the list will result in a successful ping.</p>
      *
-     * <p>A response code of -1 means that the request failed to gp through and no response code was received.<br>
+     * <p>A response code of -1 means that the request failed to go through and no response code was received.<br>
      * See {@link #getResponseCode(String, int)} for more info.</p>
      *
-     * @param responseCode
-     *          The response code to match
+     * @param pingResponse
+     *          The PingResponse code to match
      * @param whiteList
      *          The list of codes to match against
      * @return
      *          True if matched, false otherwise.
      */
-    private Boolean isWhiteListed(int responseCode, List<String> whiteList) {
+    private PingResponse isWhiteListed(PingResponse pingResponse, List<String> whiteList) {
         Boolean found = false;
 
-        if (responseCode != -1) {
-            logger.debug("Checking if responseCode " + responseCode + " is in white list");
+        if (pingResponse.getResponseCode() != -1) {
+            logger.debug("Checking if responseCode " + pingResponse.getResponseCode() + " is in white list");
             // no errors getting the code, check if it is white listed.
             for (String item : whiteList) {
                 int parsed = Integer.parseInt(item);
 
-                if (responseCode == parsed) {
+                if (pingResponse.getResponseCode() == parsed) {
                     found = true;
-                    logger.debug("responseCode " + responseCode + " is in white list");
+                    logger.debug("responseCode " + pingResponse.getResponseCode() + " is in white list");
                     break;
                 }
             }
         }
 
-        return found;
+        pingResponse.setWhiteListed(found);
+        return pingResponse;
     }
 
     /**
@@ -125,9 +125,11 @@ public class PingAction {
      * @param timeout
      *          The ping request timeout
      * @return
-     *          the response code, or -1 if an error occurred.
+     *          the PingResponse
      */
-    private int getResponseCode(String url, int timeout) {
+    private PingResponse getResponseCode(String url, int timeout) {
+        PingResponse pingResponse = new PingResponse();
+
         try {
             if (url.startsWith("https")) {
                 logger.debug("URL is HTTPS, ignoring invalid certificates...");
@@ -135,19 +137,21 @@ public class PingAction {
                 initHttpsConnection();
                 HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
                 connection.setConnectTimeout(timeout);
-                return connection.getResponseCode();
+                pingResponse.setResponseCode(connection.getResponseCode());
             } else {
                 logger.debug("URL is HTTP");
                 HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setConnectTimeout(timeout);
-                return connection.getResponseCode();
+                pingResponse.setResponseCode(connection.getResponseCode());
             }
 
         } catch (Exception e) {
             logger.error("Ping failed for [" + url + "] with timeout [" + timeout + "]");
-            return -1;
-
+            pingResponse.setResponseCode(-1);
+            pingResponse.setErrorMessage(e.getMessage());
         }
+
+        return pingResponse;
     }
 
     private void initHttpsConnection() throws NoSuchAlgorithmException, KeyManagementException {

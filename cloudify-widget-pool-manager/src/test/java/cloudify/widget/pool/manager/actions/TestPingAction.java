@@ -1,6 +1,9 @@
 package cloudify.widget.pool.manager.actions;
 
+import cloudify.widget.common.GsObjectMapper;
+import cloudify.widget.pool.manager.dto.PingResponse;
 import cloudify.widget.pool.manager.dto.PingSettings;
+import cloudify.widget.pool.manager.dto.PingResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +15,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by sefi on 9/9/14.
@@ -39,8 +44,8 @@ public class TestPingAction {
 
     @Test
     public void testSuccess() {
-        Boolean pingResult = pingAction.ping("www.google.com", pingSettings);
-        Assert.isTrue(pingResult);
+        PingResponse pingResult = pingAction.ping("www.google.com", pingSettings);
+        Assert.isTrue(pingResult.isWhiteListed());
     }
 
     @Test
@@ -49,8 +54,8 @@ public class TestPingAction {
         pingSettings.setUrl("http://$HOST:8099");
         pingSettings.setPingTimeout(1000);
 
-        Boolean pingResult = pingAction.ping("www.google.com", pingSettings);
-        Assert.isTrue(!pingResult);
+        PingResponse pingResult = pingAction.ping("www.google.com", pingSettings);
+        Assert.isTrue(!pingResult.isWhiteListed());
     }
 
     @Test
@@ -59,15 +64,15 @@ public class TestPingAction {
         whiteList.add("404");
         pingSettings.setWhiteList(whiteList);
 
-        Boolean pingResult = pingAction.ping("www.google.com", pingSettings);
-        Assert.isTrue(!pingResult);
+        PingResponse pingResult = pingAction.ping("www.google.com", pingSettings);
+        Assert.isTrue(!pingResult.isWhiteListed());
     }
 
     @Test
     public void testHttps() {
         pingSettings.setUrl("https://$HOST:443");
-        Boolean pingResult = pingAction.ping("ssl.gigaspaces.com", pingSettings);
-        Assert.isTrue(pingResult);
+        PingResponse pingResult = pingAction.ping("ssl.gigaspaces.com", pingSettings);
+        Assert.isTrue(pingResult.isWhiteListed());
     }
 
     @Test
@@ -87,8 +92,10 @@ public class TestPingAction {
         ps2.setWhiteList(whiteList);
         pingSettingsArrayList.add(ps2);
 
-        Boolean pingResult = pingAction.pingAll("www.google.com", pingSettingsArrayList);
-        Assert.isTrue(pingResult);
+        List<PingResponse> pingResponses = pingAction.pingAll("www.google.com", pingSettingsArrayList);
+        PingResult pingResult = new PingResult();
+        pingResult.setPingResponses(pingResponses);
+        Assert.isTrue(pingResult.isAggregatedPingResponse());
     }
 
     @Test
@@ -108,7 +115,20 @@ public class TestPingAction {
         ps2.setWhiteList(whiteList);
         pingSettingsArrayList.add(ps2);
 
-        Boolean pingResult = pingAction.pingAll("www.google.com", pingSettingsArrayList);
-        Assert.isTrue(!pingResult);
+        List<PingResponse> pingResponses = pingAction.pingAll("www.google.com", pingSettingsArrayList);
+        PingResult pingResult = new PingResult();
+        pingResult.setPingResponses(pingResponses);
+        Assert.isTrue(!pingResult.isAggregatedPingResponse());
+    }
+
+    @Test
+    public void testRowMapper() {
+        GsObjectMapper objectMapper = new GsObjectMapper();
+        String pingResultString = "{\"pingStatus\":\"PING_FAIL\",\"pingResponses\":[{\"responseCode\":-1,\"errorMessage\":\"connect timed out\",\"pingSettings\":{\"url\":\"http://$HOST:8099\",\"whiteList\":[\"200\"],\"retryCount\":5,\"pingTimeout\":5000},\"whiteListed\":false},{\"responseCode\":-1,\"errorMessage\":\"connect timed out\",\"pingSettings\":{\"url\":\"http://$HOST:9099\",\"whiteList\":[\"200\",\"202\"],\"retryCount\":5,\"pingTimeout\":5000},\"whiteListed\":false}],\"timestamp\":1412241198510,\"aggregatedPingResponses\":false}";
+        try {
+            PingResult pingResult = objectMapper.readValue(pingResultString, PingResult.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

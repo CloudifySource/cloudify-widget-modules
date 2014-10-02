@@ -32,7 +32,6 @@ public class PingAction {
      * @return
      */
     public List<PingResponse> pingAll(String host, List<PingSettings> pingSettingsList) {
-//        Boolean pingAllResult = true;
         List<PingResponse> pingAllResult = new ArrayList<PingResponse>();
 
         for (int i = 0; i < pingSettingsList.size(); i++) {
@@ -40,11 +39,6 @@ public class PingAction {
             PingResponse pingResponse = ping(host, pingSettings);
             pingResponse.setPingSettings(pingSettings);
             pingAllResult.add(pingResponse);
-
-//            if (!pingResponse.isWhiteListed()) {
-//                pingAllResult = false;
-//                break;
-//            }
         }
 
         return pingAllResult;

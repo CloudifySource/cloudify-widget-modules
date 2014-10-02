@@ -112,7 +112,8 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
             pingResult.setPingStatus(PingStatus.PING_SETTINGS_UNDEFINED);
 
         } else {
-            Boolean ping = pingAction.pingAll(node.machineSshDetails.getPublicIp(), poolSettings.getNodeManagement().getPingSettings());
+            pingResult.setPingResponses(pingAction.pingAll(node.machineSshDetails.getPublicIp(), poolSettings.getNodeManagement().getPingSettings()));
+            boolean ping = pingResult.isAggregatedPingResponse();
             pingResult.setPingStatus(ping ? PingStatus.PING_SUCCESS : PingStatus.PING_FAIL);
 
         }

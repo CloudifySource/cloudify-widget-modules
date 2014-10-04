@@ -75,6 +75,7 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
         BootstrapProperties bootstrapProperties = poolSettings.getBootstrapProperties();
         return script
                 .replaceAll("##publicip##", bootstrapProperties.getPublicIp())
+                .replaceAll("##randomValue##", bootstrapProperties.getRandomPasswordRegex())
                 .replaceAll("##privateip##", bootstrapProperties.getPrivateIp())
                 .replaceAll("##cloudifyUrl##", bootstrapProperties.getCloudifyUrl())
                 .replaceAll("##prebootstrapScript##", bootstrapProperties.getPreBootstrapScript())

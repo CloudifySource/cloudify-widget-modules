@@ -15,6 +15,8 @@
 
 package cloudify.widget.common;
 
+import nl.flotsam.xeger.Xeger;
+
 /**
  * User: guym
  * Date: 12/24/12
@@ -32,6 +34,11 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 
     public static String wrapWithQuotes( String s ){
         return "\"" + s + "\"";
+    }
+
+    public static String generateRandomFromRegex( String regex ){
+        Xeger generator = new Xeger(regex);
+        return generator.generate();
     }
 
 }

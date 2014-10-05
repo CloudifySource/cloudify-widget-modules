@@ -14,6 +14,7 @@ public class NodeModel {
     public long id = INITIAL_ID;
     public String poolId;
     public NodeStatus nodeStatus;
+    public String randomValue;
     public String machineId;
     public ISshDetails machineSshDetails;
     public PingResult pingStatus;
@@ -41,6 +42,15 @@ public class NodeModel {
 
     public NodeModel setMachineId(String machineId) {
         this.machineId = machineId;
+        return this;
+    }
+
+    public String getRandomValue() {
+        return randomValue;
+    }
+
+    public NodeModel setRandomValue(String randomValue) {
+        this.randomValue = randomValue;
         return this;
     }
 

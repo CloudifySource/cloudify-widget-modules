@@ -1,0 +1,1 @@
+alter table nodes add column random_value varchar(255);

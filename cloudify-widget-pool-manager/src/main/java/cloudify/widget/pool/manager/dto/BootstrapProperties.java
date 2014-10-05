@@ -13,6 +13,7 @@ public class BootstrapProperties {
     private String preBootstrapScript; // optional
     private String recipeUrl; // optional
     private String recipeRelativePath; // optional
+    private String randomPasswordRegex = "[a-zA-Z0-9]{16}"; //optional
     private String script;
 
     public String getPublicIp() {
@@ -63,6 +64,14 @@ public class BootstrapProperties {
         this.recipeRelativePath = recipeRelativePath;
     }
 
+    public String getRandomPasswordRegex() {
+        return randomPasswordRegex;
+    }
+
+    public void setRandomPasswordRegex(String randomPasswordRegex) {
+        this.randomPasswordRegex = randomPasswordRegex;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -78,6 +87,7 @@ public class BootstrapProperties {
         if (recipeRelativePath != null ? !recipeRelativePath.equals(that.recipeRelativePath) : that.recipeRelativePath != null)
             return false;
         if (recipeUrl != null ? !recipeUrl.equals(that.recipeUrl) : that.recipeUrl != null) return false;
+        if (randomPasswordRegex != null ? !randomPasswordRegex.equals(that.randomPasswordRegex) : that.randomPasswordRegex != null) return false;
 
         return true;
     }
@@ -90,6 +100,7 @@ public class BootstrapProperties {
         result = 31 * result + (preBootstrapScript != null ? preBootstrapScript.hashCode() : 0);
         result = 31 * result + (recipeUrl != null ? recipeUrl.hashCode() : 0);
         result = 31 * result + (recipeRelativePath != null ? recipeRelativePath.hashCode() : 0);
+        result = 31 * result + (randomPasswordRegex != null ? randomPasswordRegex.hashCode() : 0);
         return result;
     }
 

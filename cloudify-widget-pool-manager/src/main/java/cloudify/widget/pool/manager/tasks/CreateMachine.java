@@ -2,6 +2,7 @@ package cloudify.widget.pool.manager.tasks;
 
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.CloudServerCreated;
+import cloudify.widget.common.StringUtils;
 import cloudify.widget.pool.manager.CloudServerApiFactory;
 import cloudify.widget.pool.manager.MachineTimeout;
 import cloudify.widget.pool.manager.NodesDao;
@@ -60,6 +61,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
                         .setMachineId(created.getId())
                         .setPoolId(poolSettings.getUuid())
                         .setNodeStatus(NodeStatus.CREATED)
+                        .setRandomValue(StringUtils.generateRandomFromRegex(poolSettings.getBootstrapProperties().getRandomPasswordRegex()))
                         .setPingStatus(new PingResult())
                         .setMachineSshDetails(created.getSshDetails())
                         .setExpires(System.currentTimeMillis() + (defaultMachineTimeout.inMillis()));

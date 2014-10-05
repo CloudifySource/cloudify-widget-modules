@@ -79,12 +79,12 @@
         <dependency>
             <groupId>xeger</groupId>
             <artifactId>xeger</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
-            <groupId>dk.brics</groupId>
+            <groupId>automaton</groupId>
             <artifactId>automaton</artifactId>
-            <version>1.11.8</version>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- databinding; ObjectMapper, JsonNode and related classes are here -->

@@ -34,6 +34,7 @@ public class NodesDao {
     public static final String COL_POOL_ID = "pool_id";
     public static final String COL_NODE_STATUS = "node_status";
     public static final String COL_PING_STATUS = "ping_status";
+    public static final String COL_RANDOM_VALUE = "random_value";
     public static final String COL_MACHINE_ID = "machine_id";
     public static final String COL_MACHINE_SSH_DETAILS = "machine_ssh_details";
     public static final String COL_EXPIRES = "expires";
@@ -59,7 +60,7 @@ public class NodesDao {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
                         PreparedStatement ps = con.prepareStatement(
-                                "insert into " + TABLE_NAME + " (" + COL_POOL_ID + "," + COL_NODE_STATUS + "," + COL_MACHINE_ID + "," + COL_MACHINE_SSH_DETAILS + "," + COL_EXPIRES + "," + COL_PING_STATUS + ") values (?, ?, ?, ?, ?, ?)",
+                                "insert into " + TABLE_NAME + " (" + COL_POOL_ID + "," + COL_NODE_STATUS + "," + COL_MACHINE_ID + "," + COL_MACHINE_SSH_DETAILS + "," + COL_EXPIRES + "," + COL_PING_STATUS + "," + COL_RANDOM_VALUE + ") values (?, ?, ?, ?, ?, ?, ?)",
                                 Statement.RETURN_GENERATED_KEYS // specify to populate the generated key holder
                         );
                         ps.setString(1, nodeModel.poolId);
@@ -68,6 +69,7 @@ public class NodesDao {
                         ps.setString(4, Utils.objectToJson(NodeModelSshDetails.fromSshDetails(nodeModel.machineSshDetails)));
                         ps.setLong(5, nodeModel.expires);
                         ps.setString(6, Utils.objectToJson(nodeModel.pingStatus));
+                        ps.setString(7, nodeModel.randomValue);
                         return ps;
                     }
                 },

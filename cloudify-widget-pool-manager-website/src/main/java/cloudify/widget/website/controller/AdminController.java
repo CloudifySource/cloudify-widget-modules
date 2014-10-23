@@ -342,6 +342,12 @@ public class AdminController {
         poolManagerApi.deleteNode(poolSettings, nodeId, null);
     }
 
+    @RequestMapping(value = "/admin/pools/{poolId}/cloud/nodes/{machineId}/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public void cloudNodeDelete(@PathVariable("poolId") Long poolConfigurationId, @PathVariable("machineId") String machineId) {
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).getPoolSettings();
+        poolManagerApi.deleteCloudNode(poolSettings, machineId, null);
+    }
 
     @RequestMapping(value = "/admin/accounts/{accountId}/pools/{poolId}/nodes/{nodeId}/bootstrap", method = RequestMethod.POST)
     @ResponseBody

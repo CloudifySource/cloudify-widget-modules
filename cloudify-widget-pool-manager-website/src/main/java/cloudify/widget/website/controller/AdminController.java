@@ -2,6 +2,7 @@ package cloudify.widget.website.controller;
 
 import cloudify.widget.pool.manager.*;
 import cloudify.widget.pool.manager.dto.*;
+import cloudify.widget.pool.manager.node_management.DecisionsDao;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
 import cloudify.widget.website.dao.IResourceDao;
@@ -37,6 +38,9 @@ public class AdminController {
 
     @Autowired
     private IResourceDao resourceDao;
+
+    @Autowired
+    private DecisionsDao decisionsDao;
 
     @Autowired
     private PoolManagerApi poolManagerApi;
@@ -142,7 +146,10 @@ public class AdminController {
             logger.error("failed to update pool", e);
             e.printStackTrace();
         }
-        nodeManagementExecutor.update(readPoolByIdWrapper(poolConfigurationId).poolSettings);
+
+        PoolSettings poolSettings = readPoolByIdWrapper(poolConfigurationId).poolSettings;
+        nodeManagementExecutor.update(poolSettings);
+        decisionsDao.updateAllOfPool(poolSettings);
         return updated;
     }
 

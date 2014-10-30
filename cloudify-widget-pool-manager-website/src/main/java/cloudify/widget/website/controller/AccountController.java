@@ -6,6 +6,7 @@ import cloudify.widget.pool.manager.PoolManagerApi;
 import cloudify.widget.pool.manager.dto.NodeModel;
 import cloudify.widget.pool.manager.dto.PoolSettings;
 import cloudify.widget.pool.manager.dto.PoolStatus;
+import cloudify.widget.pool.manager.node_management.DecisionsDao;
 import cloudify.widget.website.dao.IAccountDao;
 import cloudify.widget.website.dao.IPoolDao;
 import cloudify.widget.website.models.AccountModel;
@@ -32,6 +33,9 @@ public class AccountController {
     private IAccountDao accountDao;
 
     @Autowired
+    private DecisionsDao decisionsDao;
+
+    @Autowired
     private IPoolDao poolDao;
 
     @Autowired
@@ -39,7 +43,6 @@ public class AccountController {
 
     @Autowired
     private NodeManagementExecutor nodeManagementExecutor;
-
     @Autowired
     private BootstrapScriptLoader bootstrapScriptLoader;
 
@@ -101,7 +104,10 @@ public class AccountController {
             logger.error("failed to update pool", e);
             e.printStackTrace();
         }
-        nodeManagementExecutor.update(poolDao.readPoolById(poolId).poolSettings);
+
+        PoolSettings poolSettings = poolDao.readPoolById(poolId).poolSettings;
+        nodeManagementExecutor.update(poolSettings);
+        decisionsDao.updateAllOfPool(poolSettings);
         return updated;
     }
 

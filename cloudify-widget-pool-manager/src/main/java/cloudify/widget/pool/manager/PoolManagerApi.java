@@ -36,6 +36,8 @@ public interface PoolManagerApi {
      */
     void deleteNode(PoolSettings poolSettings, long nodeId, TaskCallback<Void> taskCallback);
 
+    void deleteCloudNode(PoolSettings poolSettings, String machineId, TaskCallback<Void> taskCallback);
+
     /**
      *
      * @param poolSettings

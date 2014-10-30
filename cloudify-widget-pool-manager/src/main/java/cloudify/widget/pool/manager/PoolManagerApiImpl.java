@@ -76,8 +76,22 @@ public class PoolManagerApiImpl implements PoolManagerApi, ApplicationContextAwa
     public void deleteNode(PoolSettings poolSettings, long nodeId, TaskCallback<Void> taskCallback) {
 
         final NodeModel node = _getNodeModel(nodeId);
-        logger.info("deleting node [{}]", node.machineId);
+//        logger.info("deleting node [{}]", node.machineId);
         if (node == null) return;
+        if (poolSettings == null) return;
+        taskExecutor.execute(getDeleteMachineTask(), new DeleteMachineConfig() {
+            @Override
+            public NodeModel getNodeModel() {
+                return node;
+            }
+        }, poolSettings, taskCallback);
+    }
+
+    @Override
+    public void deleteCloudNode(PoolSettings poolSettings, String machineId, TaskCallback<Void> taskCallback) {
+        final NodeModel node = new NodeModel();
+        node.setMachineId(machineId);
+
         if (poolSettings == null) return;
         taskExecutor.execute(getDeleteMachineTask(), new DeleteMachineConfig() {
             @Override

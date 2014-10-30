@@ -3,6 +3,7 @@ package cloudify.widget.pool.manager.node_management;
 import cloudify.widget.common.GsObjectMapper;
 import cloudify.widget.pool.manager.Utils;
 import cloudify.widget.pool.manager.dto.DecisionModel;
+import cloudify.widget.pool.manager.dto.PoolSettings;
 import com.mysql.jdbc.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +123,20 @@ public class DecisionsDao {
     public int deleteAllNotOfPools(List<String> poolIds) {
         return jdbcTemplate.update("delete from " + TABLE_NAME + " where " + COL_POOL_ID + " not in (?)",
                 poolIds);
+    }
+
+    public void updateAllOfPool(PoolSettings poolSettings) {
+        String poolSettingsUuid = poolSettings.getUuid();
+        List<DecisionModel> decisionModels = readAllOfPool(poolSettingsUuid);
+        boolean configuredApproval = poolSettings.getNodeManagement().getMode() == NodeManagementMode.AUTO_APPROVAL;
+
+        for (DecisionModel decisionModel : decisionModels) {
+            if (decisionModel.approved != configuredApproval && !decisionModel.executed) {
+                // only update decisions that haven't been executed yet.
+                decisionModel.approved = configuredApproval;
+                update(decisionModel);
+            }
+        }
     }
 
 

@@ -84,23 +84,28 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
                 .replaceAll("##recipeUrl##", bootstrapProperties.getRecipeUrl());
     }
 
+    private void expireNode() {
+        updateNodeModelStatus(NodeStatus.EXPIRED); // this node is out of service - it's nominated for removal
+        String message = "bootstrap script execution failed";
+        logger.error(message);
+        throw new RuntimeException(message);
+    }
+
     private void runBootstrapScriptOnMachine(String script, CloudServerApi cloudServerApi, ISshDetails sshDetails) {
 
-        CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine(script, sshDetails);
-        int exitStatus = cloudExecResponse.getExitStatus();
-        String output = cloudExecResponse.getOutput();
-        logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
-        logger.info("- - - bootstrap script execution output - - - \n{}", output);
-        if (exitStatus == 0 && output.contains(taskConfig.getBootstrapSuccessText())) {
-            updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
-        } else {
-            updateNodeModelStatus(NodeStatus.EXPIRED); // this node is out of service - it's nominated for removal
-            String message = "bootstrap script execution failed";
-            logger.error(message);
-            HashMap<String, Object> infoMap = new HashMap<String, Object>();
-            infoMap.put("exitStatus", exitStatus);
-            infoMap.put("output", output);
-            throw new RuntimeException(message);
+        try {
+            CloudExecResponse cloudExecResponse = cloudServerApi.runScriptOnMachine(script, sshDetails);
+            int exitStatus = cloudExecResponse.getExitStatus();
+            String output = cloudExecResponse.getOutput();
+            logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
+            logger.info("- - - bootstrap script execution output - - - \n{}", output);
+            if (exitStatus == 0 && output.contains(taskConfig.getBootstrapSuccessText())) {
+                updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
+            } else {
+                expireNode();
+            }
+        } catch (Exception e) {
+            expireNode();
         }
     }
 

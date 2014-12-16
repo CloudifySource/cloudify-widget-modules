@@ -270,11 +270,11 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, 
         int attemptsCount = 0;
         try{
 
-            // 25 retries, 30s apart
-            while( !connectionSucceeded && attemptsCount < 25 ){
+            // 5 retries, 60s apart (more frequent ssh attempts are blocked at machine level)
+            while( !connectionSucceeded && attemptsCount < 5 ){
                 try{
                     logger.info("retry " + attemptsCount);
-                    Thread.sleep( 30*1000 );
+                    Thread.sleep( 60*1000 );
                     sshConnection.connect();
                     connectionSucceeded = true;
                 }

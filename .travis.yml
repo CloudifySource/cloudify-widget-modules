@@ -1,5 +1,5 @@
 language: java
 before_install:
- - 'cd bin && ./maven-install-custom.sh'
+ - 'cd bin && ./maven-install-custom.sh && cd ..'
 jdk:
  - openjdk6

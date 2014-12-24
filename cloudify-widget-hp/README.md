@@ -46,7 +46,8 @@
             "description" : "", 
             "securityGroup": "default", 
             "networkUuid": "__networkUuid__", 
-            "keyPairName": "__keyPairName__" 
+            "keyPairName": "__keyPairName__",
+            "username" : "__image_default_username_for_ssh_purposes__"
         } 
     }
 }

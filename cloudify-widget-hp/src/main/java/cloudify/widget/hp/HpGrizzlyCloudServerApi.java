@@ -260,7 +260,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, 
         String privateKey = sshDetails.getPrivateKey();
         int port = sshDetails.getPort();
 
-        logger.debug("Run ssh on server: {} script: {}" , serverIp, script );
+        logger.debug("Run ssh on server: {} script: {} with username: {}" , serverIp, script, user );
         SshClient.Factory factory = computeServiceContext.getUtils().getSshClientFactory();
         LoginCredentials loginCredentials = LoginCredentials.builder().user(user).privateKey(privateKey).build();
         SshClient sshConnection = factory.create(HostAndPort.fromParts(serverIp, port),
@@ -524,6 +524,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, 
             // if here, we have a node with a private and public ip.
             final OpenstackNode node = this.getNode(serverId, token);
 
+
             if (node.getPublicIp() == null) {
                 String floatingIp = allocateFloatingIP(token);
                 logger.info("create floating IP [{}]", floatingIp );
@@ -537,7 +538,7 @@ public class HpGrizzlyCloudServerApi implements CloudServerApi<CloudServerPojo, 
 
             md.setPublicAddress(node.getPublicIp());
             md.setMachineId(serverId);
-            md.setRemoteUsername("root");
+            md.setRemoteUsername(machineOptions.getUsername());
 
             return md;
         } catch (final Exception e) {

@@ -15,6 +15,7 @@ public class HpMachineOptions implements MachineOptions {
     private String securityGroup = null;
     private String networkUuid;
     private String keyPairName;
+    private String username = "root"; // the username used to connect to this machine (not specified by openstack by default unfortunately.)
 
     public HpMachineOptions(){}
 
@@ -49,6 +50,14 @@ public class HpMachineOptions implements MachineOptions {
 
     public String getMask() {
         return mask;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public int getMachinesCount() {

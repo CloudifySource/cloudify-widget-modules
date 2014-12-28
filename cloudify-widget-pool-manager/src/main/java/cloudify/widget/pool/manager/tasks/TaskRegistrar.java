@@ -6,6 +6,7 @@ import cloudify.widget.pool.manager.ErrorsDao;
 import cloudify.widget.pool.manager.ITasksDao;
 import cloudify.widget.pool.manager.dto.*;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,7 +165,7 @@ public class TaskRegistrar {
         @Override
         protected void registerError(Throwable thrown) {
             HashMap<String, Object> infoMap = Maps.newHashMap();
-            infoMap.put("stackTrace", thrown.getStackTrace());
+            infoMap.put("stackTrace", ExceptionUtils.getStackTrace(thrown));
             ErrorModel errorModel = new ErrorModel()
                     .setSource(_taskName.name())
                     .setMessage(thrown.getMessage())

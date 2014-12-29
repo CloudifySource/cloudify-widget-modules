@@ -115,16 +115,18 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
     @Override
     public void connect() {
-        try{
-            logger.info("connecting");
-            computeService = computeServiceContext( connectDetails ).getComputeService();
-            if ( computeService == null ){
-                throw new RuntimeException("illegal credentials");
-            }
-        }catch(RuntimeException e){
-            logger.error("unable to connect softlayer context",e);
-            throw e;
-        }
+        // We're using REST, nothing to connect to.
+
+//        try{
+//            logger.info("connecting");
+//            computeService = computeServiceContext( connectDetails ).getComputeService();
+//            if ( computeService == null ){
+//                throw new RuntimeException("illegal credentials");
+//            }
+//        }catch(RuntimeException e){
+//            logger.error("unable to connect softlayer context",e);
+//            throw e;
+//        }
     }
 
     private ComputeServiceContext computeServiceContext( SoftlayerConnectDetails connectDetails) {
@@ -165,11 +167,12 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
         String name = softlayerMachineOptions.name();
         int machinesCount = softlayerMachineOptions.machinesCount();
-        Template template = createTemplate(softlayerMachineOptions);
+        Template template = createTemplate(softlayerMachineOptions); // instead - get catalog, minimize it, for each hardware id in list look for it's price id.
         Set<? extends NodeMetadata> newNodes;
         try {
             logger.info("creating [{}] new machine with name [{}]", machinesCount, name);
-            newNodes = computeService.createNodesInGroup( name, machinesCount, template );
+            newNodes = computeService.createNodesInGroup( name, machinesCount, template );  // instead - do validate and create rest calls for each node.
+                                                                                            // do getActiveTransactions for each call until empty result.
         }
         catch (org.jclouds.compute.RunNodesException e) {
             if( logger.isErrorEnabled() ){
@@ -179,7 +182,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         }
 
         List<SoftlayerCloudServerCreated> newNodesList = new ArrayList<SoftlayerCloudServerCreated>( newNodes.size() );
-        for( NodeMetadata newNode : newNodes ){
+        for( NodeMetadata newNode : newNodes ){     // instead - for each node that has getActiveTransactions empty, add to newNodesList.
             newNodesList.add( new SoftlayerCloudServerCreated( newNode ) );
         }
 

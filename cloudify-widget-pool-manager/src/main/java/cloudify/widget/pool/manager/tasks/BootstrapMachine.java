@@ -84,11 +84,16 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
                 .replaceAll("##recipeUrl##", bootstrapProperties.getRecipeUrl());
     }
 
-    private void expireNode() {
+    private void expireNode( String message ) {
         updateNodeModelStatus(NodeStatus.EXPIRED); // this node is out of service - it's nominated for removal
-        String message = "bootstrap script execution failed";
         logger.error(message);
         throw new RuntimeException(message);
+    }
+
+    private void expireNode( Exception e ){
+        updateNodeModelStatus(NodeStatus.EXPIRED); // this node is out of service - it's nominated for removal
+        logger.error(e.getMessage());
+        throw new RuntimeException("bootstrap got exception, expiring node",e);
     }
 
     private void runBootstrapScriptOnMachine(String script, CloudServerApi cloudServerApi, ISshDetails sshDetails) {
@@ -99,13 +104,16 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             String output = cloudExecResponse.getOutput();
             logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
             logger.info("- - - bootstrap script execution output - - - \n{}", output);
-            if (exitStatus == 0 && output.contains(taskConfig.getBootstrapSuccessText())) {
+            if (exitStatus != 0 ){
+                expireNode("bootstrap failed. exist Status was " + exitStatus);
+            }else if (!output.contains(taskConfig.getBootstrapSuccessText())) {
+                expireNode("bootstrap script does not contain [" + taskConfig.getBootstrapSuccessText() + "]. assuming bootstrap failed.");
+            } else { // success
                 updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
-            } else {
-                expireNode();
+
             }
         } catch (Exception e) {
-            expireNode();
+            expireNode(e);
         }
     }
 

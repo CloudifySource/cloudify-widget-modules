@@ -58,8 +58,7 @@ public class SoftlayerCatalogManager {
         JSONArray hardwarePriceIds = getPriceIds(hardwareIds);
 
         for (int i = 0; i < hardwarePriceIds.length(); i++) {
-            JSONObject item = hardwarePriceIds.getJSONObject(i);
-            prices.put(item);
+            prices.put(hardwarePriceIds.getJSONObject(i));
         }
 
         return prices;

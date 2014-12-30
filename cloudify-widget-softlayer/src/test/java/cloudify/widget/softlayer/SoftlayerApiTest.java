@@ -31,39 +31,12 @@ public class SoftlayerApiTest {
     @Autowired
     SoftlayerConnectDetails connectDetails;
 
-    JsonNode placeOrderBody = new JsonNode("{\"parameters\":[{\"complexType\":\"SoftLayer_Container_Product_Order\",\"packageId\":46,\"location\":\"168642\",\"prices\":[{\"id\":34807},{\"id\":27023},{\"id\":32500},{\"id\":32627},{\"id\":23070},{\"id\":35310},{\"id\":33483}],\"virtualGuests\":[{\"hostname\":\"cloudify-widget-tests-1\",\"domain\":\"cloudify-widget-tests.org\",\"privateNetworkOnlyFlag\":false}],\"hardware\":[],\"quantity\":1,\"useHourlyPricing\":true,\"imageTemplateGlobalIdentifier\":\"\",\"imageTemplateId\":\"\"}]}");
+    @Autowired
+    SoftlayerCatalogManager catalogManager;
+
+    JsonNode placeOrderBody = new JsonNode("{\"parameters\":[{\"complexType\":\"SoftLayer_Container_Product_Order\",\"packageId\":46,\"location\":\"168642\",\"prices\":[],\"virtualGuests\":[{\"hostname\":\"cloudify-widget-tests-1\",\"domain\":\"cloudify-widget-tests.org\",\"privateNetworkOnlyFlag\":false}],\"hardware\":[],\"quantity\":1,\"useHourlyPricing\":true,\"imageTemplateGlobalIdentifier\":\"\",\"imageTemplateId\":\"\"}]}");
     String hardwareId = "3909,860,1155,3876,188,439";
 //    JsonNode placeOrderBody = new JsonNode("{\"parameters\":[{\"complexType\":\"SoftLayer_Container_Product_Order\",\"packageId\":46,\"location\":\"168642\",\"prices\":[{\"id\":25689},{\"id\":32985},{\"id\":32438},{\"id\":32578},{\"id\":24713},{\"id\":34183},{\"id\":34807},{\"id\":27023},{\"id\":32500},{\"id\":32627},{\"id\":23070},{\"id\":35310},{\"id\":33483}],\"virtualGuests\":[{\"hostname\":\"cloudify-widget-tests-1\",\"domain\":\"cloudify.org\",\"privateNetworkOnlyFlag\":false}],\"hardware\":[],\"quantity\":1,\"useHourlyPricing\":true,\"imageTemplateGlobalIdentifier\":\"\",\"imageTemplateId\":\"\"}]}");
-
-    private void convertHardwareIdsToPricesIds(String hardwareIds, JSONArray prices) {
-        HttpResponse<JsonNode> catalog = null;
-        HashMap<String, JSONObject> itemsMap = new HashMap<String, JSONObject>();
-
-        try {
-            catalog = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Product_Package/46.json?objectMask=items.prices%3blocations.locationAddress%3blocations.regions")
-                    .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                    .asJson();
-
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertNotNull(catalog);
-
-        for (int i = 0; i < catalog.getBody().getObject().getJSONArray("items").length(); i++) {
-            JSONObject item = catalog.getBody().getObject().getJSONArray("items").getJSONObject(i);
-            String id = String.valueOf(item.getLong("id"));
-
-            itemsMap.put(id, item);
-        }
-
-        String[] hardwareItems = hardwareIds.split(",");
-        for (String hardware : hardwareItems) {
-            long priceItemId = itemsMap.get(hardware).getJSONArray("prices").getJSONObject(0).getLong("id");
-            prices.put(new JSONObject("{\"id\":" + priceItemId + "}"));
-        }
-
-    }
 
     private void verifyOrder() {
         HttpResponse<JsonNode> verifyResponse = null;
@@ -182,12 +155,20 @@ public class SoftlayerApiTest {
 
     }
 
+//    @Test
+//    public void testJSON() {
+//        JSONArray prices = new JSONArray(catalogManager.getPricesJSONArrayTemplate());
+//        Assert.assertTrue(true);
+//    }
+
     @Test
     public void testCatalog() {
         JSONArray prices = placeOrderBody.getObject().getJSONArray("parameters").getJSONObject(0).getJSONArray("prices");
 
-        Assert.assertEquals(7, prices.length());
-        convertHardwareIdsToPricesIds(hardwareId, prices);
+        Assert.assertEquals(0, prices.length());
+
+        prices = catalogManager.appendPricesIds(hardwareId, prices);
+
         Assert.assertEquals(13, prices.length());
     }
 
@@ -195,7 +176,7 @@ public class SoftlayerApiTest {
     @Test
     public void testCreateNode() {
         JSONArray prices = placeOrderBody.getObject().getJSONArray("parameters").getJSONObject(0).getJSONArray("prices");
-        convertHardwareIdsToPricesIds(hardwareId, prices);
+        catalogManager.appendPricesIds(hardwareId, prices);
 
         verifyOrder();
 
@@ -221,7 +202,7 @@ public class SoftlayerApiTest {
     @Test
     public void testCreateAndDestroyNode() {
         JSONArray prices = placeOrderBody.getObject().getJSONArray("parameters").getJSONObject(0).getJSONArray("prices");
-        convertHardwareIdsToPricesIds(hardwareId, prices);
+        catalogManager.appendPricesIds(hardwareId, prices);
         long guestId = 0;
 
         verifyOrder();

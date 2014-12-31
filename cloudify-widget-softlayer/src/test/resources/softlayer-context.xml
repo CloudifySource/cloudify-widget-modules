@@ -17,6 +17,11 @@
     <bean id="catalogManager" class="cloudify.widget.softlayer.SoftlayerCatalogManager">
         <property name="stalePeriod" value="3600000"/>
         <property name="pricesJSONArrayTemplate" value="[{'id':34807},{'id':27023},{'id':32500},{'id':32627},{'id':23070},{'id':35310},{'id':33483}]"/>
+        <property name="machineTemplate" value="{'parameters':[{'complexType':'SoftLayer_Container_Product_Order','packageId':46,'location':'__LOCATION__','prices':[],'virtualGuests':[{'hostname':'__HOSTNAME__','domain':'cloudify.org','privateNetworkOnlyFlag':false}],'hardware':[],'quantity':1,'useHourlyPricing':true,'imageTemplateGlobalIdentifier':'','imageTemplateId':''}]}"/>
+    </bean>
+
+    <bean id="restApi" class="cloudify.widget.softlayer.SoftlayerRestApi">
+
     </bean>
 
     <bean id="cloudServer" class="cloudify.widget.softlayer.SoftlayerCloudServerApi">

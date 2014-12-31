@@ -34,90 +34,24 @@ public class SoftlayerApiTest {
     @Autowired
     SoftlayerCatalogManager catalogManager;
 
+    @Autowired
+    SoftlayerRestApi softlayerRestApi;
+
     JsonNode placeOrderBody = new JsonNode("{\"parameters\":[{\"complexType\":\"SoftLayer_Container_Product_Order\",\"packageId\":46,\"location\":\"168642\",\"prices\":[],\"virtualGuests\":[{\"hostname\":\"cloudify-widget-tests-1\",\"domain\":\"cloudify-widget-tests.org\",\"privateNetworkOnlyFlag\":false}],\"hardware\":[],\"quantity\":1,\"useHourlyPricing\":true,\"imageTemplateGlobalIdentifier\":\"\",\"imageTemplateId\":\"\"}]}");
     String hardwareId = "3909,860,1155,3876,188,439";
-//    JsonNode placeOrderBody = new JsonNode("{\"parameters\":[{\"complexType\":\"SoftLayer_Container_Product_Order\",\"packageId\":46,\"location\":\"168642\",\"prices\":[{\"id\":25689},{\"id\":32985},{\"id\":32438},{\"id\":32578},{\"id\":24713},{\"id\":34183},{\"id\":34807},{\"id\":27023},{\"id\":32500},{\"id\":32627},{\"id\":23070},{\"id\":35310},{\"id\":33483}],\"virtualGuests\":[{\"hostname\":\"cloudify-widget-tests-1\",\"domain\":\"cloudify.org\",\"privateNetworkOnlyFlag\":false}],\"hardware\":[],\"quantity\":1,\"useHourlyPricing\":true,\"imageTemplateGlobalIdentifier\":\"\",\"imageTemplateId\":\"\"}]}");
 
-    private void verifyOrder() {
-        HttpResponse<JsonNode> verifyResponse = null;
+    private void verifyOrder(JsonNode template) {
         try {
-            verifyResponse = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/verifyOrder.json")
-                    .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                    .body(placeOrderBody)
-                    .asJson();
-
-            Assert.assertNotNull(verifyResponse);
-        } catch (UnirestException e) {
+            softlayerRestApi.verifyTemplate(template);
+        } catch (Exception e) {
             e.printStackTrace();
+            Assert.assertTrue(false);
         }
-
     }
 
-    private long placeOrder() throws Exception {
-        HttpResponse<JsonNode> jsonResponse = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/placeOrder.json")
-                .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                .body(placeOrderBody)
-                .asJson();
-
-        Assert.assertNotNull(jsonResponse);
-
-        if (jsonResponse.getBody().getObject().has("error")) {
-            String error = jsonResponse.getBody().getObject().getString("error");
-            Assert.assertNull(error); // fail and show error message.
-        }
-
-        long guestId = jsonResponse.getBody().getObject().getJSONObject("orderDetails").getJSONArray("virtualGuests").getJSONObject(0).getLong("id");
-        Assert.assertNotNull(guestId);
-
-        Thread.sleep(10000);
-
-        int retryCount = 0;
-
-        while (retryCount < 60) {
-            // as long as we didnt try for more than an hour - keep trying.
-            retryCount++;
-
-            HttpResponse<JsonNode> activeTransactions = null;
-            activeTransactions = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getActiveTransactions.json")
-                    .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                    .routeParam("VIRTUAL_GUEST_ID", String.valueOf(guestId))
-                    .asJson();
-
-            int length = activeTransactions.getBody().getArray().length();
-
-            if (length == 0) {
-                break;
-            } else {
-                // wait a minute.
-                Thread.sleep(60000);
-            }
-
-        }
-
-        if (retryCount > 60) {
-            throw new Exception("request time out");
-        }
-
-        return guestId;
-    }
-
-    private void destroyNode(long guestId) {
+    private void destroyNode(String id) {
         try {
-            HttpResponse<JsonNode> billingItem = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getBillingItem.json")
-                    .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                    .routeParam("VIRTUAL_GUEST_ID", String.valueOf(guestId))
-                    .asJson();
-
-            long billingId = billingItem.getBody().getObject().getLong("id");
-            Assert.assertNotNull(billingId);
-
-            HttpResponse<String> cancelResult = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Billing_Item/{BILLING_ITEM_ID}/cancelService.json")
-                    .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                    .routeParam("BILLING_ITEM_ID", String.valueOf(billingId))
-                    .asString();
-
-            Assert.assertEquals("true", cancelResult.getBody());
-
+            softlayerRestApi.destroyNode(id);
         } catch (Exception e) {
             e.printStackTrace();
             Assert.assertTrue(false);
@@ -139,20 +73,8 @@ public class SoftlayerApiTest {
 
     @Test
     public void testVerifyOrder() {
-        try {
-            HttpResponse<JsonNode> jsonResponse = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/verifyOrder.json")
-                    .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
-                    .body(placeOrderBody)
-                    .asJson();
-            Assert.assertNotNull(jsonResponse);
-            if (jsonResponse.getBody().getObject().has("error")) {
-                String error = jsonResponse.getBody().getObject().getString("error");
-                Assert.assertNull(error);
-            }
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-
+        JsonNode template = new JsonNode("{\"parameters\":[{\"complexType\":\"SoftLayer_Container_Product_Order\",\"packageId\":46,\"location\":\"168642\",\"prices\":[{\"id\":25689},{\"id\":32985},{\"id\":32438},{\"id\":32578},{\"id\":24713},{\"id\":34183},{\"id\":34807},{\"id\":27023},{\"id\":32500},{\"id\":32627},{\"id\":23070},{\"id\":35310},{\"id\":33483}],\"virtualGuests\":[{\"hostname\":\"cloudify-widget-tests-1\",\"domain\":\"cloudify.org\",\"privateNetworkOnlyFlag\":false}],\"hardware\":[],\"quantity\":1,\"useHourlyPricing\":true,\"imageTemplateGlobalIdentifier\":\"\",\"imageTemplateId\":\"\"}]}");
+        verifyOrder(template);
     }
 
 //    @Test
@@ -175,17 +97,29 @@ public class SoftlayerApiTest {
 
     @Test
     public void testCreateNode() {
-        JSONArray prices = placeOrderBody.getObject().getJSONArray("parameters").getJSONObject(0).getJSONArray("prices");
-        catalogManager.appendPricesIds(hardwareId, prices);
+        SoftlayerMachineOptions softlayerMachineOptions = new SoftlayerMachineOptions();
+        softlayerMachineOptions.setMask("cw-test-sefi");
+        softlayerMachineOptions.setLocationId("352494");
+        softlayerMachineOptions.setHardwareId(hardwareId);
 
-        verifyOrder();
+        JsonNode template = softlayerRestApi.buildTemplate(softlayerMachineOptions);
+
+        Assert.assertNotNull(template);
+        JSONObject node = null;
 
         try {
-            placeOrder();
+            node = softlayerRestApi.createNode(template);
         } catch (Exception e) {
             e.printStackTrace();
             Assert.assertTrue(false);
         }
+
+        Assert.assertNotNull(node);
+
+        SoftlayerCloudServerCreated softlayerCloudServerCreated = new SoftlayerCloudServerCreated(node);
+
+        Assert.assertNotNull(softlayerCloudServerCreated.getId());
+        Assert.assertNotNull(softlayerCloudServerCreated.getSshDetails());
 
     }
 
@@ -194,28 +128,9 @@ public class SoftlayerApiTest {
      * Can't be run automatically, because it depends on a valid guestId.
      */
     public void testDestroyNode() throws Exception {
-        long guestId = 7653350;
+        String guestId = "7669324";
 
         destroyNode(guestId);
-    }
-
-    @Test
-    public void testCreateAndDestroyNode() {
-        JSONArray prices = placeOrderBody.getObject().getJSONArray("parameters").getJSONObject(0).getJSONArray("prices");
-        catalogManager.appendPricesIds(hardwareId, prices);
-        long guestId = 0;
-
-        verifyOrder();
-
-        try {
-            guestId = placeOrder();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.assertTrue(false);
-        }
-
-        destroyNode(guestId);
-
     }
 
 }

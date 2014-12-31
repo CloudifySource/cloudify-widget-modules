@@ -22,6 +22,7 @@ public class SoftlayerCatalogManager {
 
     public long stalePeriod;
     public String pricesJSONArrayTemplate;
+    public String machineTemplate;
 
     private HashMap<String, JSONObject> itemsMap = new HashMap<String, JSONObject>();
     private Date lastCatalogUpdate = null;
@@ -118,6 +119,14 @@ public class SoftlayerCatalogManager {
 
     public void setPricesJSONArrayTemplate(String pricesJSONArrayTemplate) {
         this.pricesJSONArrayTemplate = pricesJSONArrayTemplate;
+    }
+
+    public String getMachineTemplate() {
+        return machineTemplate;
+    }
+
+    public void setMachineTemplate(String machineTemplate) {
+        this.machineTemplate = machineTemplate;
     }
 
 

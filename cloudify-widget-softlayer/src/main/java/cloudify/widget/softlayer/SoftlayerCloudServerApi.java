@@ -46,7 +46,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     private static Logger logger = LoggerFactory.getLogger(SoftlayerCloudServerApi.class);
 
     @Autowired
-    SoftlayerRestApi softlayerRestApi;
+    private SoftlayerRestApi softlayerRestApi;
 
     private ComputeService computeService;
 

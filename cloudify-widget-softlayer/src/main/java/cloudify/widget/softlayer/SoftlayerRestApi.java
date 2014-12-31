@@ -3,12 +3,9 @@ package cloudify.widget.softlayer;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import junit.framework.Assert;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,10 +15,10 @@ import java.util.Set;
 public class SoftlayerRestApi {
 
     @Autowired
-    SoftlayerConnectDetails connectDetails;
+    private SoftlayerConnectDetails connectDetails;
 
     @Autowired
-    SoftlayerCatalogManager catalogManager;
+    private SoftlayerCatalogManager catalogManager;
 
     public SoftlayerRestApi() {
     }

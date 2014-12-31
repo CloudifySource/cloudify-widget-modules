@@ -166,6 +166,13 @@ public class TaskRegistrar {
         protected void registerError(Throwable thrown) {
             HashMap<String, Object> infoMap = Maps.newHashMap();
             infoMap.put("stackTrace", ExceptionUtils.getStackTrace(thrown));
+
+            // todo - guy -  perhaps we should define an interface "ExceptionWithInfo" and function with signature "populateInfoMap(map)" to make it generic..
+            if ( thrown instanceof BootstrapMachineScriptExecutionException ){
+                BootstrapMachineScriptExecutionException be = (BootstrapMachineScriptExecutionException) thrown;
+                infoMap.put("output", be.getOutput());
+            }
+
             ErrorModel errorModel = new ErrorModel()
                     .setSource(_taskName.name())
                     .setMessage(thrown.getMessage())

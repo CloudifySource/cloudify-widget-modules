@@ -84,10 +84,12 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
                 .replaceAll("##recipeUrl##", bootstrapProperties.getRecipeUrl());
     }
 
-    private void expireNode( String message ) {
+    private void expireNode( String message, String output ) {
         updateNodeModelStatus(NodeStatus.EXPIRED); // this node is out of service - it's nominated for removal
         logger.error(message);
-        throw new RuntimeException(message);
+        BootstrapMachineScriptExecutionException exception = new BootstrapMachineScriptExecutionException(message);
+        exception.setOutput(output);
+        throw exception;
     }
 
     private void expireNode( Exception e ){
@@ -105,9 +107,9 @@ public class BootstrapMachine extends AbstractPoolTask<BootstrapMachineConfig, V
             logger.info("finished running bootstrap on node [{}], exit status is [{}]", taskConfig.getNodeModel().id, exitStatus);
             logger.info("- - - bootstrap script execution output - - - \n{}", output);
             if (exitStatus != 0 ){
-                expireNode("bootstrap failed. exist Status was " + exitStatus);
+                expireNode("bootstrap failed. exist Status was " + exitStatus, output);
             }else if (!output.contains(taskConfig.getBootstrapSuccessText())) {
-                expireNode("bootstrap script does not contain [" + taskConfig.getBootstrapSuccessText() + "]. assuming bootstrap failed.");
+                expireNode("bootstrap script does not contain [" + taskConfig.getBootstrapSuccessText() + "]. assuming bootstrap failed.", output);
             } else { // success
                 updateNodeModelStatus(NodeStatus.BOOTSTRAPPED);
 

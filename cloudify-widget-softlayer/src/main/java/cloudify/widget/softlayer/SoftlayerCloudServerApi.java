@@ -282,4 +282,12 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
         return new CloudExecResponseImpl(execResponse);
     }
+
+    public SoftlayerRestApi getSoftlayerRestApi() {
+        return softlayerRestApi;
+    }
+
+    public void setSoftlayerRestApi(SoftlayerRestApi softlayerRestApi) {
+        this.softlayerRestApi = softlayerRestApi;
+    }
 }

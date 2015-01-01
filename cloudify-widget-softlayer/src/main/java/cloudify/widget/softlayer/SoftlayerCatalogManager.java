@@ -17,7 +17,6 @@ import java.util.HashMap;
  */
 public class SoftlayerCatalogManager {
 
-    @Autowired
     SoftlayerConnectDetails connectDetails;
 
     public long stalePeriod;

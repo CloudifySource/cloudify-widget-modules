@@ -14,7 +14,6 @@ import java.util.Set;
  */
 public class SoftlayerRestApi {
 
-    @Autowired
     private SoftlayerConnectDetails connectDetails;
 
     @Autowired

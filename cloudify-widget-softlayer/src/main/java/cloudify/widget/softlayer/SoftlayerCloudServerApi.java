@@ -56,13 +56,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     private ContextBuilder contextBuilder;
 
 
-    public SoftlayerCloudServerApi(){
+    public SoftlayerCloudServerApi() {
     }
 
 
     @Override
     public void connect(SoftlayerConnectDetails connectDetails) {
-       setConnectDetails( connectDetails);
+        setConnectDetails(connectDetails);
         connect();
     }
 
@@ -100,7 +100,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
             logger.debug("calling destroyNode, id is [{}]", id);
         }
         try {
-            softlayerRestApi.destroyNode(id);
+            softlayerRestApi.destroyNode(id, connectDetails);
         } catch (Throwable e) {
             throw new SoftlayerCloudServerApiOperationFailureException(
                     String.format("delete operation failed for server with id [%s].", id), e);
@@ -108,7 +108,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     }
 
     @Override
-    public void rebuild( String id ) {
+    public void rebuild(String id) {
         logger.info("rebuilding : [{}]", id);
         throw new UnsupportedOperationException("this driver does not support this operation");
     }
@@ -125,26 +125,25 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     }
 
     @Override
-    public Collection<SoftlayerCloudServerCreated> create( SoftlayerMachineOptions softlayerMachineOptions ) {
+    public Collection<SoftlayerCloudServerCreated> create(SoftlayerMachineOptions softlayerMachineOptions) {
 
         String name = softlayerMachineOptions.name();
         int machinesCount = softlayerMachineOptions.machinesCount();
-        JsonNode template = softlayerRestApi.buildTemplate(softlayerMachineOptions);
+        JsonNode template = softlayerRestApi.buildTemplate(softlayerMachineOptions, connectDetails);
         Set<JSONObject> newNodes;
         try {
             logger.info("creating [{}] new machine with name [{}]", machinesCount, name);
-            newNodes = softlayerRestApi.createNodes(template, machinesCount);
-        }
-        catch (Exception e) {
-            if( logger.isErrorEnabled() ){
-                logger.error( "Create softlayer node failed", e );
+            newNodes = softlayerRestApi.createNodes(template, machinesCount, connectDetails);
+        } catch (Exception e) {
+            if (logger.isErrorEnabled()) {
+                logger.error("Create softlayer node failed", e);
             }
-            throw new RuntimeException( e );
+            throw new RuntimeException(e);
         }
 
-        List<SoftlayerCloudServerCreated> newNodesList = new ArrayList<SoftlayerCloudServerCreated>( newNodes.size() );
-        for( JSONObject newNode : newNodes ){
-            newNodesList.add( new SoftlayerCloudServerCreated( newNode ) );
+        List<SoftlayerCloudServerCreated> newNodesList = new ArrayList<SoftlayerCloudServerCreated>(newNodes.size());
+        for (JSONObject newNode : newNodes) {
+            newNodesList.add(new SoftlayerCloudServerCreated(newNode));
         }
 
         return newNodesList;
@@ -165,7 +164,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     @Deprecated
     public CloudExecResponse runScriptOnMachine(String script, String serverIp) {
 
-        throw new UnsupportedOperationException( "Method runScriptOnMachine(String script, String serverIp) is not supported anymore. Please use runScriptOnMachine(String script, ISshDetails sshDetails ) instead" );
+        throw new UnsupportedOperationException("Method runScriptOnMachine(String script, String serverIp) is not supported anymore. Please use runScriptOnMachine(String script, ISshDetails sshDetails ) instead");
     }
 
     private ExecResponse executeSsh(String script, SoftlayerSshDetails softlayerSshDetails) {
@@ -177,14 +176,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         //.privateKey(Strings2.toStringAndClose(new FileInputStream(conf.server.bootstrap.ssh.privateKey)))
         String serverIp = softlayerSshDetails.getPublicIp();
         SshClient sshConnection = factory.create(HostAndPort.fromParts(serverIp, softlayerSshDetails.getPort()),
-                loginCredentials );
-        try{
+                loginCredentials);
+        try {
             sshConnection.connect();
             logger.info("ssh connected, executing");
             execResponse = sshConnection.exec(script);
             logger.info("finished execution");
-        }
-        finally{
+        } finally {
             if (sshConnection != null)
                 sshConnection.disconnect();
         }
@@ -251,13 +249,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
     private Set<? extends NodeMetadata> getNodeMetadataByIp(final String ip) {
         return computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
-                @Override
-                public boolean apply(ComputeMetadata computeMetadata) {
-                    NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
-                    Set<String> publicAddresses = nodeMetadata.getPublicAddresses();
-                    return publicAddresses.contains(ip);
-                }
-            });
+            @Override
+            public boolean apply(ComputeMetadata computeMetadata) {
+                NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
+                Set<String> publicAddresses = nodeMetadata.getPublicAddresses();
+                return publicAddresses.contains(ip);
+            }
+        });
     }
 
     public void setUseCommandLineSsh(boolean useCommandLineSsh) {
@@ -265,7 +263,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     }
 
     @Override
-    public CloudExecResponse runScriptOnMachine(String script, SoftlayerSshDetails softlayerSshDetails ){
+    public CloudExecResponse runScriptOnMachine(String script, SoftlayerSshDetails softlayerSshDetails) {
 
         String serverIp = softlayerSshDetails.getPublicIp();
         if (logger.isDebugEnabled()) {

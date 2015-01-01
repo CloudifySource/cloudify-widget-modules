@@ -15,10 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-
 /**
  * Created by sefi on 22/12/14.
  */
@@ -42,7 +38,7 @@ public class SoftlayerApiTest {
 
     private void verifyOrder(JsonNode template) {
         try {
-            softlayerRestApi.verifyTemplate(template);
+            softlayerRestApi.verifyTemplate(template, connectDetails);
         } catch (Exception e) {
             e.printStackTrace();
             Assert.assertTrue(false);
@@ -51,7 +47,7 @@ public class SoftlayerApiTest {
 
     private void destroyNode(String id) {
         try {
-            softlayerRestApi.destroyNode(id);
+            softlayerRestApi.destroyNode(id, connectDetails);
         } catch (Exception e) {
             e.printStackTrace();
             Assert.assertTrue(false);
@@ -89,7 +85,7 @@ public class SoftlayerApiTest {
 
         Assert.assertEquals(0, prices.length());
 
-        prices = catalogManager.appendPricesIds(hardwareId, prices);
+        prices = catalogManager.appendPricesIds(hardwareId, prices, connectDetails);
 
         Assert.assertEquals(13, prices.length());
     }
@@ -102,13 +98,13 @@ public class SoftlayerApiTest {
         softlayerMachineOptions.setLocationId("352494");
         softlayerMachineOptions.setHardwareId(hardwareId);
 
-        JsonNode template = softlayerRestApi.buildTemplate(softlayerMachineOptions);
+        JsonNode template = softlayerRestApi.buildTemplate(softlayerMachineOptions, connectDetails);
 
         Assert.assertNotNull(template);
         JSONObject node = null;
 
         try {
-            node = softlayerRestApi.createNode(template);
+            node = softlayerRestApi.createNode(template, connectDetails);
         } catch (Exception e) {
             e.printStackTrace();
             Assert.assertTrue(false);

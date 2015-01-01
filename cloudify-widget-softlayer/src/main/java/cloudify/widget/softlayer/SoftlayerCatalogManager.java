@@ -17,8 +17,6 @@ import java.util.HashMap;
  */
 public class SoftlayerCatalogManager {
 
-    SoftlayerConnectDetails connectDetails;
-
     public long stalePeriod;
     public String pricesJSONArrayTemplate;
     public String machineTemplate;
@@ -34,14 +32,15 @@ public class SoftlayerCatalogManager {
      * and also include default price IDs required for the request to be successful.
      *
      * @param hardwareIds The comma delimited hardware IDs. For example "111,222,333,444".
+     * @param connectDetails
      * @return a JSONArray of JSONObjects.
      */
-    public JSONArray getPriceIds(String hardwareIds) {
+    public JSONArray getPriceIds(String hardwareIds, SoftlayerConnectDetails connectDetails) {
         Date now = new Date();
 
         if (lastCatalogUpdate == null || now.getTime() - lastCatalogUpdate.getTime() >= getStalePeriod()) {
             // first execution or obsolete price map - go get it.
-            updatePricesMap();
+            updatePricesMap(connectDetails);
         }
 
         return convertHardwareIdsToPricesIds(hardwareIds);
@@ -52,10 +51,11 @@ public class SoftlayerCatalogManager {
      *
      * @param hardwareIds The comma delimited hardware IDs. For example "111,222,333,444".
      * @param prices The JSONArray to be appended.
+     * @param connectDetails
      * @return the updated prices JSONArray
      */
-    public JSONArray appendPricesIds(String hardwareIds, JSONArray prices) {
-        JSONArray hardwarePriceIds = getPriceIds(hardwareIds);
+    public JSONArray appendPricesIds(String hardwareIds, JSONArray prices, SoftlayerConnectDetails connectDetails) {
+        JSONArray hardwarePriceIds = getPriceIds(hardwareIds, connectDetails);
 
         for (int i = 0; i < hardwarePriceIds.length(); i++) {
             prices.put(hardwarePriceIds.getJSONObject(i));
@@ -64,7 +64,7 @@ public class SoftlayerCatalogManager {
         return prices;
     }
 
-    private void updatePricesMap() {
+    private void updatePricesMap(SoftlayerConnectDetails connectDetails) {
         HttpResponse<JsonNode> catalog = null;
         itemsMap = new HashMap<String, JSONObject>();
 
@@ -127,6 +127,5 @@ public class SoftlayerCatalogManager {
     public void setMachineTemplate(String machineTemplate) {
         this.machineTemplate = machineTemplate;
     }
-
 
 }

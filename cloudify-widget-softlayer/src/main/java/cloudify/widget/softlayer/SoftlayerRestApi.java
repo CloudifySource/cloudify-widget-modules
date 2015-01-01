@@ -14,27 +14,25 @@ import java.util.Set;
  */
 public class SoftlayerRestApi {
 
-    private SoftlayerConnectDetails connectDetails;
-
     @Autowired
     private SoftlayerCatalogManager catalogManager;
 
     public SoftlayerRestApi() {
     }
 
-    public JsonNode buildTemplate(SoftlayerMachineOptions softlayerMachineOptions) {
+    public JsonNode buildTemplate(SoftlayerMachineOptions softlayerMachineOptions, SoftlayerConnectDetails connectDetails) {
         JsonNode template = new JsonNode(catalogManager.getMachineTemplate());
         JSONObject parameters = template.getObject().getJSONArray("parameters").getJSONObject(0);
 
-        catalogManager.appendPricesIds(softlayerMachineOptions.getHardwareId(), parameters.getJSONArray("prices"));
+        catalogManager.appendPricesIds(softlayerMachineOptions.getHardwareId(), parameters.getJSONArray("prices"), connectDetails);
         parameters.put("location", softlayerMachineOptions.getLocationId());
         parameters.getJSONArray("virtualGuests").getJSONObject(0).put("hostname", softlayerMachineOptions.name());
 
         return template;
     }
 
-    public JSONObject createNode(JsonNode template) throws Exception {
-        verifyTemplate(template);
+    public JSONObject createNode(JsonNode template, SoftlayerConnectDetails connectDetails) throws Exception {
+        verifyTemplate(template, connectDetails);
 
         HttpResponse<JsonNode> response = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/placeOrder.json")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
@@ -93,17 +91,17 @@ public class SoftlayerRestApi {
 
     }
 
-    public Set<JSONObject> createNodes(JsonNode template, int nodesCount) throws Exception {
+    public Set<JSONObject> createNodes(JsonNode template, int nodesCount, SoftlayerConnectDetails connectDetails) throws Exception {
         Set<JSONObject> newNodes = new HashSet<JSONObject>();
 
         for (int i = 0; i < nodesCount; i++) {
-            newNodes.add(createNode(template));
+            newNodes.add(createNode(template, connectDetails));
         }
 
         return newNodes;
     }
 
-    public void destroyNode(String id) throws Exception {
+    public void destroyNode(String id, SoftlayerConnectDetails connectDetails) throws Exception {
         HttpResponse<JsonNode> billingItem = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getBillingItem.json")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
                 .routeParam("VIRTUAL_GUEST_ID", id)
@@ -128,7 +126,7 @@ public class SoftlayerRestApi {
 
     }
 
-    public void verifyTemplate(JsonNode template) throws Exception {
+    public void verifyTemplate(JsonNode template, SoftlayerConnectDetails connectDetails) throws Exception {
         HttpResponse<JsonNode> verifyTemplateResult = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/verifyOrder.json")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
                 .body(template)

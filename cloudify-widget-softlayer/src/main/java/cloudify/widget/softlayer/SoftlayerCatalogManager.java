@@ -31,17 +31,12 @@ public class SoftlayerCatalogManager {
      * Given a string comma delimited hardware IDs, this will convert them to the corresponding price IDs
      * and also include default price IDs required for the request to be successful.
      *
-     * @param hardwareIds The comma delimited hardware IDs. For example "111,222,333,444".
+     * @param hardwareIds    The comma delimited hardware IDs. For example "111,222,333,444".
      * @param connectDetails
      * @return a JSONArray of JSONObjects.
      */
     public JSONArray getPriceIds(String hardwareIds, SoftlayerConnectDetails connectDetails) {
-        Date now = new Date();
-
-        if (lastCatalogUpdate == null || now.getTime() - lastCatalogUpdate.getTime() >= getStalePeriod()) {
-            // first execution or obsolete price map - go get it.
-            updatePricesMap(connectDetails);
-        }
+        updatePricesMap(connectDetails);
 
         return convertHardwareIdsToPricesIds(hardwareIds);
     }
@@ -49,8 +44,8 @@ public class SoftlayerCatalogManager {
     /**
      * Similar to {@link: getPriceIds}, but it also accepts a JSONArray and appends the prices to it.
      *
-     * @param hardwareIds The comma delimited hardware IDs. For example "111,222,333,444".
-     * @param prices The JSONArray to be appended.
+     * @param hardwareIds    The comma delimited hardware IDs. For example "111,222,333,444".
+     * @param prices         The JSONArray to be appended.
      * @param connectDetails
      * @return the updated prices JSONArray
      */
@@ -67,6 +62,13 @@ public class SoftlayerCatalogManager {
     private void updatePricesMap(SoftlayerConnectDetails connectDetails) {
         HttpResponse<JsonNode> catalog = null;
         itemsMap = new HashMap<String, JSONObject>();
+        Date now = new Date();
+
+
+        if (lastCatalogUpdate != null && now.getTime() - lastCatalogUpdate.getTime() < getStalePeriod()) {
+            // no need to update
+            return;
+        }
 
         try {
             // get the Softlayer catalog.
@@ -88,6 +90,8 @@ public class SoftlayerCatalogManager {
 
             itemsMap.put(id, item);
         }
+
+        lastCatalogUpdate = now;
     }
 
     private JSONArray convertHardwareIdsToPricesIds(String hardwareIds) {

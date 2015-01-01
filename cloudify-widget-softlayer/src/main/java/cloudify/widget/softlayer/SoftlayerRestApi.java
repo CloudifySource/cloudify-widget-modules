@@ -20,10 +20,19 @@ public class SoftlayerRestApi {
     public SoftlayerRestApi() {
     }
 
+    /**
+     * Returns a Softlayer machine template based on a wireframe defined in the {@link cloudify.widget.softlayer.SoftlayerCatalogManager} and
+     * extended with information from the supplied {@link cloudify.widget.softlayer.SoftlayerMachineOptions} and {@link cloudify.widget.softlayer.SoftlayerConnectDetails}
+     *
+     * @param softlayerMachineOptions   The machine options
+     * @param connectDetails    The connection details to use for the REST calls.
+     * @return  The template {@link com.mashape.unirest.http.JsonNode}
+     */
     public JsonNode buildTemplate(SoftlayerMachineOptions softlayerMachineOptions, SoftlayerConnectDetails connectDetails) {
         JsonNode template = new JsonNode(catalogManager.getMachineTemplate());
         JSONObject parameters = template.getObject().getJSONArray("parameters").getJSONObject(0);
 
+        // Append the price IDs that corresponds with the supplied Hardware IDs to the templates' prices array.
         catalogManager.appendPricesIds(softlayerMachineOptions.getHardwareId(), parameters.getJSONArray("prices"), connectDetails);
         parameters.put("location", softlayerMachineOptions.getLocationId());
         parameters.getJSONArray("virtualGuests").getJSONObject(0).put("hostname", softlayerMachineOptions.name());
@@ -31,8 +40,17 @@ public class SoftlayerRestApi {
         return template;
     }
 
+    /**
+     * Create a Softlayer machine node.
+     * This is a long process that could take up to an hour, after which it is considered a failure and an Exception is thrown.
+     *
+     * @param template The template to use for creating the node
+     * @param connectDetails The connection details to use for the REST calls.
+     * @return The nodeMetadata {@link org.json.JSONObject}
+     * @throws Exception Any exceptions will be thrown for external handling.
+     */
     public JSONObject createNode(JsonNode template, SoftlayerConnectDetails connectDetails) throws Exception {
-        verifyTemplate(template, connectDetails);
+        verifyTemplate(template, connectDetails);   // verify before create. Fail exception is not handled here.
 
         HttpResponse<JsonNode> response = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/placeOrder.json")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
@@ -48,8 +66,9 @@ public class SoftlayerRestApi {
         long guestId = nodeMetadata.getJSONObject("orderDetails").getJSONArray("virtualGuests").getJSONObject(0).getLong("id");
         int retryCount = 0;
 
+        // Softlayer machine creation is very slow and considered complete only when the active transactions list is empty.
+        // as long as we didnt try for more than an hour - keep polling once a minute.
         while (retryCount < 60) {
-            // as long as we didnt try for more than an hour - keep trying.
             retryCount++;
 
             HttpResponse<JsonNode> activeTransactions = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getActiveTransactions.json")
@@ -72,7 +91,7 @@ public class SoftlayerRestApi {
             throw new Exception("request time out");
         }
 
-        // add ssh details to the nodeMetadata
+        // Enrich nodeMetadata with ssh details. This requires yet another REST request...
         JSONObject sshDetails = new JSONObject();
         HttpResponse<JsonNode> guestDetails = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getObject.json?objectMask=operatingSystem.passwords")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
@@ -80,17 +99,29 @@ public class SoftlayerRestApi {
                 .asJson();
 
         JSONObject guestDetailsObject = guestDetails.getBody().getObject();
-        sshDetails.put("primaryIP", guestDetailsObject.getString("primaryIpAddress"));
+
+        // Currently only SSH port 22 is supported, since Softlayer does not support custom ports OOTB.
+        // If this is a machine based on an image with a custom SSH port, we will need to modify this.
         sshDetails.put("port", 22);
+        sshDetails.put("primaryIP", guestDetailsObject.getString("primaryIpAddress"));
         JSONObject passwordsObject = guestDetailsObject.getJSONObject("operatingSystem").getJSONArray("passwords").getJSONObject(0);
         sshDetails.put("username", passwordsObject.getString("username"));
         sshDetails.put("password", passwordsObject.getString("password"));
         nodeMetadata.put("sshDetails", sshDetails);
 
         return nodeMetadata;
-
     }
 
+    /**
+     * Creates multiple nodes from a template. This calls createNode internally.
+     * @see #createNode(com.mashape.unirest.http.JsonNode, SoftlayerConnectDetails)
+     *
+     * @param template The template
+     * @param nodesCount The number of nodes to create
+     * @param connectDetails The connection details to use for the REST calls.
+     * @return  A {@link java.util.Set} of {@link org.json.JSONObject}s
+     * @throws Exception    Any exceptions will be thrown for external handling.
+     */
     public Set<JSONObject> createNodes(JsonNode template, int nodesCount, SoftlayerConnectDetails connectDetails) throws Exception {
         Set<JSONObject> newNodes = new HashSet<JSONObject>();
 
@@ -101,6 +132,13 @@ public class SoftlayerRestApi {
         return newNodes;
     }
 
+    /**
+     * Destroy a node.
+     *
+     * @param id The node id to destroy
+     * @param connectDetails    The connection details to use for the REST calls.
+     * @throws Exception        Any exceptions will be thrown for external handling.
+     */
     public void destroyNode(String id, SoftlayerConnectDetails connectDetails) throws Exception {
         HttpResponse<JsonNode> billingItem = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getBillingItem.json")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
@@ -126,6 +164,15 @@ public class SoftlayerRestApi {
 
     }
 
+    /**
+     * Verify the template.
+     * This is required because the create process is very long and slow. To avoid trying to create machines with an invalid template
+     * we first validate the template is valid.
+     *
+     * @param template  The template to validate.
+     * @param connectDetails    The connection details to use for the REST calls.
+     * @throws Exception    Throws exception on fail.
+     */
     public void verifyTemplate(JsonNode template, SoftlayerConnectDetails connectDetails) throws Exception {
         HttpResponse<JsonNode> verifyTemplateResult = Unirest.post("https://api.softlayer.com/rest/v3/SoftLayer_Product_Order/verifyOrder.json")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())

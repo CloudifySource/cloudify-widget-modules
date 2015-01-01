@@ -1,14 +1,14 @@
 package cloudify.widget.softlayer;
 
-import cloudify.widget.api.clouds.*;
+import cloudify.widget.api.clouds.CloudExecResponse;
+import cloudify.widget.api.clouds.CloudServerApi;
+import cloudify.widget.api.clouds.ISecurityGroupDetails;
 import cloudify.widget.common.CloudExecResponseImpl;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.net.HostAndPort;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.mashape.unirest.http.JsonNode;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -18,12 +18,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.domain.*;
+import org.jclouds.compute.domain.ComputeMetadata;
+import org.jclouds.compute.domain.ExecResponse;
+import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.logging.config.NullLoggingModule;
-import org.jclouds.softlayer.compute.functions.guest.VirtualGuestToReducedNodeMetaDataLocal;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
 import org.json.JSONObject;
@@ -32,7 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.Collections2.transform;
 
@@ -168,7 +171,6 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     }
 
     private ExecResponse executeSsh(String script, SoftlayerSshDetails softlayerSshDetails) {
-
         ExecResponse execResponse;
         Injector i = Guice.createInjector(new SshjSshClientModule(), new NullLoggingModule());
         SshClient.Factory factory = i.getInstance(SshClient.Factory.class);

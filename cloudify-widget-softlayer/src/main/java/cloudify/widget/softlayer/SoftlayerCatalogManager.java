@@ -37,7 +37,6 @@ public class SoftlayerCatalogManager {
      */
     public JSONArray getPriceIds(String hardwareIds, SoftlayerConnectDetails connectDetails) {
         updatePricesMap(connectDetails);
-
         return convertHardwareIdsToPricesIds(hardwareIds);
     }
 
@@ -61,7 +60,6 @@ public class SoftlayerCatalogManager {
 
     private void updatePricesMap(SoftlayerConnectDetails connectDetails) {
         HttpResponse<JsonNode> catalog = null;
-        itemsMap = new HashMap<String, JSONObject>();
         Date now = new Date();
 
 
@@ -69,6 +67,8 @@ public class SoftlayerCatalogManager {
             // no need to update
             return;
         }
+
+        itemsMap = new HashMap<String, JSONObject>();
 
         try {
             // get the Softlayer catalog.

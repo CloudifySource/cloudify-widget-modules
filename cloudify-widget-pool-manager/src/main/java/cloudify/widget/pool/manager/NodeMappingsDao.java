@@ -20,11 +20,14 @@ public class NodeMappingsDao {
     @Autowired
     private NodesDao nodesDao;
 
+    @Autowired
+    private CloudServerApiFactory cloudServerApiFactory;
+
     public List<NodeMappings> readAll(PoolSettings poolSettings) {
 
         // connect to the cloud and get servers
         ProviderSettings provider = poolSettings.getProvider();
-        CloudServerApi cloudServerApi = CloudServerApiFactory.create(provider.getName());
+        CloudServerApi cloudServerApi = cloudServerApiFactory.create(provider.getName());
         cloudServerApi.connect(poolSettings.getProvider().getConnectDetails());
         Collection<CloudServer> cloudServers = cloudServerApi.listByMask(provider.getMachineOptions().getMask());
 
@@ -90,4 +93,11 @@ public class NodeMappingsDao {
         }
     }
 
+    public CloudServerApiFactory getCloudServerApiFactory() {
+        return cloudServerApiFactory;
+    }
+
+    public void setCloudServerApiFactory(CloudServerApiFactory cloudServerApiFactory) {
+        this.cloudServerApiFactory = cloudServerApiFactory;
+    }
 }

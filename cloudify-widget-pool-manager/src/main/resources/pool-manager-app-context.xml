@@ -137,7 +137,25 @@
 
     <bean id="cloudNodesDao" class="cloudify.widget.pool.manager.NodeMappingsDao"/>
 
-    <bean id="pingAction" class="cloudify.widget.pool.manager.actions.PingAction"></bean>
+    <bean id="pingAction" class="cloudify.widget.pool.manager.actions.PingAction"/>
+
+    <bean id="cloudServerApiFactory" class="cloudify.widget.pool.manager.CloudServerApiFactory"/>
+
+    <bean id="softlayerRestApi" class="cloudify.widget.softlayer.SoftlayerRestApi"/>
+
+
+    <bean id="softlayerCatalogManager" class="cloudify.widget.softlayer.SoftlayerCatalogManager">
+        <property name="stalePeriod" value="3600000"/>
+        <property name="pricesJSONArrayTemplate" value="[{'id':34807},{'id':27023},{'id':32500},{'id':32627},{'id':23070},{'id':35310},{'id':33483}]"/>
+        <property name="machineTemplate" value="{'parameters':[{'complexType':'SoftLayer_Container_Product_Order','packageId':46,'location':'__LOCATION__','prices':[],'virtualGuests':[{'hostname':'__HOSTNAME__','domain':'cloudify.org','privateNetworkOnlyFlag':false}],'hardware':[],'quantity':1,'useHourlyPricing':true,'imageTemplateGlobalIdentifier':'','imageTemplateId':''}]}"/>
+    </bean>
+
+
+    <!-- define all cloud server api implementations -->
+    <bean name="hpFolsomCloudServerApi" class="cloudify.widget.hp.HpFolsomCloudServerApi" scope="prototype"/>
+    <bean name="softlayerCloudServerApi" class="cloudify.widget.softlayer.SoftlayerCloudServerApi" scope="prototype"/>
+    <bean name="ec2CloudServerApi" class="cloudify.widget.ec2.Ec2CloudServerApi" scope="prototype"/>
+    <bean name="hpGrizzlyCloudServerApi" class="cloudify.widget.hp.HpGrizzlyCloudServerApi" scope="prototype"/>
 
     <beans profile="dev,default">
         <util:properties location="classpath:/conf/dev/me.properties" id="managerProperties"/>
@@ -149,6 +167,7 @@
             <property name="username" value="${softlayer_user}"/>
             <property name="networkId" value="274"/>
         </bean>
+
 
         <bean id="cloudServer" class="cloudify.widget.softlayer.SoftlayerCloudServerApi">
             <property name="connectDetails" ref="softlayerCloudCredentials"/>

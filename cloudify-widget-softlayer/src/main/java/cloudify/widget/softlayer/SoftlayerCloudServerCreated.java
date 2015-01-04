@@ -6,6 +6,7 @@ import cloudify.widget.api.clouds.ISshDetails;
 import cloudify.widget.common.CollectionUtils;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
+import org.json.JSONObject;
 
 /**
  * Softlayer implementation of CloudServerCreated
@@ -14,27 +15,27 @@ import org.jclouds.domain.LoginCredentials;
  */
 public class SoftlayerCloudServerCreated implements CloudServerCreated {
 
-	private final NodeMetadata nodeMetadata;
+	private final JSONObject nodeMetadata;
 
-	public SoftlayerCloudServerCreated(NodeMetadata nodeMetadata){
+	public SoftlayerCloudServerCreated(JSONObject nodeMetadata){
 		this.nodeMetadata = nodeMetadata;
 	}
 
     @Override
     public String getId() {
-        return nodeMetadata.getId();
+        return String.valueOf(nodeMetadata.getJSONObject("orderDetails").getJSONArray("virtualGuests").getJSONObject(0).getLong("id"));
     }
 
     @Override
     public ISshDetails getSshDetails() {
-        LoginCredentials loginCredentials = nodeMetadata.getCredentials();
-        if(loginCredentials == null){
+        JSONObject sshDetails = nodeMetadata.getJSONObject("sshDetails");
+        if(sshDetails == null){
             throw new RuntimeException( "LoginCredentials is null" );
         }
-        String user = loginCredentials.getUser();
-        String password = loginCredentials.getPassword();
-        int port = nodeMetadata.getLoginPort();
-        String publicIp = CollectionUtils.first(nodeMetadata.getPublicAddresses());
+        String user = sshDetails.getString("username");
+        String password = sshDetails.getString("password");
+        int port = sshDetails.getInt("port");
+        String publicIp = sshDetails.getString("primaryIP");
 
         return new SoftlayerSshDetails( port, user, password, publicIp );
     }

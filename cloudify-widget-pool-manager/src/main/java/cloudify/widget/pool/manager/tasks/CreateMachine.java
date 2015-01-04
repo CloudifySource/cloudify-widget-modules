@@ -48,7 +48,7 @@ public class CreateMachine extends AbstractPoolTask<TaskConfig, Collection<NodeM
 
             ProviderSettings providerSettings = poolSettings.getProvider();
 
-            CloudServerApi cloudServerApi = CloudServerApiFactory.create(providerSettings.getName());
+            CloudServerApi cloudServerApi = cloudServerApiFactory.create(providerSettings.getName());
 
             logger.info("connecting to provider [{}]", providerSettings.getName());
             cloudServerApi.connect(providerSettings.getConnectDetails());

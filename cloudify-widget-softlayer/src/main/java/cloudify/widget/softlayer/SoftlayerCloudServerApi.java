@@ -1,14 +1,15 @@
 package cloudify.widget.softlayer;
 
-import cloudify.widget.api.clouds.*;
+import cloudify.widget.api.clouds.CloudExecResponse;
+import cloudify.widget.api.clouds.CloudServerApi;
+import cloudify.widget.api.clouds.ISecurityGroupDetails;
 import cloudify.widget.common.CloudExecResponseImpl;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.net.HostAndPort;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
+import com.mashape.unirest.http.JsonNode;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -17,19 +18,24 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.domain.*;
+import org.jclouds.compute.domain.ComputeMetadata;
+import org.jclouds.compute.domain.ExecResponse;
+import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.logging.config.NullLoggingModule;
-import org.jclouds.softlayer.compute.functions.guest.VirtualGuestToReducedNodeMetaDataLocal;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.Collections2.transform;
 
@@ -42,6 +48,9 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
     private static Logger logger = LoggerFactory.getLogger(SoftlayerCloudServerApi.class);
 
+    @Autowired
+    private SoftlayerRestApi softlayerRestApi;
+
     private ComputeService computeService;
 
     private SoftlayerConnectDetails connectDetails;
@@ -50,13 +59,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     private ContextBuilder contextBuilder;
 
 
-    public SoftlayerCloudServerApi(){
+    public SoftlayerCloudServerApi() {
     }
 
 
     @Override
     public void connect(SoftlayerConnectDetails connectDetails) {
-       setConnectDetails( connectDetails);
+        setConnectDetails(connectDetails);
         connect();
     }
 
@@ -94,7 +103,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
             logger.debug("calling destroyNode, id is [{}]", id);
         }
         try {
-            computeService.destroyNode(id);
+            softlayerRestApi.destroyNode(id, connectDetails);
         } catch (Throwable e) {
             throw new SoftlayerCloudServerApiOperationFailureException(
                     String.format("delete operation failed for server with id [%s].", id), e);
@@ -102,7 +111,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     }
 
     @Override
-    public void rebuild( String id ) {
+    public void rebuild(String id) {
         logger.info("rebuilding : [{}]", id);
         throw new UnsupportedOperationException("this driver does not support this operation");
     }
@@ -115,95 +124,32 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
     @Override
     public void connect() {
-        try{
-            logger.info("connecting");
-            computeService = computeServiceContext( connectDetails ).getComputeService();
-            if ( computeService == null ){
-                throw new RuntimeException("illegal credentials");
-            }
-        }catch(RuntimeException e){
-            logger.error("unable to connect softlayer context",e);
-            throw e;
-        }
-    }
-
-    private ComputeServiceContext computeServiceContext( SoftlayerConnectDetails connectDetails) {
-
-        logger.info("creating compute service context");
-        Set<Module> modules = new HashSet<Module>();
-
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                bind(org.jclouds.softlayer.compute.functions.guest.VirtualGuestToNodeMetadata.class).to(VirtualGuestToReducedNodeMetaDataLocal.class);
-            }
-        });
-
-        ComputeServiceContext context;
-        Properties overrides = new Properties();
-
-        // it is strange that we add a machine detail on the context, but it was less work.
-        overrides.put("jclouds.timeouts.AccountClient.getActivePackages", String.valueOf(10 * 60 * 1000));
-        overrides.put("jclouds.timeouts.AccountClient.getActivePackages", String.valueOf(10 * 60 * 1000));
-        //if (connectDetails.isApiKey()) {
-        overrides.put("jclouds.keystone.credential-type", "apiAccessKeyCredentials");
-        //}
-
-        String cloudProvider = CloudProvider.SOFTLAYER.label;
-        logger.info("building new context for provider [{}]", cloudProvider);
-        contextBuilder = ContextBuilder.newBuilder(cloudProvider)
-                .credentials(connectDetails.getUsername(), connectDetails.getKey())
-                .overrides(overrides)
-                .modules(modules);
-        context = contextBuilder.buildView(ComputeServiceContext.class);
-
-        return context;
+        // We're using REST, nothing to connect to.
     }
 
     @Override
-    public Collection<SoftlayerCloudServerCreated> create( SoftlayerMachineOptions softlayerMachineOptions ) {
+    public Collection<SoftlayerCloudServerCreated> create(SoftlayerMachineOptions softlayerMachineOptions) {
 
         String name = softlayerMachineOptions.name();
         int machinesCount = softlayerMachineOptions.machinesCount();
-        Template template = createTemplate(softlayerMachineOptions);
-        Set<? extends NodeMetadata> newNodes;
+        JsonNode template = softlayerRestApi.buildTemplate(softlayerMachineOptions, connectDetails);
+        Set<JSONObject> newNodes;
         try {
             logger.info("creating [{}] new machine with name [{}]", machinesCount, name);
-            newNodes = computeService.createNodesInGroup( name, machinesCount, template );
-        }
-        catch (org.jclouds.compute.RunNodesException e) {
-            if( logger.isErrorEnabled() ){
-                logger.error( "Create softlayer node failed", e );
+            newNodes = softlayerRestApi.createNodes(template, machinesCount, connectDetails);
+        } catch (Exception e) {
+            if (logger.isErrorEnabled()) {
+                logger.error("Create softlayer node failed", e);
             }
-            throw new RuntimeException( e );
+            throw new RuntimeException(e);
         }
 
-        List<SoftlayerCloudServerCreated> newNodesList = new ArrayList<SoftlayerCloudServerCreated>( newNodes.size() );
-        for( NodeMetadata newNode : newNodes ){
-            newNodesList.add( new SoftlayerCloudServerCreated( newNode ) );
+        List<SoftlayerCloudServerCreated> newNodesList = new ArrayList<SoftlayerCloudServerCreated>(newNodes.size());
+        for (JSONObject newNode : newNodes) {
+            newNodesList.add(new SoftlayerCloudServerCreated(newNode));
         }
 
         return newNodesList;
-    }
-
-    private Template createTemplate( SoftlayerMachineOptions machineOptions ) {
-        TemplateBuilder templateBuilder = computeService.templateBuilder();
-
-        String hardwareId = machineOptions.getHardwareId();
-        String locationId = machineOptions.getLocationId();
-        OsFamily osFamily = machineOptions.getOsFamily();
-        if( osFamily != null ){
-            templateBuilder.osFamily(osFamily);
-        }
-        if( !StringUtils.isEmpty(hardwareId)){
-            templateBuilder.hardwareId( hardwareId );
-        }
-
-        if( !StringUtils.isEmpty( locationId ) ){
-            templateBuilder.locationId(locationId);
-        }
-
-        return templateBuilder.build();
     }
 
     @Override
@@ -221,11 +167,10 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     @Deprecated
     public CloudExecResponse runScriptOnMachine(String script, String serverIp) {
 
-        throw new UnsupportedOperationException( "Method runScriptOnMachine(String script, String serverIp) is not supported anymore. Please use runScriptOnMachine(String script, ISshDetails sshDetails ) instead" );
+        throw new UnsupportedOperationException("Method runScriptOnMachine(String script, String serverIp) is not supported anymore. Please use runScriptOnMachine(String script, ISshDetails sshDetails ) instead");
     }
 
     private ExecResponse executeSsh(String script, SoftlayerSshDetails softlayerSshDetails) {
-
         ExecResponse execResponse;
         Injector i = Guice.createInjector(new SshjSshClientModule(), new NullLoggingModule());
         SshClient.Factory factory = i.getInstance(SshClient.Factory.class);
@@ -233,14 +178,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         //.privateKey(Strings2.toStringAndClose(new FileInputStream(conf.server.bootstrap.ssh.privateKey)))
         String serverIp = softlayerSshDetails.getPublicIp();
         SshClient sshConnection = factory.create(HostAndPort.fromParts(serverIp, softlayerSshDetails.getPort()),
-                loginCredentials );
-        try{
+                loginCredentials);
+        try {
             sshConnection.connect();
             logger.info("ssh connected, executing");
             execResponse = sshConnection.exec(script);
             logger.info("finished execution");
-        }
-        finally{
+        } finally {
             if (sshConnection != null)
                 sshConnection.disconnect();
         }
@@ -307,13 +251,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
     private Set<? extends NodeMetadata> getNodeMetadataByIp(final String ip) {
         return computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
-                @Override
-                public boolean apply(ComputeMetadata computeMetadata) {
-                    NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
-                    Set<String> publicAddresses = nodeMetadata.getPublicAddresses();
-                    return publicAddresses.contains(ip);
-                }
-            });
+            @Override
+            public boolean apply(ComputeMetadata computeMetadata) {
+                NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
+                Set<String> publicAddresses = nodeMetadata.getPublicAddresses();
+                return publicAddresses.contains(ip);
+            }
+        });
     }
 
     public void setUseCommandLineSsh(boolean useCommandLineSsh) {
@@ -321,7 +265,7 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     }
 
     @Override
-    public CloudExecResponse runScriptOnMachine(String script, SoftlayerSshDetails softlayerSshDetails ){
+    public CloudExecResponse runScriptOnMachine(String script, SoftlayerSshDetails softlayerSshDetails) {
 
         String serverIp = softlayerSshDetails.getPublicIp();
         if (logger.isDebugEnabled()) {
@@ -337,5 +281,13 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         }
 
         return new CloudExecResponseImpl(execResponse);
+    }
+
+    public SoftlayerRestApi getSoftlayerRestApi() {
+        return softlayerRestApi;
+    }
+
+    public void setSoftlayerRestApi(SoftlayerRestApi softlayerRestApi) {
+        this.softlayerRestApi = softlayerRestApi;
     }
 }

@@ -66,6 +66,9 @@ public class SoftlayerRestApi {
         long guestId = nodeMetadata.getJSONObject("orderDetails").getJSONArray("virtualGuests").getJSONObject(0).getLong("id");
         int retryCount = 0;
 
+        // Softlayer takes it's sweet time until they start running the active transactions process, so we need to delay our polling.
+        Thread.sleep(60000);
+
         // Softlayer machine creation is very slow and considered complete only when the active transactions list is empty.
         // as long as we didnt try for more than an hour - keep polling once a minute.
         while (retryCount < 60) {
@@ -93,7 +96,7 @@ public class SoftlayerRestApi {
 
         // Enrich nodeMetadata with ssh details. This requires yet another REST request...
         JSONObject sshDetails = new JSONObject();
-        HttpResponse<JsonNode> guestDetails = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}/getObject.json?objectMask=operatingSystem.passwords")
+        HttpResponse<JsonNode> guestDetails = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Virtual_Guest/{VIRTUAL_GUEST_ID}?objectMask=operatingSystem.passwords")
                 .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
                 .routeParam("VIRTUAL_GUEST_ID", String.valueOf(guestId))
                 .asJson();

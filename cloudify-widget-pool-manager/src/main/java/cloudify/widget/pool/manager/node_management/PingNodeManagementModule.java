@@ -25,6 +25,8 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
     @Override
     public PingNodeManagementModule decide() {
         Constraints constraints = getConstraints();
+        logger.info("- deciding decisions on pool [{}]", constraints.poolSettings.getUuid());
+
         List<NodeModel> bootstrappedNodeModels = nodesDao.readAllOfPoolWithStatus(constraints.poolSettings.getUuid(), NodeStatus.BOOTSTRAPPED);
 
         // we have nothing to do if no bootstrapped nodes found
@@ -96,6 +98,7 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
     @Override
     public PingNodeManagementModule execute() {
         Constraints constraints = getConstraints();
+        logger.info("- executing decisions on pool [{}]", constraints.poolSettings.getUuid());
 
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {

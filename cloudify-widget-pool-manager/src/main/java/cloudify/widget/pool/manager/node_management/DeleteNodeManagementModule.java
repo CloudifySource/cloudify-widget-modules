@@ -23,12 +23,14 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
 
     @Override
     public DeleteNodeManagementModule decide() {
-
         Constraints constraints = getConstraints();
+        logger.info("- deciding decisions on pool [{}]", constraints.poolSettings.getUuid());
+
         List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());
 
         // we delete machines only if nodes in pool exceed the maximum
         if (nodeModels.size() <= constraints.maxNodes) {
+            logger.info("Does not exceed maxNodes, nothing to delete.");
             return this;
         }
 
@@ -81,8 +83,8 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
 
     @Override
     public DeleteNodeManagementModule execute() {
-
         final Constraints constraints = getConstraints();
+        logger.info("- executing decisions on pool [{}]", constraints.poolSettings.getUuid());
 
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {

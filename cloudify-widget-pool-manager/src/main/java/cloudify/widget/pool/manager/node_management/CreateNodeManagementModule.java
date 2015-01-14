@@ -38,10 +38,16 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
         nodeStatuses.add(NodeStatus.CREATED);
         nodeStatuses.add(NodeStatus.BOOTSTRAPPING);
         nodeStatuses.add(NodeStatus.BOOTSTRAPPED);
+
+        logger.info("[shouldCreateNodes] Checking if should create nodes for pool [{}]", constraints.poolSettings.getUuid());
         List<NodeModel> nodeModels = nodesDao.readAllOfPoolWithStatusRange(constraints.poolSettings.getUuid(), nodeStatuses);
         int numInstancesInQueue = CollectionUtils.size(getOwnDecisionModelsQueue());    // nodes that are going to be bootstrapped soon.
 
-        return (nodeModels.size() + numInstancesInQueue < constraints.minNodes);
+        boolean shouldCreate = nodeModels.size() + numInstancesInQueue < constraints.minNodes;
+        logger.info("[shouldCreateNodes] number of nodes in creation or bootstrap process: [{}]", nodeModels.size());
+        logger.info("[shouldCreateNodes] number of decisions already in queue: [{}]", numInstancesInQueue);
+        logger.info("[shouldCreateNodes] returned [{}]", shouldCreate);
+        return shouldCreate;
     }
 
     /**
@@ -53,11 +59,17 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
         Constraints constraints = getConstraints();
         List<NodeModel> nodeModels = nodesDao.readAllOfPool(constraints.poolSettings.getUuid());    // all nodes in all states.
 
-        return (nodeModels.size() < constraints.maxNodes);
+        boolean canCreate = nodeModels.size() < constraints.maxNodes;
+        logger.info("[canCreateNodes] number of nodes for pool [{}]", nodeModels.size());
+        logger.info("[canCreateNodes] returned [{}]", canCreate);
+        return canCreate;
     }
 
     @Override
     public CreateNodeManagementModule decide() {
+        Constraints constraints = getConstraints();
+        logger.info("- deciding decisions on pool [{}]", constraints.poolSettings.getUuid());
+
         if (shouldCreateMoreNodes() && canCreateMoreNodes()) {
             DecisionModel decisionModel = buildOwnDecisionModel(new CreateDecisionDetails());
             decisionsDao.create(decisionModel);
@@ -70,14 +82,14 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
     public CreateNodeManagementModule execute() {
 
         Constraints constraints = getConstraints();
-        logger.info("- executing decision on pool [{}]", constraints.poolSettings.getUuid());
+        logger.info("- executing decisions on pool [{}]", constraints.poolSettings.getUuid());
 
         List<DecisionModel> decisionModelsQueue = getOwnDecisionModelsQueue();
         if (decisionModelsQueue == null || decisionModelsQueue.isEmpty()) {
-            logger.info("no decisions to execute");
+            logger.info("CreateModule - no decisions to execute");
             return this;
         }
-        logger.debug("found [{}] decisions", decisionModelsQueue.size());
+        logger.debug("CreateModule - found [{}] decisions", decisionModelsQueue.size());
 
         for (final DecisionModel decisionModel : decisionModelsQueue) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);

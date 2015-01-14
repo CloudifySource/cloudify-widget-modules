@@ -31,7 +31,7 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
 
         // we have nothing to do if no bootstrapped nodes found
         if (bootstrappedNodeModels.isEmpty()) {
-            logger.debug("no bootstrapped nodes to ping");
+            logger.info("no bootstrapped nodes to ping");
             return this;
         }
 
@@ -50,14 +50,14 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
         }
 
         Set<Long> toPingIds = _collectNodesToPing(bootstrappedNodeModels, decisionModels);
-        logger.info("toDeleteIds [{}]", toPingIds);
+        logger.info("toPingIds [{}]", toPingIds);
 
         for (Long toPingId : toPingIds) {
-            logger.debug("Pinging node [{}]", toPingId);
+            logger.info("Pinging node [{}]", toPingId);
             PingResult pingResult = poolManagerApi.pingNode(constraints.poolSettings, toPingId);
 
             if (pingResult.getPingStatus() == PingStatus.PING_FAIL) {
-                logger.debug("Ping for node [{}] failed, marking it as MARK_EXPIRED_PING", toPingId);
+                logger.info("Ping for node [{}] failed, creating decision to mark it as MARK_EXPIRED_PING", toPingId);
                 // todo: add PingResult details to decision details.
                 DecisionModel decisionModel = buildOwnDecisionModel(new PingDecisionDetails().setNodeId(toPingId).setPingResult(pingResult));
                 decisionsDao.create(decisionModel);
@@ -105,7 +105,7 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
             logger.info("no decisions to execute");
             return this;
         }
-        logger.debug("found [{}] decisions", decisionModels.size());
+        logger.info("found [{}] decisions", decisionModels.size());
 
         for (final DecisionModel decisionModel : decisionModels) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
@@ -118,11 +118,11 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
                 final long toPingId = details.getNodeId();
 //                PingResult pingResult = details.getPingResult();
 
-                logger.debug("Marking instance with id [{}] as EXPIRED", toPingId);
+                logger.info("Marking instance with id [{}] as EXPIRED", toPingId);
                 // todo: change this to update status by id and status == BOOTSTRAPPED
                 nodesDao.updateStatus(toPingId, NodeStatus.EXPIRED);
 
-                logger.debug("marking decision as executed");
+                logger.info("marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));
                 teardownDecisionExecution(decisionModel);
             }

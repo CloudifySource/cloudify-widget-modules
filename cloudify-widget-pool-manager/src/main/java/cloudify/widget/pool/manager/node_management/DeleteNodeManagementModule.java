@@ -91,7 +91,7 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
             logger.info("no decisions to execute");
             return this;
         }
-        logger.debug("found [{}] decisions", decisionModels.size());
+        logger.info("found [{}] decisions", decisionModels.size());
 
         for (final DecisionModel decisionModel : decisionModels) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
@@ -102,7 +102,7 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
                 final DeleteDecisionDetails details = (DeleteDecisionDetails) decisionModel.details;
                 // copy to avoid concurrent modification
                 final long toDeleteId = details.getNodeId();
-                logger.debug("deleting instance with id [{}] via pool manager task executor", toDeleteId);
+                logger.info("deleting instance with id [{}] via pool manager task executor", toDeleteId);
                 poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
 
                     @Override
@@ -116,7 +116,7 @@ public class DeleteNodeManagementModule extends BaseNodeManagementModule<DeleteN
                     }
                 });
 
-                logger.debug("task sent, marking decision as executed");
+                logger.info("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));
             }
         }

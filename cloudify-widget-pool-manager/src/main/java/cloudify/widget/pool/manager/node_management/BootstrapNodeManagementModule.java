@@ -79,7 +79,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
             logger.info("no decisions to execute");
             return this;
         }
-        logger.debug("found [{}] decisions", decisionModels.size());
+        logger.info("found [{}] decisions", decisionModels.size());
 
         for (final DecisionModel decisionModel : decisionModels) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
@@ -89,7 +89,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
                 // TODO avoid casting - used generics in model
                 final BootstrapDecisionDetails details = (BootstrapDecisionDetails) decisionModel.details;
                 final long toBootstrapId = details.getNodeId();
-                logger.debug("bootstrapping instance with id [{}] via pool manager task executor", toBootstrapId);
+                logger.info("bootstrapping instance with id [{}] via pool manager task executor", toBootstrapId);
 
                 poolManagerApi.bootstrapNode(constraints.poolSettings, toBootstrapId, new TaskCallback<NodeModel>() {
 
@@ -104,7 +104,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
                     }
                 });
 
-                logger.debug("task sent, marking decision as executed");
+                logger.info("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));
             }
         }

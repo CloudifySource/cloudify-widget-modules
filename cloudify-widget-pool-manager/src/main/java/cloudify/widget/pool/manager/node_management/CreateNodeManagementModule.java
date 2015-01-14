@@ -89,14 +89,14 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
             logger.info("CreateModule - no decisions to execute");
             return this;
         }
-        logger.debug("CreateModule - found [{}] decisions", decisionModelsQueue.size());
+        logger.info("CreateModule - found [{}] decisions", decisionModelsQueue.size());
 
         for (final DecisionModel decisionModel : decisionModelsQueue) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
 
             if (decisionModel.approved && !decisionModel.executed) {
 
-                logger.debug("creating machine instance via pool manager task executor");
+                logger.info("creating machine instance via pool manager task executor");
                 poolManagerApi.createNode(constraints.poolSettings, new TaskCallback<Collection<NodeModel>>() {
 
                     @Override
@@ -110,7 +110,7 @@ public class CreateNodeManagementModule extends BaseNodeManagementModule<CreateN
                     }
                 });
 
-                logger.debug("task sent, marking decision as executed");
+                logger.info("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));
             }
         }

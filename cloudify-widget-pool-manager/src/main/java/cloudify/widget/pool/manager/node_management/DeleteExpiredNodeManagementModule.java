@@ -27,6 +27,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
     public DeleteExpiredNodeManagementModule decide() {
         // todo: spilt into two separate decisions - one that marks nodes as expired due to time passed and another that deletes expired nodes.
         Constraints constraints = getConstraints();
+        logger.info("- deciding decisions on pool [{}]", constraints.poolSettings.getUuid());
         // get all nodes that should be expired
         List<Long> expiredNodeIds = nodesDao.readExpiredIdsOfPool(constraints.poolSettings.getUuid());
 
@@ -78,6 +79,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
     @Override
     public DeleteExpiredNodeManagementModule execute() {
         Constraints constraints = getConstraints();
+        logger.info("- executing decisions on pool [{}]", constraints.poolSettings.getUuid());
 
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {

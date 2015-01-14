@@ -64,6 +64,8 @@ public class NodeManagementExecutor {
         logger.debug(" cleaning all decisions of pool [{}]", poolSettings.getUuid());
         decisionsDao.deleteAllOfPool(poolSettings.getUuid());
 
+        //todo: also delete all bootstrapping nodes on start, since they will never complete.
+
         List<NodeManagementModuleType> activeModules = poolSettings.getNodeManagement().getActiveModules();
         if (activeModules == null || activeModules.isEmpty()) {
             return;

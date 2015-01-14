@@ -29,6 +29,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
     @Override
     public BootstrapNodeManagementModule decide() {
         Constraints constraints = getConstraints();
+        logger.info("- deciding decisions on pool [{}]", constraints.poolSettings.getUuid());
         List<Long> createdNodeIds = nodesDao.readIdsOfPoolWithStatus(constraints.poolSettings.getUuid(), NodeStatus.CREATED);
 
         // we have nothing to do if no created nodes found
@@ -71,6 +72,7 @@ public class BootstrapNodeManagementModule extends BaseNodeManagementModule<Boot
     @Override
     public BootstrapNodeManagementModule execute() {
         Constraints constraints = getConstraints();
+        logger.info("- executing decisions on pool [{}]", constraints.poolSettings.getUuid());
 
         List<DecisionModel> decisionModels = getOwnDecisionModelsQueue();
         if (decisionModels == null || decisionModels.isEmpty()) {

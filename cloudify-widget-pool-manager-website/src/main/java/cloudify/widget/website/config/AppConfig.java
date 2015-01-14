@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
     private String jdbcUsername = "root";
     private String jdbcPassword = "root";
     private String jdbcDriverClassName = "com.mysql.jdbc.Driver";
-    private String jdbcUrl = "jdbc:mysql://localhost:3306/manager-website";
+    private String jdbcUrl = "jdbc:mysql://localhost:3306/managerwebsite";
     private String adminUuid = "7859674589673489567";  // dummy value change this in spring on production.
 
     public String getJdbcUsername() {

@@ -131,17 +131,19 @@ public class PingAction {
         PingResponse pingResponse = new PingResponse();
 
         try {
-            if (url.startsWith("https")) {
-                logger.debug("URL is HTTPS, ignoring invalid certificates...");
+            if (url.startsWith("https")) { // https
+                logger.debug("URL is HTTPS, ignoring invalid certificates... time is [" + timeout + "]");
                 // Ignore invalid certificate
                 initHttpsConnection();
                 HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
                 connection.setConnectTimeout(timeout);
+                connection.setReadTimeout(timeout);
                 pingResponse.setResponseCode(connection.getResponseCode());
-            } else {
-                logger.debug("URL is HTTP");
+            } else { // http
+                logger.debug("URL is HTTP. timeout is [" + timeout + "]");
                 HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setConnectTimeout(timeout);
+                connection.setReadTimeout(timeout);
                 pingResponse.setResponseCode(connection.getResponseCode());
             }
 

@@ -41,7 +41,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
 
         // we have nothing to do if no expired nodes found
         if (expiredNodeIds.isEmpty()) {
-            logger.debug("no expired nodes to delete");
+            logger.info("no expired nodes to delete");
             return this;
         }
 
@@ -86,7 +86,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
             logger.info("no decisions to execute");
             return this;
         }
-        logger.debug("found [{}] decisions", decisionModels.size());
+        logger.info("found [{}] decisions", decisionModels.size());
 
         for (final DecisionModel decisionModel : decisionModels) {
             logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
@@ -96,7 +96,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
                 // TODO avoid casting - used generics in model
                 final DeleteExpiredDecisionDetails details = (DeleteExpiredDecisionDetails) decisionModel.details;
                 final long toDeleteId = details.getNodeId();
-                logger.debug("deleting instance with id [{}] via pool manager task executor", toDeleteId);
+                logger.info("deleting instance with id [{}] via pool manager task executor", toDeleteId);
                 poolManagerApi.deleteNode(constraints.poolSettings, toDeleteId, new TaskCallback<Void>() {
 
                     @Override
@@ -110,7 +110,7 @@ public class DeleteExpiredNodeManagementModule extends BaseNodeManagementModule<
                     }
                 });
 
-                logger.debug("task sent, marking decision as executed");
+                logger.info("task sent, marking decision as executed");
                 decisionsDao.update(decisionModel.setExecuted(true));
             }
         }

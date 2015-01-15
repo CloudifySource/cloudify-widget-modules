@@ -55,6 +55,7 @@ public class PingNodeManagementModule extends BaseNodeManagementModule<PingNodeM
         for (Long toPingId : toPingIds) {
             logger.info("Pinging node [{}]", toPingId);
             PingResult pingResult = poolManagerApi.pingNode(constraints.poolSettings, toPingId);
+            logger.info("Ping result for node [{}] is [{}]", toPingId, pingResult.getPingStatus());
 
             if (pingResult.getPingStatus() == PingStatus.PING_FAIL) {
                 logger.info("Ping for node [{}] failed, creating decision to mark it as MARK_EXPIRED_PING", toPingId);

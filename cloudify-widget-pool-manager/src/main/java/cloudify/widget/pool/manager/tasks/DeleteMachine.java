@@ -29,14 +29,17 @@ public class DeleteMachine extends AbstractPoolTask<DeleteMachineConfig, Void> {
         ProviderSettings providerSettings = poolSettings.getProvider();
         CloudServerApi cloudServerApi = cloudServerApiFactory.create(providerSettings.getName());
 
-        if (taskConfig.getNodeModel().machineId != null) {
-            cloudServerApi.connect(providerSettings.getConnectDetails());
-            cloudServerApi.delete(taskConfig.getNodeModel().machineId);
-        }
-
         if (taskConfig.getNodeModel().id != -1) {
             logger.info("machine deleted, removing node model in the database [{}]", taskConfig.getNodeModel().machineId);
             nodesDao.delete(taskConfig.getNodeModel().id);
+            return null;
+        }
+
+        if (taskConfig.getNodeModel().machineId != null) {
+            logger.info("node model deleted, removing machine from cloud provider [{}]", taskConfig.getNodeModel().id);
+            cloudServerApi.connect(providerSettings.getConnectDetails());
+            cloudServerApi.delete(taskConfig.getNodeModel().machineId);
+            return null;
         }
 
         return null;

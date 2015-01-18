@@ -3,9 +3,11 @@ package cloudify.widget.softlayer;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +40,30 @@ public class SoftlayerRestApi {
         parameters.getJSONArray("virtualGuests").getJSONObject(0).put("hostname", softlayerMachineOptions.name());
 
         return template;
+    }
+
+    public ArrayList<JSONObject> listByMask(String mask, SoftlayerConnectDetails connectDetails) throws Exception {
+        ArrayList<JSONObject> maskedNodes = new ArrayList<JSONObject>();
+
+        HttpResponse<JsonNode> response = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Account/VirtualGuests.json")
+                .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
+                .asJson();
+
+        if (response.getStatus() != 200) {
+            String error = response.getBody().getObject().getString("error");
+            throw new Exception(error);
+        }
+
+        JSONArray nodes = response.getBody().getArray();
+
+        for (int i = 0; i < nodes.length(); i++) {
+            JSONObject node = nodes.getJSONObject(i);
+            if (node.getString("hostname").startsWith(mask)) {
+                maskedNodes.add(node);
+            }
+        }
+
+        return maskedNodes;
     }
 
     /**
@@ -165,6 +191,20 @@ public class SoftlayerRestApi {
             throw new Exception(error);
         }
 
+    }
+
+    public JSONObject getNode(String id, SoftlayerConnectDetails connectDetails) throws Exception {
+        HttpResponse<JsonNode> response = Unirest.get("https:/api.softlayer.com/rest/v3/SoftLayer_Account/VirtualGuests/{VIRTUAL_GUEST_ID}")
+                .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
+                .routeParam("VIRTUAL_GUEST_ID", id)
+                .asJson();
+
+        if (response.getStatus() != 200) {
+            String error = response.getBody().getObject().getString("error");
+            throw new Exception(error);
+        }
+
+        return response.getBody().getObject();
     }
 
     /**

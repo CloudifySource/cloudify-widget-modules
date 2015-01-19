@@ -4,8 +4,6 @@ import cloudify.widget.api.clouds.CloudExecResponse;
 import cloudify.widget.api.clouds.CloudServerApi;
 import cloudify.widget.api.clouds.ISecurityGroupDetails;
 import cloudify.widget.common.CloudExecResponseImpl;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -17,12 +15,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
-import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
-import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.logging.config.NullLoggingModule;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
@@ -37,8 +32,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.collect.Collections2.transform;
-
 /**
  * User: eliranm
  * Date: 2/4/14
@@ -51,13 +44,9 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
     @Autowired
     private SoftlayerRestApi softlayerRestApi;
 
-    private ComputeService computeService;
-
     private SoftlayerConnectDetails connectDetails;
 
     private boolean useCommandLineSsh;
-    private ContextBuilder contextBuilder;
-
 
     public SoftlayerCloudServerApi() {
     }
@@ -71,30 +60,41 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
 
     @Override
     public Collection<SoftlayerCloudServer> listByMask(final String mask) {
-        logger.info("getting all machines matching mask [{}]", mask);
-        Set<? extends NodeMetadata> nodeMetadatas = computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
-            @Override
-            public boolean apply(@Nullable ComputeMetadata computeMetadata) {
-                return mask == null || computeMetadata.getName().startsWith(mask);
-            }
-        });
+        ArrayList<SoftlayerCloudServer> softlayerCloudServers = new ArrayList<SoftlayerCloudServer>();
+        ArrayList<JSONObject> nodeMetadatas;
 
-        return transform(nodeMetadatas, new Function<NodeMetadata, SoftlayerCloudServer>() {
-            @Override
-            public SoftlayerCloudServer apply(@Nullable NodeMetadata o) {
-                return new SoftlayerCloudServer(computeService, o);
+        logger.info("getting all machines matching mask [{}]", mask);
+        try {
+            nodeMetadatas = softlayerRestApi.listByMask(mask, connectDetails);
+        } catch (Exception e) {
+            if (logger.isErrorEnabled()) {
+                logger.error("Failed to retrieve list of nodes.", e);
             }
-        });
+            throw new RuntimeException(e);
+        }
+
+        for (int i = 0; i < nodeMetadatas.size(); i++) {
+            JSONObject nodeMetadata = nodeMetadatas.get(i);
+            softlayerCloudServers.add(new SoftlayerCloudServer(nodeMetadata));
+        }
+
+        return softlayerCloudServers;
     }
 
     @Override
     public SoftlayerCloudServer get(String serverId) {
-        SoftlayerCloudServer cloudServer = null;
-        NodeMetadata nodeMetadata = computeService.getNodeMetadata(serverId);
-        if (nodeMetadata != null) {
-            cloudServer = new SoftlayerCloudServer(computeService, nodeMetadata);
+        JSONObject node;
+
+        try {
+            node = softlayerRestApi.getNode(serverId, connectDetails);
+        } catch (Exception e) {
+            if (logger.isErrorEnabled()) {
+                logger.error("Failed to retrieve list of nodes.", e);
+            }
+            throw new RuntimeException(e);
         }
-        return cloudServer;
+
+        return new SoftlayerCloudServer(node);
     }
 
     @Override
@@ -246,18 +246,6 @@ public class SoftlayerCloudServerApi implements CloudServerApi<SoftlayerCloudSer
         }
 
         return new ExecResponse(outputStream.toString(), errorStream.toString(), exitValue);
-    }
-
-
-    private Set<? extends NodeMetadata> getNodeMetadataByIp(final String ip) {
-        return computeService.listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
-            @Override
-            public boolean apply(ComputeMetadata computeMetadata) {
-                NodeMetadata nodeMetadata = (NodeMetadata) computeMetadata;
-                Set<String> publicAddresses = nodeMetadata.getPublicAddresses();
-                return publicAddresses.contains(ip);
-            }
-        });
     }
 
     public void setUseCommandLineSsh(boolean useCommandLineSsh) {

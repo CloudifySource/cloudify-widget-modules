@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 /**
  * Created by sefi on 22/12/14.
  */
@@ -127,6 +130,13 @@ public class SoftlayerApiTest {
         String guestId = "7669324";
 
         destroyNode(guestId);
+    }
+
+    @Test
+    public void testGetByMask() throws Exception {
+        ArrayList<JSONObject> nodes = softlayerRestApi.listByMask("sefi-test", connectDetails);
+
+        Assert.assertNotNull(nodes);
     }
 
 }

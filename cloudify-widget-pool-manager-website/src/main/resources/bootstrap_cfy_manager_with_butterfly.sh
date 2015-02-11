@@ -29,6 +29,8 @@ cfy blueprints upload -b nodecellar1 -p singlehost-blueprint.yaml -v
 echo "#################### Starting butterfly ######################"
 sudo pip install https://github.com/LironHazan/butterfly/archive/master.zip
 
+echo "PS1=\"Cloudify3>\""  > ~/.bashrc
+
 nohup butterfly.server.py --host="0.0.0.0" --port=8011 --prompt_login=False --unsecure &
 
 sleep 10

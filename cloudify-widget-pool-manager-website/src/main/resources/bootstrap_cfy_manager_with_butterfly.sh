@@ -26,6 +26,14 @@ cd cloudify-nodecellar-example-3.1-build
 echo "#################### uploading nodecellar blueprint ######################"
 cfy blueprints upload -b nodecellar1 -p singlehost-blueprint.yaml -v
 
+echo "#################### running cfy commands ######################"
+cd /home/ubuntu/
+echo "####################  cfy init ######################"
+cfy init
+
+echo "#################### running cfy use ######################"
+cfy use -t localhost
+
 echo "#################### Starting butterfly ######################"
 sudo pip install https://github.com/LironHazan/butterfly/archive/master.zip
 

@@ -127,7 +127,7 @@ public class SoftlayerApiTest {
      * Can't be run automatically, because it depends on a valid guestId.
      */
     public void testDestroyNode() throws Exception {
-        String guestId = "7669324";
+        String guestId = "8284675";
 
         destroyNode(guestId);
     }
@@ -137,6 +137,15 @@ public class SoftlayerApiTest {
         ArrayList<JSONObject> nodes = softlayerRestApi.listByMask("sefi-test", connectDetails);
 
         Assert.assertNotNull(nodes);
+    }
+
+    @Test
+    /**
+     * test get data centers.
+     */
+    public void testGetDataCenters() throws Exception {
+        ArrayList<SoftlayerDataCenter> dataCenters = softlayerRestApi.getDataCenters(connectDetails);
+        Assert.assertNotNull(dataCenters);
     }
 
 }

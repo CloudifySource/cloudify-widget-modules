@@ -9,7 +9,6 @@ import java.util.ArrayList;
  * This class's sole purpose is to convert {@link org.json.JSONObject}s into the appropriate POJOs
  * or {@link org.json.JSONArray}s into the appropriate POJO collections
  *
- *
  * Created by sefi on 03/03/15.
  */
 public class SoftlayerCodec {

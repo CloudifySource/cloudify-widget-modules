@@ -140,6 +140,9 @@ public class SoftlayerApiTest {
     }
 
     @Test
+    /**
+     * test get data centers.
+     */
     public void testGetDataCenters() throws Exception {
         ArrayList<SoftlayerDataCenter> dataCenters = softlayerRestApi.getDataCenters(connectDetails);
         Assert.assertNotNull(dataCenters);

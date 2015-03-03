@@ -228,4 +228,27 @@ public class SoftlayerRestApi {
         }
     }
 
+    /**
+     * Get a list of {@link cloudify.widget.softlayer.SoftlayerDataCenter}s.
+     *
+     * @param connectDetails
+     *                  The connection details to use for the REST calls.
+     * @return
+     *                  an {@link java.util.ArrayList} of {@link cloudify.widget.softlayer.SoftlayerDataCenter}s.
+     * @throws Exception
+     *                  Throws exception on fail.
+     */
+    public ArrayList<SoftlayerDataCenter> getDataCenters(SoftlayerConnectDetails connectDetails) throws Exception {
+        HttpResponse<JsonNode> response = Unirest.get("https://api.softlayer.com/rest/v3/SoftLayer_Location_Datacenter/getDatacenters.json")
+                .basicAuth(connectDetails.getUsername(), connectDetails.getKey())
+                .asJson();
+
+        if (response.getStatus() != 200) {
+            String error = response.getBody().getObject().getString("error");
+            throw new Exception(error);
+        }
+
+        return SoftlayerCodec.convertToDataCenters(response.getBody().getArray());
+    }
+
 }

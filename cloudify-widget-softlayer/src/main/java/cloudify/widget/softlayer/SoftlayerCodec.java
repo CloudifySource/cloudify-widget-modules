@@ -10,6 +10,8 @@ import java.util.ArrayList;
  * or {@link org.json.JSONArray}s into the appropriate POJO collections
  *
  * Created by sefi on 03/03/15.
+ *
+ * TODO: convert all usages of JSONObject and JSONArray in the SoftlayerRestApi into POJOs here.
  */
 public class SoftlayerCodec {
 

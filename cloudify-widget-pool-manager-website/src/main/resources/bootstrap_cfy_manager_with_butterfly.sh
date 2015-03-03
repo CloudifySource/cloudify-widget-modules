@@ -1,11 +1,10 @@
-#!/bin/bash
 set -e
 
 sudo wget "https://s3.amazonaws.com/cloudify-widget-bootstrap/ops+provision+script/bootstrap_script.sh"
 
 source bootstrap_script.sh
 
-wget "https://github.com/cloudify-cosmo/cloudify-nodecellar-example/archive/3.1-build.zip" -O blueprint.zip
+wget "https://github.com/cloudify-cosmo/cloudify-nodecellar-example/archive/cloudify-widget-3.1.zip" -O blueprint.zip
 
 echo "#################### update and clean source ######################"
 sudo apt-get update
@@ -22,7 +21,7 @@ sudo apt-get -y install zip unzip
 echo "#################### running unzip ######################"
 unzip -n blueprint.zip
 
-cd cloudify-nodecellar-example-3.1-build
+cd cloudify-nodecellar-example-cloudify-widget-3.1
 echo "#################### uploading nodecellar blueprint ######################"
 cfy blueprints upload -b nodecellar1 -p singlehost-blueprint.yaml -v
 

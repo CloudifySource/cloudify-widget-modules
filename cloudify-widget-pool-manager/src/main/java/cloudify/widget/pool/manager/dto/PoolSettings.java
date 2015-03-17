@@ -17,6 +17,7 @@ public class PoolSettings {
     private String authKey;
     private int maxNodes;
     private int minNodes;
+    private long ghostTimeLimit = 1000 * 60 * 20; // 20 minutes default;
     private NodeManagementSettings nodeManagement;
     private BootstrapProperties bootstrapProperties;
     private ProviderSettings provider;
@@ -71,6 +72,14 @@ public class PoolSettings {
 
     public String getUuid() {
         return uuid;
+    }
+
+    public long getGhostTimeLimit() {
+        return ghostTimeLimit;
+    }
+
+    public void setGhostTimeLimit(long ghostTimeLimit) {
+        this.ghostTimeLimit = ghostTimeLimit;
     }
 
     public void setUuid(String uuid) {

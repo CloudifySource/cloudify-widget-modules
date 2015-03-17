@@ -6,5 +6,5 @@ package cloudify.widget.pool.manager.node_management;
  * Time: 8:41 PM
  */
 public enum NodeManagementModuleType {
-    CREATE, DELETE, BOOTSTRAP, DELETE_EXPIRED, MARK_EXPIRED_PING
+    CREATE, DELETE, BOOTSTRAP, DELETE_EXPIRED, MARK_EXPIRED_PING, GHOST
 }

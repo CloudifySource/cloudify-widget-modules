@@ -45,6 +45,38 @@ public abstract class BaseNodeManagementModule<T extends BaseNodeManagementModul
         return _constraints;
     }
 
+    protected void executeDecision( DecisionModel dm ){
+        throw new UnsupportedOperationException("type " + getType() + " does not implement execute decision");
+    }
+
+    @Override
+    public T execute() {
+
+        Constraints constraints = getConstraints();
+        logger.info("- executing decisions on pool [{}]", constraints.poolSettings.getUuid());
+
+        List<DecisionModel> decisionModelsQueue = getOwnDecisionModelsQueue();
+        if (decisionModelsQueue == null || decisionModelsQueue.isEmpty()) {
+            logger.info(getType() + " : no decisions to execute");
+            return (T) this;
+        }
+        logger.info(getType() + " - found [{}] decisions", decisionModelsQueue.size());
+
+        for (final DecisionModel decisionModel : decisionModelsQueue) {
+            logger.info("decision [{}], approved [{}], executed [{}]", decisionModel.id, decisionModel.approved, decisionModel.executed);
+
+            if (decisionModel.approved && !decisionModel.executed) {
+
+                executeDecision( decisionModel );
+
+                logger.info("task sent, marking decision as executed");
+                decisionsDao.update(decisionModel.setExecuted(true));
+            }
+        }
+
+        return (T) this;
+    }
+
     protected DecisionModel buildOwnDecisionModel(D details) {
         return new DecisionModel()
                 .setDecisionType(getType())

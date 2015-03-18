@@ -8,12 +8,8 @@
         </encoder>
     </appender>
 
-
-    <logger name="cloudify.widget.pool.manager.node_management.CreateNodeManagementModule" level="DEBUG"/>
-
-    <root level="info" additivity="false">
+    <root level="all" additivity="false">
         <appender-ref ref="STDOUT"/>
     </root>
-
 
 </configuration>

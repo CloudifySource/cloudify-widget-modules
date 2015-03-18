@@ -23,6 +23,8 @@ public class NodeManagementModuleProvider implements ApplicationContextAware {
                 return applicationContext.getBean(BootstrapNodeManagementModule.class);
             case DELETE_EXPIRED:
                 return applicationContext.getBean(DeleteExpiredNodeManagementModule.class);
+            case GHOST:
+                return applicationContext.getBean(GhostsManagementModule.class);
             case MARK_EXPIRED_PING:
                 return applicationContext.getBean(PingNodeManagementModule.class);
         }

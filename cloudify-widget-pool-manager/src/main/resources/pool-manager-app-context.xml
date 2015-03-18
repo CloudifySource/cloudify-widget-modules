@@ -96,6 +96,9 @@
           class="cloudify.widget.pool.manager.node_management.DeleteExpiredNodeManagementModule" scope="prototype"/>
     <bean id="pingNodeManagementModule"
           class="cloudify.widget.pool.manager.node_management.PingNodeManagementModule" scope="prototype"/>
+    <bean id="ghostNodeManagementModule"
+          class="cloudify.widget.pool.manager.node_management.GhostsManagementModule" scope="prototype"/>
+
 
     <bean id="defaultMachineTimeout" class="cloudify.widget.pool.manager.MachineTimeout">
         <property name="duration" value="1000"/>
